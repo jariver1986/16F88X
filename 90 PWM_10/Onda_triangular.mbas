@@ -1,0 +1,54 @@
+program Onda_triangular
+
+SYMBOL DIR1= PORTA.2  'CONTROL DIRECCION MOTOR1
+SYMBOL NDIR1=PORTA.4  'CONTROL DIRECCION MOTOR1
+
+SYMBOL DIR2= PORTA.3  'CONTROL DIRECCION MOTOR2
+SYMBOL NDIR2=PORTA.5  'CONTROL DIRECCION MOTOR2
+
+' declaracion de variables
+dim VAR as WORD
+
+main:
+     OSCCON = 0X75
+     OPTION_REG = %10000110
+' REGISTRO PORTA
+     TRISA = %10000011
+     PORTA = %00000000
+
+' REGISTRO PORTB
+     TRISB = %00000000  'PIN RB1,RB2  ENTRADAS PARA SENSAR CORRIENTE DE MOTORES
+     PORTB = %00000000
+
+' REGISTRO PORTC
+     TRISC = %00000000
+     PORTC = %00000000
+' REGISTRO PORTC
+     TRISE = 0x08
+     PORTE = %00000000
+' REGISTRO ANSEL
+     ANSEL =  %00000000 ' RE1-RE2 ANALOGICO, RESTO DIGITALES
+     ANSELH = %00000000
+' CONFIGURO EL PWM A UNA FRECUENCIA DE 1000HZ
+     VAR=200
+WHILE(1)
+
+        IF PORTE.RE3 = 0 then
+           VAR = VAR + 1
+           PORTB=VAR
+           'Delay_us(100)
+           Delay_ms(10)
+           'Delay_1sec
+        ELSE
+            VAR=0
+            PORTB=VAR
+        end if
+
+        if VAR = 255 then
+           VAR = 0
+        end if
+
+
+
+WEND
+end.

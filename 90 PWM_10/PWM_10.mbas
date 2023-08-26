@@ -1,0 +1,56 @@
+program PWM_10
+
+SYMBOL DIR1= PORTA.2  'CONTROL DIRECCION MOTOR1
+SYMBOL NDIR1=PORTA.4  'CONTROL DIRECCION MOTOR1
+
+SYMBOL DIR2= PORTA.3  'CONTROL DIRECCION MOTOR2
+SYMBOL NDIR2=PORTA.5  'CONTROL DIRECCION MOTOR2
+
+' declaracion de variables
+dim VAR as WORD
+
+main:
+     OSCCON = 0X75
+     OPTION_REG = %10000110
+' REGISTRO PORTA
+     TRISA = %10000011
+     PORTA = %00000000
+
+' REGISTRO PORTB
+     TRISB = %00000000  'PIN RB1,RB2  ENTRADAS PARA SENSAR CORRIENTE DE MOTORES
+     PORTB = %00000000
+
+' REGISTRO PORTC
+     TRISC = %10010001
+     PORTC = %00000000
+' REGISTRO PORTC
+     TRISE = %00001000
+     PORTE = %00000000
+' REGISTRO ANSEL
+     ANSEL =  %00000000 ' RE1-RE2 ANALOGICO, RESTO DIGITALES
+     ANSELH = %00000000
+' CONFIGURO EL PWM A UNA FRECUENCIA DE 1000HZ
+     PWM1_Init(500)
+     PWM2_Init (500)
+     PWM1_Start ()
+     PWM2_Start ()
+     PWM1_Set_Duty (0)
+     PWM2_Set_Duty (0)
+     VAR=0
+
+WHILE(1)
+
+        IF PORTE.RE3 = 0 then
+           VAR = VAR + 25
+           PWM1_Set_Duty(VAR)
+           PWM2_Set_Duty(VAR)
+           Delay_ms(200)
+        ELSE
+            VAR=0
+        end if
+        if VAR = 250 then
+           VAR = 0
+        end if
+
+WEND
+end.

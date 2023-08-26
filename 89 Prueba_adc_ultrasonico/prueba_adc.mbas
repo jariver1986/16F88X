@@ -1,0 +1,53 @@
+program prueba_adc
+
+DIM FLANCO,TIEMPO AS BYTE
+DIM DISTANCIA,CONTADOR AS WORD
+DIM TEXT AS STRING[6]
+
+SUB PROCEDURE PULSO()
+PORTC.3=1
+Delay_us(150)
+PORTC.3=0
+END SUB
+'********************PROGRAMA PRINCIPAL+********************************
+main:
+
+   OPTION_REG=%10000110' PULL-UP DISABLED ,PRESC=128
+                        'TIEMPO= (4/FOSC)*PRESC*(256-TMR0)
+' Registro Oscilador de control
+     OSCCON = 0X75 ' Oscilador interno de 4mhz
+' Registro PUERTO B
+     TRISB = 0X00 ' PORTB salidas
+     PORTB = 0X00
+' Registro PUERTO C
+     TRISA = 0X01 ' PORTC salidas
+     PORTA = 0X00
+' Registro PUERTO C
+     TRISC = 0X31 ' PORTC salidas
+     PORTC = 0X00
+' Registro PUERTO E
+     TRISE = 0X00 ' PORTE salidas
+     PORTE = 0X00
+' Seleccion de registro analogico. 1 analogico, 0 digitales
+     ANSEL = 0X01 ' AN<7:0>
+     ANSELH = 0X00 ' AN<13:8>
+     UART1_Init(9600)
+     CONTADOR=0
+     UART1_Write_Text("HOLA")
+     Delay_ms(100)
+     
+
+WHILE(1)
+  PULSO()
+  DISTANCIA = Adc_Read(0)>>2 + DISTANCIA
+  WordToStr(DISTANCIA/CONTADOR,TEXT)
+  UART1_Write_Text("XX")
+  UART1_Write_Text(TEXT)
+  Delay_ms(200)
+  if (CONTADOR>60000)or(distancia>60000) then
+     DISTANCIA=0
+  CONTADOR=0
+  end if
+  
+WEND
+end.

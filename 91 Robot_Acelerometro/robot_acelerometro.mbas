@@ -1,0 +1,137 @@
+program robot_acelerometro
+SYMBOL DIR1= PORTA.2
+SYMBOL NDIR1=PORTA.4
+SYMBOL DIR2= PORTA.3
+SYMBOL NDIR2=PORTA.5
+SYMBOL S1=PORTA.6
+SYMBOL S2=PORTA.7
+DIM DATO,sensores AS BYTE
+sub procedure RETRO()
+PORTA.RA2 = 0
+PORTA.RA4 = 1
+PORTA.RA3 = 1
+PORTA.RA5 = 0
+PWM1_Set_Duty(200)
+PWM2_Set_Duty(200)
+end sub
+sub procedure AVANZAR()
+PORTA.RA2 = 1
+PORTA.RA4 = 0
+PORTA.RA3 = 0
+PORTA.RA5 = 1
+PWM1_Set_Duty(200)
+PWM2_Set_Duty(200)
+end sub
+sub procedure GIRO_DERECHA()
+PORTA.RA2 = 0
+PORTA.RA4 = 1
+PORTA.RA3 = 0
+PORTA.RA5 = 1
+PWM1_Set_Duty(200)
+PWM2_Set_Duty(200)
+end sub
+sub procedure GIRO_IZQUIERDA()
+PORTA.RA2 = 1
+PORTA.RA4 = 0
+PORTA.RA3 = 1
+PORTA.RA5 = 0
+PWM1_Set_Duty(200)
+PWM2_Set_Duty(200)
+end sub
+sub procedure DETENER()
+PORTA.RA2 = 0
+PORTA.RA4 = 0
+PORTA.RA3 = 0
+PORTA.RA5 = 0
+PWM1_Set_Duty(0)
+PWM2_Set_Duty(0)
+end sub
+sub procedure ADELANTE_IZQUIERDA()
+PORTA.RA2 = 0
+PORTA.RA4 = 1
+PORTA.RA3 = 1
+PORTA.RA5 = 0
+PWM1_Set_Duty(250)
+PWM2_Set_Duty(150)
+Delay_ms(200)
+end sub
+sub procedure ADELANTE_DERECHA()
+PORTA.RA2 = 0
+PORTA.RA4 = 1
+PORTA.RA3 = 1
+PORTA.RA5 = 0
+PWM1_Set_Duty(150)
+PWM2_Set_Duty(250)
+Delay_ms(200)
+end sub
+sub procedure sonido
+portb.rb0=1
+Delay_ms(100)
+portb.rb0=0
+Delay_ms(100)
+
+
+end sub
+main:
+OPTION_REG=0X86
+OSCCON  = 0X75
+PORTA   = %00000000
+TRISA   = %11000011
+PORTB   = %00000000
+TRISB   = %00000000
+PORTC   = %10000000
+TRISC   = %10000000
+ANSEL   = %00000000
+ANSELH  = %00010000
+PWM1_Init(1000)
+PWM2_Init(1000)
+PWM1_Start()
+PWM2_Start()
+UART1_Init(9600)
+
+
+
+while 1
+
+       if UART1_Data_Ready then
+          DATO = UART1_Read
+       end if
+       if DATO = "1" then
+          AVANZAR
+       end if
+       if DATO = "5" then
+           DETENER
+       end if
+       if DATO = "2" then
+            RETRO
+       end if
+       if DATO = "4" then
+            GIRO_DERECHA
+            sonido
+       end if
+       if DATO = "5" then
+            GIRO_IZQUIERDA
+       end if
+
+       if DATO = "6" then
+          portb.rb0=0
+          WHILE 1
+            sensores=(S2*2)+(S1*1)
+            select case sensores
+            case 0
+                 AVANZAR
+                 Delay_10ms
+            case 1
+                 GIRO_IZQUIERDA
+                 Delay_10ms
+            case 2
+                 GIRO_DERECHA
+                 Delay_10ms
+            case 3
+                 AVANZAR
+                 Delay_10ms
+            end select
+          WEND
+       end if
+wend
+end.
