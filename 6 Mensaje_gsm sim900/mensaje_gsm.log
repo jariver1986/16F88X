@@ -1,0 +1,10 @@
+Line	MessageNo	File Name
+0	1	mBPic.exe -DBG -pP16F887 -MSF -Y -DL -O11111114 -fo8 -N"E:\Proyectos 2012\Lab teleco\Mensaje_gsm\mensaje_gsm.mbppi" -SP"C:\Program Files\Mikroelektronika\mikroBasic PRO for PIC\defs\" -SP"C:\Program Files\Mikroelektronika\mikroBasic PRO for PIC\Uses\P16\" -SP"E:\Proyectos 2012\Lab teleco\Mensaje_gsm\" "__Lib_Math.mcl" "__Lib_MathDouble.mcl" "__Lib_System.mcl" "__Lib_Delays.mcl" "__Lib_CType.mcl" "__Lib_String.mcl" "__Lib_Conversions.mcl" "__Lib_Time.mcl" "__Lib_Trigon.mcl" "__Lib_Trigonometry.mcl" "__Lib_Button.mcl" "__Lib_Keypad4x4.mcl" "__Lib_Manchester.mcl" "__Lib_OneWire.mcl" "__Lib_PS2.mcl" "__Lib_Sound.mcl" "__Lib_SoftI2C.mcl" "__Lib_SoftSPI.mcl" "__Lib_SoftUART.mcl" "__Lib_ADC_88X.mcl" "__Lib_EEPROM.mcl" "__Lib_FLASH_RW.mcl" "__Lib_I2C_c34.mcl" "__Lib_PWM_c21.mcl" "__Lib_SPI_c345.mcl" "__Lib_UART_c67.mcl" "__Lib_PortExpander.mcl" "__Lib_CANSPI.mcl" "__Lib_CF.mcl" "__Lib_GlcdFonts.mcl" "__Lib_Glcd.mcl" "__Lib_LcdConsts.mcl" "__Lib_Lcd.mcl" "__Lib_RS485.mcl" "__Lib_T6963C.mcl" "__Lib_SPIGlcd.mcl" "__Lib_SPILcd.mcl" "__Lib_SPILcd8.mcl" "__Lib_SPIT6963C.mcl" "__Lib_EthEnc28j60.mcl" "mensaje_gsm.mbas"	 
+diagnostics: 0	154	Available RAM: 352 [bytes], Available ROM: 8192 [bytes]	 
+diagnostics: 0	132	Compilation Started	E:\Proyectos 2012\Lab teleco\Mensaje_gsm\mensaje_gsm.mbas
+diagnostics: 0	133	Compiled Successfully	E:\Proyectos 2012\Lab teleco\Mensaje_gsm\mensaje_gsm.mbas
+diagnostics: 0	138	All files Compiled in 187 ms	 
+diagnostics: 0	144	Project Linked Successfully	mensaje_gsm.mbppi
+diagnostics: 0	139	Linked in 1794 ms	 
+diagnostics: 0	140	Project 'mensaje_gsm.mbppi' completed: 3151 ms	 
+diagnostics: 0	103	Finished successfully: 09 Dec 2012, 10:57:41	mensaje_gsm.mbppi

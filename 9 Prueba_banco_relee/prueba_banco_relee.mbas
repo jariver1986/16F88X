@@ -1,0 +1,66 @@
+program prueba_banco_relee
+
+' ***************CONECXIONES PARA EL MODULO LCD*************************
+dim rele1 as sbit at RB1_bit
+    rele2 as sbit at RA3_bit
+    rele3 as sbit at RC2_bit
+    rele4 as sbit at RA4_bit
+    rele5 as sbit at RC1_bit
+    rele6 as sbit at RA2_bit
+    rele7 as sbit at RA5_bit
+    rele8 as sbit at RB2_bit
+
+    rele1_Direction as sbit at TRISB1_bit
+    rele2_Direction as sbit at TRISA3_bit
+    rele3_Direction as sbit at TRISC2_bit
+    rele4_Direction as sbit at TRISA4_bit
+    rele5_Direction as sbit at TRISC1_bit
+    rele6_Direction as sbit at TRISA2_bit
+    rele7_Direction as sbit at TRISA5_bit
+    rele8_Direction as sbit at TRISB2_bit
+
+main:
+' *********DECLARACION DE PUERTOS *****************
+  OPTION_REG = 0X86
+  TRISA = 0
+  PORTA = 0
+  
+  TRISB = 0
+  PORTB = 0
+  
+  TRISC = 0
+  PORTC = 0
+  
+  rele1 = 0
+  rele2 = 0
+  rele3 = 0
+  rele4 = 0
+  rele5 = 0
+  rele6 = 0
+  rele7 = 0
+  rele8 = 0
+
+  
+  ANSEL  = 0
+  ANSELH = 0
+
+
+  while TRUE
+    rele1 = not rele1
+    Delay_1sec
+    rele2 = not rele2
+    Delay_1sec
+    rele3 = not rele3
+    Delay_1sec
+    rele4 = not rele4
+    Delay_1sec
+    rele5 = not rele5
+    Delay_1sec
+    rele6 = not rele6
+    Delay_1sec
+    rele7 = not rele7
+    Delay_1sec
+    rele8 = not rele8
+    Delay_1sec
+  wend
+end.

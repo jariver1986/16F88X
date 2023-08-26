@@ -1,0 +1,53 @@
+program prueba_ldr
+
+dim text         as string[10]
+dim VALOR,VALOR2,TEMP_VALOR AS WORD
+DIM PORCENTAJE AS FLOAT
+DIM PUERTO AS BYTE
+main:
+     OPTION_REG = 0X00
+' Registro Oscilador de control
+     OSCCON = 0X75 ' Oscilador interno de 8mhz
+' Registro PUERTO A
+     TRISA = 0X02 ' porta.5 como entrada digital
+     PORTA = 0X00
+' Registro PUERTO B
+     TRISB = 0X00 ' porta.5 como entrada digital
+     PORTB = 0X00
+' Registro PUERTO C
+     TRISB = 0X80
+     PORTB = 0X00
+' Selección de registro analógico. 1 analógico, 0 digitales
+     ANSEL = 0X02 ' AN<7:0>
+     ANSELH = 0X00 ' AN<13:8>
+     TRISC=0X00
+     PORTC=0X00
+     delay_ms(250)
+    UART1_Init(9600)
+    UART1_Write_Text("IDEAS&TECNOLOGIA")
+    UART1_Write(0X0D)
+    UART1_Write_Text("  LDR  ")
+    UART1_Write(0X0D)
+    delay_ms(1000)
+    while (TRUE)
+        VALOR=Adc_Read(1)
+        WordToStr(VALOR,TEXT)
+        'VALOR2=Adc_Read(0)>>2
+        PUERTO=VALOR>>2
+        PORTB = PUERTO
+'        TEMP_VALOR=1023-VALOR
+'        PORCENTAJE =(TEMP_VALOR /1023)*100
+'        FLOATToStr(PORCENTAJE ,text)
+        UART1_Write_Text(" distancia: ")
+        UART1_Write(text[0])
+        UART1_Write(text[1])
+        UART1_Write(text[2])
+        UART1_Write(text[3])
+        UART1_Write(text[4])
+        UART1_Write(text[5])
+        'UART1_Write_Text(" %")
+        UART1_Write(0X0A)
+        UART1_Write(0X0D)
+        Delay_ms(500)
+    wend
+end.

@@ -1,0 +1,229 @@
+program mensaje_gsm
+'********************DECLARACION DE VARIABLES****************************
+DIM FLANCO,TIEMPO,receive,viajero AS BYTE
+DIM DISTANCIA AS WORD
+DIM TXT AS STRING [6]
+DIM bandera as bit
+
+sub procedure interrupt
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' RECIVE POR PUERTO SERIAL
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+     if (PIR1.RCIF=1) then
+          PIR1.RCIF=0
+
+          receive = UART1_Read()
+          select case viajero
+               case 0
+                     if (receive = 0x52) or (receive = 0x2B) then ' I
+                          viajero = 4
+                     else
+                          viajero = 0
+                     end if
+               case 1
+                     if (receive = 0x49) OR (receive = 0x43) then ' ide temp
+                          viajero = 2
+                     else
+                          viajero = 0
+                     end if
+               case 2 ' display 1
+                     if (receive = 0x4E) OR (receive = 0x4D)then ' ide temp
+                          viajero = 3
+                     else
+                          viajero = 0
+                     end if
+               case 3 ' display 2
+                     if (receive = 0x47) OR (receive = 0x54)then ' ide temp
+                          viajero = 4
+                     else
+                          viajero = 0
+                     end if
+          end select
+     end if
+     INTCON=0XE0
+     PIE1.RCIE=1
+     PIR1.RCIF=0
+     end sub
+
+
+sub procedure led1
+ PORTB.RB0=1
+end sub
+sub procedure noled1
+ PORTB.RB0=0
+end sub
+sub procedure led2
+ PORTB.RB1=1
+end sub
+sub procedure noled2
+ PORTB.RB1=0
+end sub
+sub procedure led3
+ PORTB.RB2=1
+end sub
+sub procedure noled3
+ PORTB.RB2=0
+end sub
+sub procedure led4
+ PORTB.RB3=1
+end sub
+sub procedure noled4
+ PORTB.RB3=0
+end sub
+SUB PROCEDURE pila_mensaje()
+     UART1_Write_Text("AT")
+     UART1_Write(0X0D)
+     UART1_Write(0X0A)
+     Delay_1sec
+     UART1_Write_Text("AT+CMGS")
+     UART1_Write(0X3D)
+     UART1_Write(0X22)
+     UART1_Write_Text("0992409136")
+     UART1_Write(0X22)
+     UART1_Write(0X0D)
+     UART1_Write(0X0A)
+     Delay_1sec
+end sub
+
+sub procedure cola_mensaje
+     UART1_Write(0X1A)
+     Delay_1sec
+     UART1_Write(0X41)
+     UART1_Write(0X54)
+     UART1_Write(0X0D)
+     UART1_Write(0X0A)
+     Delay_1sec
+     Delay_1sec
+     Delay_1sec
+     Delay_1sec
+END SUB
+
+SUB PROCEDURE LLAMADA()
+ UART1_Write(0X41)   'A
+      UART1_Write(0X54)   'T
+      UART1_Write(0X0D)    'enter
+      UART1_Write(0X0A)
+      Delay_1sec
+      UART1_Write_Text("ATD0992409136")
+      UART1_Write(0X3B)
+      UART1_Write(0X0D)
+      UART1_Write(0X0A)
+      Delay_1sec
+      Delay_1sec
+      Delay_1sec
+      Delay_1sec
+      Delay_1sec
+      Delay_1sec
+      Delay_1sec
+      Delay_1sec
+      Delay_1sec
+      Delay_1sec
+      UART1_Write_Text("ATH")
+      UART1_Write(0X0D)
+      UART1_Write(0X0A)
+      UART1_Write(0X0D)
+      UART1_Write(0X0A)
+      Delay_1sec
+      Delay_1sec
+      Delay_1sec
+      Delay_1sec
+      Delay_1sec
+      Delay_1sec
+      Delay_1sec
+      Delay_1sec
+      Delay_1sec
+      Delay_1sec
+END SUB
+'********************PROGRAMA PRINCIPAL+********************************
+main:
+OPTION_REG=%10000110' PULL-UP DISABLED ,PRESC=128
+'TIEMPO= (4/FOSC)*PRESC*(256-TMR0)
+' Registro Oscilador de control
+OSCCON = 0X75 ' Oscilador interno de 4mhz
+
+INTCON = 0XE0 ' Activado interrupciones globales
+                   ' Registro control de interrupciones
+                   ' Activado interrupciones perifericas
+PIR1.RCIF=0
+PIE1.RCIE=1
+
+' Registro PUERTO B
+TRISA = 0X00 ' PORTB salidas
+PORTA = 0X00
+
+' Registro PUERTO B
+TRISB = 0X00 ' PORTB salidas
+PORTB = 0X00
+' Registro PUERTO C
+TRISC = 0X0F ' PORTC salidas
+PORTC = 0X00
+TRISD = 0X00 ' PORTC salidas
+PORTD = 0X00
+
+' Registro PUERTO E
+TRISE = 0X00 ' PORTE salidas
+PORTE = 0X00
+' Seleccion de registro analogico. 1 analogico, 0 digitales
+ANSEL = 0X00 ' AN<7:0>
+ANSELH = 0X00 ' AN<13:8>
+FLANCO=0
+viajero=0
+bandera=0
+UART1_Init(9600)
+Delay_ms(100)
+UART1_Write(0X41)   'A
+UART1_Write(0X54)   'T
+UART1_Write(0X0D)    'enter
+UART1_Write(0X0A)
+Delay_ms(100)
+
+WHILE(1)
+  Delay_1sec
+  Delay_1sec
+  if PORTC.RC0=1 then  'SI AUN HAY ENERGIA
+      led1()
+      Delay_100ms
+      IF PORTC.RC1=1 THEN
+          led2()
+          Delay_1sec
+          pila_mensaje()
+          UART1_Write_Text("INGRESO NO AUTORIZADO POR LA PUERTA")
+          cola_mensaje()
+      else
+          noled2()
+          Delay_100ms
+      END IF
+      
+      IF PORTC.RC2=0 THEN
+          noled3()
+          Delay_1sec
+          pila_mensaje()
+          UART1_Write_Text("INGRESO NO AUTORIZADO POR LA VENTANA")
+          cola_mensaje()
+      ELSE
+          led3()
+      END IF
+      
+      IF PORTC.RC3=0 THEN
+         noled4()
+         Delay_1sec
+         pila_mensaje()
+         UART1_Write_Text("INTRUSO DENTRO DE LA CASA")
+         cola_mensaje()
+      else
+         led4()
+      END IF
+  ELSE
+      noled1()             'SI NO HAY ENERGIA
+      LLAMADA()
+      LLAMADA()
+      LLAMADA()
+      pila_mensaje()
+      UART1_Write_Text("CORTE DE ENERGIA DE LA CASA")
+      cola_mensaje()
+  END IF
+
+  Delay_ms(50)
+
+WEND
+end.

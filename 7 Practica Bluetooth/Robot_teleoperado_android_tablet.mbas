@@ -1,0 +1,183 @@
+program Robot_teleoperado_android_tablet
+
+SYMBOL DIR1= PORTA.2  'CONTROL DIRECCION MOTOR1
+SYMBOL NDIR1=PORTA.4  'CONTROL DIRECCION MOTOR1
+
+SYMBOL DIR2= PORTA.3  'CONTROL DIRECCION MOTOR2
+SYMBOL NDIR2=PORTA.5  'CONTROL DIRECCION MOTOR2
+
+dim adc_rd as word
+dim datos_set, dato_recep,viajero,vel as byte
+dim comando as byte [10]
+
+
+  sub procedure interrupt
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' RECIVE POR PUERTO SERIAL
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+     if (PIR1.RCIF=1) then
+          PIR1.RCIF=0
+'          Recepcion SERIAL
+'          I&T10000=ADELANTE
+'          I&T01000=ATRAS
+'          I&T00100=DERECHA
+'          I&T00010=IZQUIERDA
+'          I&T00001=PARAR
+          dato_recep = UART1_Read()
+          select case viajero
+          'IDENTIFICADORES
+               case 0
+                     if dato_recep = "I" then ' I
+                          viajero = 1
+                     else
+                          viajero = 0
+                     end if
+               case 1
+                     if dato_recep = "&" then
+                          viajero = 2
+                     else
+                          viajero=0
+                     end if
+               case 2
+                     if dato_recep = "T" then
+                          viajero = 3
+                     else
+                          viajero=0
+                     end if
+          'SE GUARDAN EN UN ARREGLO LOS COMANDOS
+               case 3
+                     comando[1] = dato_recep    'ADELANTE
+                     viajero=4
+               case 4
+                     comando[2] = dato_recep    'ATRAS
+                     viajero=5
+               case 5
+                     comando[3] = dato_recep    'IZQUIERDA
+                     viajero=6
+               case 6
+                     comando[4] = dato_recep    'DERECHA
+                     viajero=7
+               case 7
+                     comando[5] = dato_recep    'ATRAS
+                     viajero = 8
+               case 8
+                    viajero=0
+
+          end select
+     end if
+     INTCON=0XE0
+     PIE1.RCIE=1
+     PIR1.RCIF=0
+     end sub
+sub procedure adelante()
+     DIR1  = 1
+     NDIR1 = 0
+
+     DIR2  = 1
+     NDIR2 = 0
+end sub
+sub procedure parar()
+     DIR1  = 0
+     NDIR1 = 0
+
+     DIR2  = 0
+     NDIR2 = 0
+end sub
+sub procedure izquierda()
+     DIR1  = 1
+     NDIR1 = 0
+
+     DIR2  = 0
+     NDIR2 = 1
+end sub
+sub procedure derecha()
+     DIR1  = 0
+     NDIR1 = 1
+
+     DIR2  = 1
+     NDIR2 = 0
+end sub
+sub procedure atras()
+     DIR1  = 0
+     NDIR1 = 1
+
+     DIR2  = 0
+     NDIR2 = 1
+end sub
+
+main:
+
+OSCCON = 0X75 ' Oscilador interno de 8mhz
+OPTION_REG = 0x86
+INTCON = 0XE0      ' Activado interrupciones globales
+                   ' Registro control de interrupciones
+                   ' Activado interrupciones perifericas
+PIR1.RCIF=0
+PIE1.RCIE=1
+TRISA =0X01
+TRISB= 0X00
+PORTB= 0X00
+
+TRISC = 0x80
+PORTC = 0x00
+ANSEL = 0X01
+ANSELH = 0X00
+PWM1_Init(1000)'FRECUENCIA (HZ)
+PWM2_Init(1000)'FRECUENCIA (HZ)
+PWM1_Set_Duty(0)' VEL0CIDAD 255-> 100%  MAXIMA
+               ' VELOCIDAD 0->0%   MINIMA
+PWM2_Set_Duty(0)
+PWM1_Start()
+PWM2_Start()
+
+UART1_Init(9600)
+datos_set=0x00
+viajero=0
+vel=Adc_Read(0)>>2
+PORTB=vel
+Delay_ms(1000)
+portb=0
+delay_ms(200)
+portb=255
+delay_ms(200)
+portb=0
+delay_ms(200)
+portb=255
+delay_ms(200)
+portb=0
+
+  while(1)
+     vel=Adc_Read(0)>>2
+       'NOTA:
+       'Velocidad de motores calibrada con PWM para mejoras
+       'en las direcciones
+       if comando[1]=0x31 then    'ADELANTE
+          adelante()
+          PWM1_Set_Duty(vel)
+          PWM2_Set_Duty(vel)
+          PORTB=1
+       end if
+       if comando[2]=0x31 then     'ATRAS
+          atras()
+          PWM1_Set_Duty(vel)
+          PWM2_Set_Duty(vel)
+          PORTB=2
+       end if
+       if comando[3]=0x31 then     'IZQUIERDA
+          adelante()
+          PWM1_Set_Duty(vel/2)
+          PWM2_Set_Duty(vel)
+          PORTB=4
+       end if
+       if comando[4]=0x31 then     'DERECHA
+          adelante()
+          PWM1_Set_Duty(vel)
+          PWM2_Set_Duty(vel/2)
+          PORTB=8
+       end if
+       if comando[5]=0x31 then     'PARAR
+          parar()
+          PORTB=0
+       end if
+  wend
+end.

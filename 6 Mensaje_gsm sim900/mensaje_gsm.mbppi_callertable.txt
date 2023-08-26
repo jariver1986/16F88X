@@ -1,0 +1,30 @@
+main
+	UART1_Init
+	UART1_Write
+	Delay_1sec
+	led1
+	Delay_100ms
+	led2
+	pila_mensaje
+		UART1_Write_Text
+			UART1_Write
+		UART1_Write
+		Delay_1sec
+	UART1_Write_Text
+		UART1_Write
+	cola_mensaje
+		UART1_Write
+		Delay_1sec
+	noled2
+	noled3
+	led3
+	noled4
+	led4
+	noled1
+	LLAMADA
+		UART1_Write
+		Delay_1sec
+		UART1_Write_Text
+			UART1_Write
+interrupt
+	UART1_Read

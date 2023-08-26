@@ -1,0 +1,18 @@
+main
+	PWM1_Init
+	PWM2_Init
+	PWM1_Set_Duty
+		Mul_16x16_U
+	PWM2_Set_Duty
+		Mul_16x16_U
+	PWM1_Start
+	PWM2_Start
+	UART1_Init
+	Adc_Read
+		Delay_22us
+	adelante
+	Div_8x8_U
+	atras
+	parar
+interrupt
+	UART1_Read
