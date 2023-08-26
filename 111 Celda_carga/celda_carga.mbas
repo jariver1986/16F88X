@@ -1,0 +1,49 @@
+program celda_carga
+
+' *
+' * Nombre de función:
+' *   CELDA DE CARGA
+' * Descripcion:
+' *   DIGITALIZA LA SEÑAL ANALÓGICA OBTENIDA POR EL PIN RA0
+' *   Y LA TRANSMITE POR PROTOCOLO DE COMUNICACION UART
+' * Asesor:
+' *   John Rivera
+ '* Estudiante Capacitado:
+' *   DAVID COROZO
+' * NOTAS:
+' *   Señal de entrada analogica entre valor de 0-5 voltios
+' *
+
+DIM CENTINELA AS BYTE
+DIM PESO AS WORD
+DIM DATO AS STRING[4]
+DIM MENSAJE AS STRING[50]
+
+main:
+OSCCON = %01110101               ' FRECUENCIA DE TRABAJO A 8 MHZ
+PORTA  = %00000000               ' ENCERA PUERTA A
+PORTB  = %00000000               ' ENCERA PUERTA B
+PORTC  = %00000000               ' ENCERA PUERTA C
+TRISA  = %00000001               ' ENCERA PUERTA RA0 COMO ENTRADA
+TRISB  = %00000000               ' ENCERA TRIS B COMO SALIDA
+TRISC  = %00000000               ' ENCERA TRIS C COMO SALIDA RC6
+ANSEL  = %00000001               ' ENCERA PUERTO COMO ENTRADA ANALOGICA RA0
+ANSELH = %00000000               ' ENCERA PUERTO B COMO E/S DIGITAL
+UART1_Init(9600)
+centinela=0
+while (1)
+
+      if UART1_Data_Ready = 1 then
+         UART1_Read_Text(MENSAJE , "*", 50)
+         centinela = 1
+      end if
+      if centinela=1 then
+         PESO = Adc_Read(0)             'LECTURA DE VALOR DE VOLTAJE ANALOGICO
+         WordToStr(PESO,DATO)           '
+         strcat(DATO,MENSAJE)
+         UART1_Write_Text(MENSAJE)  '
+         CENTINELA=0
+      end if
+      Delay_10ms
+wend
+end.

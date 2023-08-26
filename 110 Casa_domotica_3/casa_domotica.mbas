@@ -1,0 +1,85 @@
+program casa_domotica
+DIM DATO AS BYTE
+DIM CENT1,CENT2,CENT3,CENT4,CENT5 AS BIT
+DIM GUARDADO,GUARDADO2 AS BYTE
+main:
+OSCCON = 0X75
+PORTA  = 0X00
+TRISA  = 0X00
+PORTB  = 0X00
+TRISB  = 0X00
+PORTC  = 0X00
+TRISC  = 0X80
+PORTD  = 0X00
+TRISD  = 0X00
+ANSEL  = 0X00
+ANSELH = 0X00
+UART1_Init(9600)
+DATO=0
+CENT1=0
+CENT2=0
+CENT3=0
+CENT4=0
+CENT5=0
+GUARDADO=0
+GUARDADO2=0
+
+while TRUE
+    if  UART1_Data_Ready=1 then
+        DATO = UART1_Read
+    end if
+    if DATO="A" then
+       CENT1 = NOT(CENT1)
+    end if
+    if DATO="B" then
+       CENT2 = NOT(CENT2)
+    end if
+    if DATO="C" then
+       CENT3 = NOT(CENT3)
+    end if
+    if DATO="D" then
+       CENT4 = NOT(CENT4)
+    end if
+    if DATO="E" then
+       CENT5 = NOT(CENT5)
+    end if
+
+    if CENT1=1 then
+       PORTC = PORTC OR %00000001
+    ELSE
+       PORTC = PORTC OR %00000000
+    end if
+    if CENT2=1 then
+       PORTC = PORTC OR %00000010
+    ELSE
+       PORTC = PORTC OR %00000000
+    end if
+    if CENT3=1 then
+       PORTC = PORTC OR %00000100
+    ELSE
+       PORTC = PORTC OR %00000000
+    end if
+    if CENT4=1 then
+       PORTC = PORTC OR %00001000
+    ELSE
+       PORTC = PORTC OR %00000000
+    end if
+    if CENT5=1 then
+       PORTD = PORTD OR %00000001
+    ELSE
+       PORTC = PORTC OR %00000000
+    end if
+    Delay_ms(1000)
+    GUARDADO=PORTC
+    GUARDADO2=PORTD
+    PORTC=0
+    PORTD=0
+    DATO=0
+    Delay_ms(3000)
+wend
+
+end.
+
+
+
+
