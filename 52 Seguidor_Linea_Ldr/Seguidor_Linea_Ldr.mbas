@@ -1,0 +1,233 @@
+program Seguidor_Linea_Ldr
+
+' CÓDIGO GUÍA:
+' ROBOT SEGUIDOR DE LÍNEAS DESTREZA CON 4 SENSORES EN "T"
+'
+' Este código es una guía para que el estudiante comprenda la dinámica del robot y
+' el uso de los módulos de Ideas&Tecnología. Este código debe ser MODIFICADO y MEJORADO
+' según las aptitudes del cliente que adquiere el Kit de robótica o los estudiantes
+' del taller de Ideas&Tecnología, siendo responsabilidad del cliente o estudiante
+' el uso del código integro para el Campeonato Ecuatoriano de Robótica (CER).
+'
+' Posición física de sensores y motores para el desarrollo del código guía:
+'         S4
+'      S3 S2 S1
+' []-M1       M2-[]
+'
+'portC.3 = S1
+'portC.4 = S2
+'portC.5 = S3
+'portC.6 = S4
+'
+' Información: info@ideastechnology.com
+' oficina: 045102623
+' www.ideastechnology.com
+' Guayaquil - Ecuador
+
+
+SYMBOL DIR1= PORTA.2  'CONTROL DIRECCION MOTOR1
+SYMBOL NDIR1=PORTA.4  'CONTROL DIRECCION MOTOR1
+
+SYMBOL DIR2= PORTA.3  'CONTROL DIRECCION MOTOR2
+SYMBOL NDIR2=PORTA.5  'CONTROL DIRECCION MOTOR2
+
+SYMBOL S1=PORTC.3  'SENSOR INFRARROJO 1 CONECTADO AL PORTB.3
+SYMBOL S2=PORTC.4  'SENSOR INFRARROJO 2 CONECTADO AL PORTB.4
+SYMBOL S3=PORTC.5  'SENSOR INFRARROJO 3 CONECTADO AL PORTB.5
+SYMBOL S4=PORTC.6  'SENSOR INFRARROJO 4 CONECTADO AL PORTB.6
+
+DIM vel,sensores,sensor AS BYTE
+'************PROCEDIMIENTO PARA CONTROLAR DIRECCION Y VELOCIDAD DE LOS MOTORES 1  y 2 ****************
+'************ SET_MOTOR(DIM MOTOR1,MOTOR2 AS INTEGER)
+'*****MOTOR1: PUEDE TOMAR VALORES ENTRE -255 A +255 DONDE EL SIGNO CONTROLA LA DIRECCION DE GIRO
+'******* (-) GIRA EN UN SENTIDO, (+) GIRO SENTIDO OPUESTO ,EL VALOR NUMERICO INDICA LA VELOCIDAD
+'******* CON 255 VELOCIDAD MAXIMA C0N 0 VELOCIDAD MINIMA (STOP)
+''MAXIMA VELOCIDDA EN UN SENTIDO 255 MINIMA VELOCIDAD=0
+'*****MOTOR2: PUEDE TOMAR VALORES ENTRE -255 A +255 DONDE EL SIGNO CONTROLA LA DIRECCION DE GIRO
+'******* (-) GIRA EN UN SENTIDO, (+) GIRO SENTIDO OPUESTO ,EL VALOR NUMERICO INDICA LA VELOCIDAD
+'******* CON 255 VELOCIDAD MAXIMA C0N 0 VELOCIDAD MINIMA (STOP)
+''MAXIMA VELOCIDDA EN UN SENTIDO 255 MINIMA VELOCIDAD=0
+
+
+
+SUB PROCEDURE tiempo ()
+    delay_ms(10)
+END SUB
+sub procedure adelante()
+     DIR1  = 1
+     NDIR1 = 0
+
+     DIR2  = 1
+     NDIR2 = 0
+
+     PWM1_Set_Duty(vel)
+     PWM2_Set_Duty(vel)
+     PORTB=1
+end sub
+sub procedure parar()
+     DIR1  = 0
+     NDIR1 = 0
+
+     DIR2  = 0
+     NDIR2 = 0
+end sub
+sub procedure izquierda()
+     DIR1  = 1
+     NDIR1 = 0
+
+     DIR2  = 0
+     NDIR2 = 1
+
+     PORTB=4
+end sub
+sub procedure derecha()
+     DIR1  = 0
+     NDIR1 = 1
+
+     DIR2  = 1
+     NDIR2 = 0
+
+     PORTB=8
+end sub
+sub procedure atras()
+     DIR1  = 0
+     NDIR1 = 1
+
+     DIR2  = 0
+     NDIR2 = 1
+
+     PWM1_Set_Duty(vel)
+     PWM2_Set_Duty(vel)
+     PORTB=2
+end sub
+main:
+
+OPTION_REG=%10000000
+TRISA=%00000011
+TRISB=%00000000  '
+TRISC=%01111000
+TRISE=8
+ANSEL=%00000011
+ANSELH=0
+PWM1_Init(1000)'FRECUENCIA (HZ)
+PWM2_Init(1000)'FRECUENCIA (HZ)
+PWM1_Set_Duty(0)' VEL0CIDAD 255-> 100%  MAXIMA
+               ' VELOCIDAD 0->0%   MINIMA
+PWM2_Set_Duty(0)
+PWM1_Start()
+PWM2_Start()
+
+portb=255
+delay_ms(200)
+portb=0
+delay_ms(200)
+portb=255
+delay_ms(200)
+portb=0
+
+WHILE(1)
+  sensor=Adc_Read(1)>>2
+  if sensor<220 then
+        vel=Adc_Read(0)>>2
+        sensores=(s4*8)+(S3*4)+(S2*2)+(S1*1)
+
+        select case sensores
+        case 0' S4 S3 S2 S1 = 0 0 0 0
+             izquierda()
+             tiempo
+             adelante()
+             tiempo
+             PORTB=sensores
+        case 1' S4 S3 S2 S1 = 0 0 0 1
+             PORTB=sensores
+             izquierda()
+             tiempo
+             adelante()
+             tiempo
+        case 2' S4 S3 S2 S1 = 0 0 1 0
+             PORTB=sensores
+             derecha()
+             tiempo
+             adelante()
+             tiempo
+        case 3' S4 S3 S2 S1 = 0 0 1 1
+             PORTB=sensores
+             adelante()
+             tiempo
+        case 4' S4 S3 S2 S1 = 0 1 0 0
+             PORTB=sensores
+             derecha()
+             tiempo
+             adelante()
+             tiempo
+        case 5' S4 S3 S2 S1 = 0 1 0 1
+             PORTB=sensores
+             izquierda()
+             tiempo
+             adelante()
+             tiempo
+        case 6' S4 S3 S2 S1 = 0 1 1 0
+             PORTB=sensores
+             derecha()
+             tiempo
+             adelante()
+             tiempo
+        case 7' S4 S3 S2 S1 = 0 1 1 1
+             PORTB=sensores
+             derecha()
+             tiempo
+             adelante()
+             tiempo
+        case 8' S4 S3 S2 S1 = 1 0 0 0
+             PORTB=sensores
+             adelante()
+             tiempo
+        case 9' S4 S3 S2 S1 = 1 0 0 1
+             PORTB=sensores
+             izquierda()
+             tiempo
+             adelante()
+             tiempo
+        case 10'S4 S3 S2 S1 = 1 0 1 0
+             PORTB=sensores
+             derecha()
+             tiempo
+             adelante()
+             tiempo
+        case 11'S4 S3 S2 S1 = 1 0 1 1
+             PORTB=sensores
+             adelante()
+             tiempo
+        case 12'S4 S3 S2 S1 = 1 1 0 0
+             PORTB=sensores
+             derecha()
+             tiempo
+             adelante()
+             tiempo
+        case 13'S4 S3 S2 S1 = 1 1 0 1
+             PORTB=sensores
+             izquierda()
+             tiempo
+             adelante()
+             tiempo
+        case 14'S4 S3 S2 S1 = 1 1 1 0
+             PORTB=sensores
+             derecha()
+             tiempo
+             adelante()
+             tiempo
+        case 15'S4 S3 S2 S1 = 1 1 1 1
+             PORTB=sensores
+             derecha()
+             tiempo
+             adelante()
+             tiempo
+        end select
+  else
+      PWM1_Set_Duty(0)
+      PWM2_Set_Duty(0)
+        
+  end if
+
+WEND
+end.

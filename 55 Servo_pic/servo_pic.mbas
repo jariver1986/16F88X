@@ -1,0 +1,108 @@
+program servo_pic
+
+DIM giro,giro1,giro2,por,receive,dato,centinela AS BYTE
+
+sub procedure interrupt
+if INTCON.TMR0IF=1 THEN
+    if por=1 then
+    giro=giro1
+    por=2
+    PORTA.RA0=0
+    GOTO final
+    end if
+    if por=2 then
+    giro=giro2
+    por=1
+    PORTA.RA0=1
+    GOTO final
+    end if
+end if
+final:
+TMR0 = giro
+INTCON = 0x20
+end sub
+sub procedure ver(dim numero as byte)
+  if numero = 1 then
+      giro1=103
+      giro2=249
+  else
+     if numero = 2 then
+       giro1=109
+       giro2=243
+     else
+         if numero = 3 then
+         giro1=114
+         giro2=238
+         else
+             giro1=98
+             giro2=251
+         end if
+     end if
+  end if
+  end sub
+main:
+     OSCCON=0X65   'oscilador interno de 4 MHZ
+' Registro Oscilador de control
+     OPTION_REG = 0x06
+     UART1_Init(9600)
+  ' Registro PUERTO A
+     TRISA = 0X00 ' PORTA.0 Entrada
+     PORTA = 0X00
+' Registro PUERTO B
+     TRISB = 0X00 ' PORTB
+     PORTB = 0X00
+  ' Registro PUERTO C
+     TRISC = 0X00 ' PORTC salidas
+     PORTC = 0X00
+     
+     TRISD = 0X04 ' PORTC salidas
+     PORTD = 0X00
+
+
+     TRISE = 0X00 ' PORTE  como salidas digital
+     PORTE = 0X00
+
+     ANSEL = 0X00 ' AN<7:0>
+     ANSELH = 0X00 ' AN<13:8>
+     INTCON = 0xA0            '// Enable interrupt TMR0
+     TMR0= 100
+     por=2
+     giro1=98
+     giro2=251
+     dato=0
+     centinela=0
+while(1)
+'      if (UART1_Data_Ready() = 1) then
+'        receive = UART1_Read()
+'        dato=receive
+'        PORTB=0XFF
+'        Delay_100ms
+'        PORTB=0X00
+'        centinela=1
+'      end if
+
+       if PORTD.RD2=1 then
+          ver(3)
+          PORTD.RD0=1
+       else
+          ver(4)
+          PORTD.RD0=0
+       end if
+
+'      if centinela=1 then
+'      centinela=0
+'       if (dato=0x31) then
+'            ver(2)
+'            Delay_1sec
+'        end if
+'        if (dato=0x32) then
+'            ver(3)
+'            Delay_1sec
+'        end if
+'         if (dato=0x33) then
+'            ver(4)
+'            Delay_1sec
+'        end if
+'       end if
+ wend
+end.

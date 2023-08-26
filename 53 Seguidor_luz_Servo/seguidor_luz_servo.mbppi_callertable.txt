@@ -1,0 +1,11 @@
+main
+	Adc_Read
+		Delay_22us
+	adelante
+		ver
+	izquierda
+		ver
+	derecha
+		ver
+	parar
+interrupt

@@ -1,0 +1,147 @@
+program seguidor_luz_servo
+
+DIM giro,giro1,giro2,por,centinela AS BYTE
+dim S1,S2,S3,limite AS WORD
+
+sub procedure interrupt
+if INTCON.TMR0IF=1 THEN
+  if centinela=1 then
+    if por=1 then
+    giro=giro1 '109
+    por=2
+    PORTC.RC0=0
+    PORTC.RC1=0
+    GOTO final
+    end if
+    if por=2 then
+    giro=giro2 '243
+    por=1
+    PORTC.RC0=1
+    PORTC.RC1=1
+    GOTO final
+    end if
+  end if
+  if centinela=2 then
+    if por=1 then
+    giro=giro1 '109
+    por=2
+    PORTC.RC0=0
+    GOTO final
+    end if
+    if por=2 then
+    giro=giro2 '243
+    por=1
+    PORTC.RC0=1
+    GOTO final
+    end if
+  end if
+  if centinela=3 then
+    if por=1 then
+    giro=giro1 '109
+    por=2
+    PORTC.RC1=0
+    GOTO final
+    end if
+    if por=2 then
+    giro=giro2 '243
+    por=1
+    PORTC.RC1=1
+    GOTO final
+    end if
+  end if
+end if
+final:
+TMR0 = giro
+INTCON = 0x20
+end sub
+sub procedure ver(dim numero as byte)
+  if numero = 1 then
+      giro1=103
+      giro2=249
+  else
+     if numero = 2 then
+       giro1=109
+       giro2=243
+     else
+         if numero = 3 then
+         giro1=114
+         giro2=238
+         else
+             giro1=98
+             giro2=251
+         end if
+     end if
+  end if
+  end sub
+  sub procedure adelante()
+  centinela=1
+  ver(2)
+end sub
+  sub procedure atras()
+  centinela=1
+  ver(1)
+end sub
+sub procedure izquierda()
+centinela=2
+ver(1)
+end sub
+sub procedure derecha()
+centinela=3
+ver(1)
+end sub
+sub procedure parar()
+centinela=4
+end sub
+
+main:
+     OSCCON=0X65   'oscilador interno de 4 MHZ
+' Registro Oscilador de control
+     OPTION_REG = 0x06
+  ' Registro PUERTO A
+     TRISA = 0X0F ' PORTA.0 Entrada
+     PORTA = 0X00
+' Registro PUERTO B
+     TRISB = 0X00 ' PORTB
+     PORTB = 0X00
+  ' Registro PUERTO C
+     TRISC = 0X00 ' PORTC salidas
+     PORTC = 0X00
+
+     TRISE = 0X08 ' PORTE  como salidas digital
+     PORTE = 0X00
+
+     ANSEL = 0X0F ' AN<7:0>
+     ANSELH = 0X00 ' AN<13:8>
+     INTCON = 0xA0            '// Enable interrupt TMR0
+     TMR0= 100
+     
+     por=2
+
+while(1)
+        limite=Adc_Read(0)>>2
+        S1=Adc_Read(1)>>2
+        S2=Adc_Read(2)>>2
+        S3=Adc_Read(3)>>2
+        PORTB=S1
+        if S1<limite then
+           ADELANTE()
+        else
+           if S2<limite then
+               IZQUIERDA()
+           else
+               if S3<limite then
+                  DERECHA()
+               else
+                  PARAR()
+               end if
+           end if
+
+        end if
+        while (PORTE.RE3=0)
+           limite=Adc_Read(0)>>2
+           PORTB=limite
+        wend
+
+
+ wend
+end.

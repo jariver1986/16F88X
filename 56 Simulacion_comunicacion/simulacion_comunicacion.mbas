@@ -1,0 +1,24 @@
+program simulacion_comunicacion
+
+DIM receive,dato AS BYTE
+
+main:
+     OSCCON=0X75
+     UART1_Init(9600)
+     TRISC = 0X80
+     PORTC = 0X00
+     dato=0
+while(1)
+
+     if (UART1_Data_Ready() = 1) then
+        dato= UART1_Read()
+     end if
+     
+     if (dato="A") then
+         UART1_Write_Text("HOLA TECSU")
+         UART1_Write(0x0D)
+        dato=0
+     end if
+     
+ wend
+end.

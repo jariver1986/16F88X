@@ -1,0 +1,77 @@
+program Robot_RadioControlado
+
+SYMBOL DIR1= PORTA.2
+SYMBOL NDIR1=PORTA.4
+
+SYMBOL DIR2= PORTA.3
+SYMBOL NDIR2=PORTA.5
+
+DIM RECIBIDO,INDICE,direc1,direc2,VEL1,VEL2,DATO_COMPLETO AS integer
+
+
+main:
+ OSCCON=0x75
+ TRISA=0
+ TRISB=0
+ TRISC=%10000000
+ TRISD=0
+ ANSEL=0
+ ANSELH=0
+ PORTA=0
+ UART1_Init(9600)
+ INDICE=0
+ DATO_COMPLETO=0
+
+ WHILE(1)
+         DELAY_MS(100)
+   IF(UART1_Data_Ready =1)THEN
+      RECIBIDO = UART1_Read()
+      SELECT CASE INDICE
+       CASE 0
+          IF(RECIBIDO=0x24)THEN 'INICIO
+           INDICE=1
+          ELSE
+           INDICE=0
+          END IF
+        CASE 1
+        IF(RECIBIDO=7)THEN  'IDENTIFICADOR
+          INDICE=2
+        ELSE
+          INDICE=0
+        END IF
+       CASE 2
+         direc1=RECIBIDO      'DATO
+         INDICE=3
+       CASE 3
+         VEL1=RECIBIDO
+         INDICE=4
+       CASE 4
+         Direc2=RECIBIDO      'DATO
+         INDICE=5
+       CASE 5
+         VEL2=RECIBIDO      'DATO
+         INDICE=6
+         DATO_COMPLETO=1
+      END SELECT
+   END IF
+       IF(DATO_COMPLETO=1)THEN
+            if((direc1=1) and (direc2=1))then
+             UART1_Write(0x31)
+             Delay_100ms
+            else
+            if((direc1=1) and (direc2=0))then
+             UART1_Write(0x32)
+             Delay_100ms
+            else
+            if((direc1=0) and (direc2=1))then
+             UART1_Write(0x33)
+             Delay_100ms
+            end if
+            end if
+            end if
+
+          DATO_COMPLETO=0
+          INDICE=0
+       END IF
+ WEND
+end.
