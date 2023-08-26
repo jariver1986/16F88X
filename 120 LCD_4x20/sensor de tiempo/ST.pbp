@@ -1,0 +1,68 @@
+'****************************************************************
+'*  Name    : UNTITLED.BAS                                      *
+'*  Author  : [select VIEW...EDITOR OPTIONS]                    *
+'*  Notice  : Copyright (c) 2015 [select VIEW...EDITOR OPTIONS] *
+'*          : All Rights Reserved                               *
+'*  Date    : 12-Jan-15                                         *
+'*  Version : 1.0                                               *
+'*  Notes   :                                                   *
+'*          :                                                   *
+'****************************************************************
+DEFINE OSC 4
+define LCD_DREG PORTC
+DEFINE LCD_DBIT 4
+define LCD_RSREG PORTC
+DEFINE LCD_RSBIT 0
+define LCD_EREG PORTC
+DEFINE LCD_EBIT 1
+
+START VAR PORTD.2
+F1 VAR PORTD.0
+F2 VAR PORTD.1
+
+CUENTA VAR BYTE
+CUENTA2 VAR BYTE
+SEGUN VAR BYTE
+
+OPTION_REG = %1010110 ;setea TMR0 configurando y habilita PORTB pullups
+INTCON = %10100000 ;hablilita TMR0 interrupción interna
+
+CUENTA=0
+
+INICIO:
+IF F1=1 AND F2=1 AND START=1 THEN CONTAR ;botón para igualar minutos
+SEGUN=0
+CUENTA2=0
+LCDOUT $fe,1," ",dec2 SEGUN,".",dec2 CUENTA2
+PAUSE 20
+GOTO INICIO
+
+CONTAR:
+ON INTERRUPT GOTO interrup
+
+LCDOUT $fe,1," ",dec2 SEGUN,".",dec2 CUENTA2
+
+IF F1=0 THEN PARARCONTEOF1
+IF F2=0 THEN PARARCONTEOF2
+GOTO CONTAR
+
+interrup:
+cuenta = cuenta + 1
+TMR0=4 ;resta 4 al contador de 256 del TMR0
+IF cuenta < 31 THEN reset ;31 cuentas (32256ms = 999936uS)
+cuenta = 0
+segun = segun + 1
+CUENTA2 = CUENTA * 32256
+
+reset:
+INTCON.2 = 0 ;resetea la bandera de interrupción del TMR0
+RESUME
+
+PARARCONTEOF1:
+DISABLE
+LCDOUT $fe,1," ",dec2 SEGUN,".",dec2 CUENTA2
+GOTO PARARCONTEOF1
+
+PARARCONTEOF2:
+LCDOUT $fe,1," ",dec2 SEGUN,".",dec2 CUENTA2
+END

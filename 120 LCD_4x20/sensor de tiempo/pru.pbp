@@ -1,0 +1,93 @@
+'****************************************************************
+'*  Name    : UNTITLED.BAS                                      *
+'*  Author  : [select VIEW...EDITOR OPTIONS]                    *
+'*  Notice  : Copyright (c) 2014 [select VIEW...EDITOR OPTIONS] *
+'*          : All Rights Reserved                               *
+'*  Date    : 22/08/2014                                        *
+'*  Version : 1.0                                               *
+'*  Notes   :                                                   *
+'*          :                                                   *
+'****************************************************************
+DEFINE LCD_DREG PORTB
+DEFINE LCD_DBIT 4 
+DEFINE LCD_RSREG PORTB
+DEFINE LCD_RSBIT 0 
+DEFINE  LCD_EREG    PORTB
+DEFINE  LCD_EBIT    1
+DEFINE  LCD_BIT 4
+
+DEFINE OSC 4
+
+PANTALLA1 VAR PORTC.0
+PANTALLA2 VAR PORTC.1
+
+tiempo var word
+TIEMPO2 VAR WORD
+TIEMPO3 VAR WORD
+start var portd.0
+FUSIBLE1 var portd.1
+FUSIBLE2 var portd.2
+reset var portd.7
+
+trisd=255
+
+inicio:
+
+tiempo3=0
+tiempo=0
+tiempo2=0
+HIGH PANTALLA1
+HIGH PANTALLA2
+pause  200
+lcdout $fe,1
+lcdout $fe,$80,"FAVOR CERRAR"
+lcdout $fe,$c0,"F1, F2 "
+lcdout $fe,$94,"Y PULSAR MARCHA"
+if start=0 and FUSIBLE1=0 and FUSIBLE2=0 then BORRADO
+goto inicio
+
+BORRADO:
+lcdout $fe,1
+cronometro:
+if start=1 then INICIO
+TIEMPO3= (TIEMPO2*1000)+TIEMPO
+if FUSIBLE1=1 then mostrar1
+if FUSIBLE2=1 then mostrar2
+lcdout $fe,$80, #TIEMPO3 ,"mS"
+PAUSEUS 9990
+TIEMPO=TIEMPO+1
+IF TIEMPO<100 THEN GOTO CRONOMETRO
+TIEMPO =0
+TIEMPO2=TIEMPO2+1
+GOTO CRONOMETRO
+
+mostrar1:
+tiempo3=tiempo3-1
+
+mostrar11:
+HIGH PANTALLA1
+LOW PANTALLA2
+lcdout $fe,$80, #TIEMPO3
+lcdout $fe,$c0,"HA DISPARADO"
+lcdout $fe,$94,"FUSIBLE 1"
+IF FUSIBLE1=0 THEN INICIO
+goto mostrar11
+
+mostrar2:
+tiempo3=tiempo3-1
+
+mostrar22:
+HIGH PANTALLA2
+LOW PANTALLA1    
+lcdout $fe,$80,#TIEMPO3
+lcdout $fe,$c0,"HA DISPARADO"
+lcdout $fe,$94,"FUSIBLE 2"
+IF FUSIBLE2=0 THEN INICIO
+goto mostrar22
+
+END
+
+
+
+
+

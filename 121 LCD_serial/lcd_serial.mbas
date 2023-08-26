@@ -1,0 +1,70 @@
+program lcd_serial
+
+dim LCD_RS as sbit at RB0_bit
+    LCD_EN as sbit at RB1_bit
+    LCD_D4 as sbit at RB2_bit
+    LCD_D5 as sbit at RB3_bit
+    LCD_D6 as sbit at RB4_bit
+    LCD_D7 as sbit at RB5_bit
+
+    LCD_RS_Direction as sbit at TRISB0_bit
+    LCD_EN_Direction as sbit at TRISB1_bit
+    LCD_D4_Direction as sbit at TRISB2_bit
+    LCD_D5_Direction as sbit at TRISB3_bit
+    LCD_D6_Direction as sbit at TRISB4_bit
+    LCD_D7_Direction as sbit at TRISB5_bit
+
+dim txt2 as char[33]
+dim counter as byte
+
+' Declarations section
+
+main:
+' Registro Oscilador de control
+     OSCCON = 0X75 ' Oscilador interno de 8mhz
+ ' Registro PUERTO A
+     TRISA = 0X00 ' PORTA.0 Entrada
+     PORTA = 0X00
+' Registro PUERTO B
+     TRISB = 0X00 ' PORTB salidas
+     PORTB = 0X00
+' Registro PUERTO C
+     TRISC = 0XFF ' PORTC salidas
+     PORTC = 0X00
+' Registro PUERTO D
+     TRISD = 0X03 ' PORTE  como salidas digital
+     PORTD = 0X00
+' Seleccion de registro analogico. 1 analogico, 0 digitales
+     ANSEL = 0X00 ' AN<7:0>
+     ANSELH = 0X00 ' AN<13:8>
+     Lcd_Init()                        ' Inicializacion Lcd
+     Lcd_Cmd(_LCD_CLEAR)               ' encera display
+     Lcd_Cmd(_LCD_CURSOR_OFF)          ' Cursor off
+     Lcd_Out(1,1,"      UTEQ      ")                 ' escribe la cadena en la primera fila
+     Lcd_Out(2,1,"      FCI       ")                 ' escribe la cadena en la segunda fila
+     delay_ms(2000)
+     Lcd_Cmd(_LCD_CLEAR)               ' encera display
+     Lcd_Out(1,1,"ING. TELEMATICA")                 ' escribe la cadena en la primera fila
+     delay_ms(2000)
+     Lcd_Cmd(_LCD_CLEAR)
+     Lcd_Out(1,1,"AUTOR:")                 ' escribe la cadena en la primera fila
+     Lcd_Out(2,1,"HEVERT PALLO ")                 ' escribe la cadena en la segunda fila
+     delay_ms(2000)
+     Lcd_Cmd(_LCD_CLEAR)               ' encera display
+     UART1_Init(9600)
+     Lcd_Out(1,1,"TUTOR:")                 ' escribe la cadena en la primera fila
+     Lcd_Out(2,1,"ING. EMILIO Z.")                 ' escribe la cadena en la segunda fila
+     delay_ms(2000)
+     Lcd_Cmd(_LCD_CLEAR)               ' encera display
+     Lcd_Out(1,1,"LECTURA:")                 ' escribe la cadena en la primera fila
+     
+while(1)
+    if (UART1_Data_Ready() <> 0) then ' If data is received,
+     UART1_Read_Text(txt2,"-",32)     ' lee la cadena hasta que encuentre la letra K mayuscula
+     Lcd_Cmd(_LCD_CLEAR)              ' encera display
+     Lcd_Out(1,1,"LECTURA:")                 ' escribe la cadena en la primera fila
+     Lcd_Out(2,1,txt2)
+    end if
+
+wend
+end.

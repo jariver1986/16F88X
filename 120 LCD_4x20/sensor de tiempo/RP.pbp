@@ -1,0 +1,89 @@
+'****************************************************************
+'*  Name    : UNTITLED.BAS                                      *
+'*  Author  : [select VIEW...EDITOR OPTIONS]                    *
+'*  Notice  : Copyright (c) 2015 [select VIEW...EDITOR OPTIONS] *
+'*          : All Rights Reserved                               *
+'*  Date    : 13-Jan-15                                         *
+'*  Version : 1.0                                               *
+'*  Notes   :                                                   *
+'*          :                                                   *
+'****************************************************************
+hora VAR BYTE ;definir variable hora
+minut VAR BYTE ;definir variable minuto
+segun VAR BYTE ;definir variable segundos
+cuenta VAR BYTE ;definir variable contador del timer
+actual VAR BYTE ;definir variable actualizar LCD
+x VAR BYTE ;definir variable x contador
+DEFINE OSC 4
+define LCD_DREG PORTC
+DEFINE LCD_DBIT 4
+define LCD_RSREG PORTC
+DEFINE LCD_RSBIT 0
+define LCD_EREG PORTC
+DEFINE LCD_EBIT 1
+
+START VAR PORTD.2
+F1 VAR PORTD.0
+F2 VAR PORTD.1
+
+TRISB=0
+hora = 0 
+minut = 0
+segun = 0
+cuenta= 0
+actual= 1
+
+COND:
+DISABLE
+IF (F1=1 AND F1=1 AND START=1) THEN  INICIO
+INTCON.2 = 0
+GOTO COND
+
+CONTAR:
+
+INICIO:
+OPTION_REG = %1010110 ;setea TMR0 configurando y habilita PORTB pullups
+INTCON = %10100000 ;hablilita TMR0 interrupción interna
+ON INTERRUPT GOTO INTERRUP
+
+actualiza: IF actual = 1 THEN ;chequea si hay que actualizar LCD
+LCDOUT $fe,1," ",dec2 hora,":",dec2 minut,":",DEC2 segun
+actual = 0 ;pantalla actualizada
+ENDIF
+GOTO INICIO
+; ***********************para igualar la hora *****************
+incmin: minut = minut + 1
+IF minut >= 60 THEN minut=0
+GOTO pausa
+inchr: hora = hora + 1
+IF hora >= 24 THEN hora=0
+GOTO pausa
+pausa: FOR x = 1 TO 20 ; retardo de 200 mls
+PAUSE 10 ;pasos de 10 mls para no perder interrupciones
+NEXT x
+actual = 1 ;indica actualizar pantalla LCD
+GOTO actualiza
+;************** Handler de interrupciones para incrementar contador ***************
+DISABLE ;deshabilita interrupciones durante el proceso
+interrup:
+cuenta = cuenta + 1 ;cuenta las interrupciones del TMR0
+TMR0=4 ;resta 4 al contador de 256 del TMR0
+IF cuenta < 31 THEN reset ;31 cuentas (32256us = 999936uS)
+cuenta = 0
+segun = segun + 1
+IF segun >= 60 THEN
+segun = 0
+minut = minut + 1
+IF minut >= 60 THEN
+minut = 0
+hora = hora + 1
+IF hora >= 24 THEN
+hora = 0
+ENDIF
+ENDIF
+ENDIF
+actual = 1 ;actualizar LCD
+reset:
+INTCON.2 = 0 ;resetea la bandera de interrupción del TMR0
+RESUME
+END

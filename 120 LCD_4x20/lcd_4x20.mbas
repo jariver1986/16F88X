@@ -1,0 +1,146 @@
+program lcd_4x20
+
+dim LCD_RS as sbit at RB1_bit
+    LCD_EN as sbit at RA3_bit
+    LCD_D4 as sbit at RC2_bit
+    LCD_D5 as sbit at RA4_bit
+    LCD_D6 as sbit at RC1_bit
+    LCD_D7 as sbit at RA2_bit
+
+    LCD_RS_Direction as sbit at TRISB1_bit
+    LCD_EN_Direction as sbit at TRISA3_bit
+    LCD_D4_Direction as sbit at TRISC2_bit
+    LCD_D5_Direction as sbit at TRISA4_bit
+    LCD_D6_Direction as sbit at TRISC1_bit
+    LCD_D7_Direction as sbit at TRISA2_bit
+
+dim kp,centinela,turno,start,f1,f2,cuenta,modo as byte
+dim dato, tiempo,tiempo2,mostrar as word
+dim texto as string [5]
+
+sub procedure TECLADO()
+KP=0
+    PORTB.RB2=0
+    if PORTB.RB3=1 then
+      'while(PORTB.RB3=0) wend
+      KP= 1
+      start=1
+    else
+        start=0
+    end if
+    PORTB.RB2=1
+
+     PORTB.RB4=0
+     if PORTB.RB5=1 then
+        'while(PORTB.RB5=0) wend
+        KP= 2
+        f1=0
+     else
+         f1=1
+     end if
+     PORTB.RB4=1
+
+     PORTB.RB6=0
+     if PORTB.RB7=1 then
+        'while(PORTB.RB7=0) wend
+        KP= 3
+        f2=0
+     else
+         f2=1
+     end if
+     PORTB.RB6=1
+end sub
+
+
+
+sub procedure interrupt
+'N = 255-(FOSCXTIEMPO)/4PREESCALADOR
+     'FOSC= 8MHZ
+     'PREESCALADOR = 256
+if INTCON.TMR0IF=1 THEN
+inc(tiempo)
+inc(tiempo2)
+TMR0 = 247
+INTCON = 0x20
+end if
+end sub
+
+main:
+OSCCON     =  0X75
+OPTION_REG =  0x07
+TRISA  = %00000000
+TRISB  = %10101000
+TRISC  = %00000000
+PORTA  = %00000011
+PORTB  = %00000000
+PORTC  = %00000000
+ANSEL  = %00000000
+ANSELH = %00000000
+Lcd_Init()                        ' inicio de lcd
+Lcd_Cmd(_LCD_CLEAR)               ' borrara lcd
+Lcd_Cmd(_LCD_CURSOR_OFF)          ' Cursor off
+'Lcd_Out(1,1,"FAVOR CERRAR")                 ' mensaje linea 1
+'Lcd_Out(2,1,"F1, F2 Y")                 ' mensaje linea 2
+'Lcd_Out(3,1,"Y PULSAR MARCHA")                 ' mensaje linea 1
+'Lcd_Out(4,1,"")                 ' mensaje linea 2
+TMR0 = 247
+tiempo=0
+tiempo2=0
+WPUB = %10101000
+centinela=0
+INTCON = 0XA0
+CENTINELA=0
+turno=0
+cuenta=0
+MODO=1
+while 1
+      TECLADO()
+  if (((start=0) or(f1=0) or (f2=0))and (turno=0))or (start=0) then
+      Lcd_Out(1,1,"FAVOR CERRAR        ")                 ' mensaje linea 1
+      Lcd_Out(2,1,"F1, F2 Y            ")                 ' mensaje linea 2
+      Lcd_Out(3,1,"Y PULSAR MARCHA     ")                 ' mensaje linea 1
+      Lcd_Out(4,1,"                    ")                 ' mensaje linea 2
+      CUENTA=0
+  end if
+  TECLADO
+  if ((start=1) AND (f1=1) AND (f2=1) and (cuenta=0)) then
+      tiempo=0
+      cuenta=1
+      Lcd_Cmd(_LCD_CLEAR)
+  end iF
+  if (cuenta=1) then
+     Lcd_Out(1,1,"Tiempo: ")
+     WordToStr(tiempo,texto)
+     Lcd_Out(1,14,texto)
+     mostrar=tiempo
+     turno=1
+  end if
+
+  TECLADO
+  if ((start=1) AND (f1=0) AND (f2=1) and (turno=1)) then
+     cuenta=0
+     Lcd_Out(1,1,"Tiempo: ")
+     WordToStr(mostrar,texto)
+     Lcd_Out(1,14,texto)
+     Lcd_Out(3,1,"HA DISPARADO        ")                 ' mensaje linea 2
+     Lcd_Out(4,1,"FUSIBLE 1           ")                    ' mensaje linea 1
+     turno=0
+     while (start=1) AND (f1=0) AND (f2=1)
+         TECLADO
+     wend
+  END IF
+  TECLADO
+  if ((start=1) AND (f1=1) AND (f2=0) and (turno=1)) then
+     cuenta=0
+     Lcd_Out(1,1,"Tiempo: ")
+     WordToStr(mostrar,texto)
+     Lcd_Out(1,14,texto)
+     Lcd_Out(3,1,"HA DISPARADO        ")                 ' mensaje linea 2
+     Lcd_Out(4,1,"FUSIBLE 2           ")                    ' mensaje linea 1
+     turno=0
+     while (start=1) AND (f1=1) AND (f2=0)
+         TECLADO
+     wend
+  END IF
+wend
+end.
