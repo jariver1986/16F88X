@@ -1,0 +1,4 @@
+Line	MessageNo	File Name
+0	1	mBPic.exe -DBG -pP16F887 -MSF -Y -DL -O11111114 -fo8 -N"C:\Users\johnanibal\Documents\Desarrollo_Mikrobasic\Proyectos 2015\sistema_riego_cesped_organico\riego_master.mbppi" -SP"C:\Program Files (x86)\Mikroelektronika\mikroBasic PRO for PIC\defs\" -SP"C:\Program Files (x86)\Mikroelektronika\mikroBasic PRO for PIC\Uses\P16\" -SP"C:\Users\johnanibal\Documents\Desarrollo_Mikrobasic\Proyectos 2015\sistema_riego_cesped_organico\" "__Lib_Math.mcl" "__Lib_MathDouble.mcl" "__Lib_System.mcl" "__Lib_Delays.mcl"	 
+error: 0	356	main function is not defined	main function is not defined
+error: 0	102	Finished (with errors): 19 dic 2015, 12:45:00	riego_master.mbppi

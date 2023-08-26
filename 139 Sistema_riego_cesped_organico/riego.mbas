@@ -1,0 +1,175 @@
+'MOTOR PUERTA EN        RC0 Y RC1
+'BOMBA DE AGUA EN       RD1
+'SENSOR DE LLUVIA       RD0
+program riego
+SYMBOL BOTON = PORTE.RE3
+
+
+' ***************CONECXIONES PARA EL MODULO LCD*************************
+dim LCD_RS as sbit at RB2_bit
+    LCD_EN as sbit at RB3_bit
+    LCD_D4 as sbit at RB4_bit
+    LCD_D5 as sbit at RB5_bit
+    LCD_D6 as sbit at RB6_bit
+    LCD_D7 as sbit at RB7_bit
+
+    LCD_RS_Direction as sbit at TRISB2_bit
+    LCD_EN_Direction as sbit at TRISB3_bit
+    LCD_D4_Direction as sbit at TRISB4_bit
+    LCD_D5_Direction as sbit at TRISB5_bit
+    LCD_D6_Direction as sbit at TRISB6_bit
+    LCD_D7_Direction as sbit at TRISB7_bit
+' **********VARIABLES Y CADENAS DE CARACTERES A UTILIZAR**********
+
+dim TEXTO,TEXTO2 as char[15]
+dim counter,dato as byte
+DIM CENTINELA AS BIT
+DIM RECEPCION AS BYTE
+sub procedure sonido
+portd.rd2=1
+Delay_ms(200)
+portd.rd2=0
+Delay_ms(200)
+end sub
+
+main:
+' Registro Oscilador de control
+     OSCCON = 0X75 ' Oscilador interno de 8mhz
+ ' Registro PUERTO A
+     TRISA = 0X00 ' PORTA.0 Entrada
+     PORTA = 0X00
+' Registro PUERTO B
+     TRISB = 0X00 ' PORTB salidas
+     PORTB = 0X00
+' Registro PUERTO C
+     TRISC = 0X80 ' PORTC salidas
+     PORTC = 0X00
+' Registro PUERTO D
+     TRISD = 0X01 ' PORTD
+     PORTD = 0X00
+' Registro PUERTO E
+     TRISE = 0X08 ' PORTE  como salidas digital
+     PORTE = 0X00
+' Seleccion de registro analogico. 1 analogico, 0 digitales
+     ANSEL = 0X00  ' AN<7:0>
+     ANSELH = 0X00 ' AN<13:8>
+          PORTD.RD1=1
+     UART1_Init(9600)
+     Lcd_Init()                        ' Inicializacion Lcd
+     Lcd_Cmd(_LCD_CLEAR)               ' encera display
+     Lcd_Cmd(_LCD_CURSOR_OFF)          ' Cursor off
+     Lcd_Out(1,1,"SISTEMA RIEGO")                 ' escribe la cadena en la primera fila
+     Lcd_Out(2,1,"ORGANICO")                 ' escribe la cadena en la segunda fila
+     delay_ms(500)
+     Lcd_Cmd(_LCD_CLEAR)               ' encera display
+     Lcd_Out(1,1,"INTEGRANTES")                 ' escribe la cadena en la primera fila
+     delay_ms(500)
+     Lcd_Cmd(_LCD_CLEAR)               ' encera display
+     Lcd_Out(1,1,"*STEVEN RAMOS")                 ' escribe la cadena en la primera fila
+     Lcd_Out(2,1,"*EDUARDO ORTEGA")                 ' escribe la cadena en la segunda fila
+     delay_ms(500)
+     Lcd_Cmd(_LCD_CLEAR)
+     delay_ms(250)
+     UART1_Init(9600)
+     PWM1_Init(1000)
+     PWM2_Init(1000)
+     PWM1_Start()
+     PWM2_Start()
+     sonido()
+     CENTINELA=0
+     DATO=0
+
+while(1)
+        if UART1_Data_Ready then
+           UART1_Read_Text(TEXTO,"L",15)
+           Lcd_Cmd(_LCD_CLEAR)
+           Lcd_Out(1,1,"DATOS T Y H")      ' escribe la cadena en la primera fila
+           Lcd_Out(2,1,TEXTO)    ' escribe la cadena en la segunda fila
+
+        end if
+        
+        'for counter = 0 to 15
+'               if TEXTO[counter]="_" then
+'                  dato=1
+'               end if
+'           next counter
+
+
+
+       ' if UART1_Data_Ready then
+'           recepcion =UART1_Read
+'           Lcd_Cmd(_LCD_CLEAR)
+'        end if
+       ' if recepcion="_" then
+'              Lcd_Out(1,1,"CESPED")      ' escribe la cadena en la primera fila
+'              Lcd_Out(2,1,"SECO")    ' escribe la cadena en la segunda fila
+'              DATO=1
+'        ELSE
+'               Lcd_Out(1,1,"CESPED")      ' escribe la cadena en la primera fila
+'               Lcd_Out(2,1,"HUMEDO")    ' escribe la cadena en la segunda fila
+'        end iF
+         'if (DATO=1) then
+'                      Lcd_Out(1,1,"CESPED")      ' escribe la cadena en la primera fila
+'                      Lcd_Out(2,1,"SECO")    ' escribe la cadena en la segunda fila
+'                      DATO=1
+'         ELSE
+'                       Lcd_Out(1,1,"CESPED")      ' escribe la cadena en la primera fila
+'                       Lcd_Out(2,1,"HUMEDO")    ' escribe la cadena en la segunda fila
+'         end iF
+        if (BOTON=0) OR (DATO=1) then
+           DATO=0
+           while BOTON=0 wend
+           sonido()
+           Delay_ms(1000)
+           Lcd_Cmd(_LCD_CLEAR)               ' encera display
+           Lcd_Out(1,1,"RIEGO           ")      ' escribe la cadena en la primera fila
+           Lcd_Out(2,1,"ACTIVADO        ")    ' escribe la cadena en la segunda fila
+           PORTD.RD1=0
+           Delay_ms(3000)
+           PORTD.RD1=1
+           Lcd_Cmd(_LCD_CLEAR)               ' encera display
+           Lcd_Out(1,1,"CICLO           ")      ' escribe la cadena en la primera fila
+           Lcd_Out(2,1,"CULMINADO       ")    ' escribe la cadena en la segunda fila
+           Delay_ms(3000)
+           Lcd_Cmd(_LCD_CLEAR)               ' encera display
+           sonido()
+           DATO=0
+        end if
+        if (PORTD.RD0=1) AND (CENTINELA=0) then
+           CENTINELA=1
+           SONIDO
+           Lcd_Cmd(_LCD_CLEAR)               ' encera display
+           Lcd_Out(1,1,"LLUVIA")      ' escribe la cadena en la primera fila
+           Lcd_Out(2,1,"PUERTA SE CIERRA")    ' escribe la cadena en la segunda fila
+           PORTC.RC0=1
+           PORTC.RC3=0
+           PWM1_Set_Duty(255)
+           PWM2_Set_Duty(255)
+           Delay_ms(5000)
+           PWM1_Set_Duty(0)
+           PWM2_Set_Duty(0)
+           PORTC.RC0=0
+           PORTC.RC3=0
+        end if
+        if (PORTD.RD0=0) AND (CENTINELA =1) then
+           CENTINELA=0
+           SONIDO
+           Lcd_Cmd(_LCD_CLEAR)               ' encera display
+           Lcd_Out(1,1,"NO HAY LLUVIA")      ' escribe la cadena en la primera fila
+           Lcd_Out(2,1,"PUERTA SE ABRE")    ' escribe la cadena en la segunda fila
+           PORTC.RC0=0
+           PORTC.RC3=1
+           PWM1_Set_Duty(255)
+           PWM2_Set_Duty(255)
+           Delay_ms(8000)
+           PWM1_Set_Duty(0)
+           PWM2_Set_Duty(0)
+           PORTC.RC0=0
+           PORTC.RC3=0
+           
+           
+
+        end if
+
+wend
+ end.

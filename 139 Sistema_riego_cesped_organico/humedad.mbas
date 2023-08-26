@@ -1,0 +1,53 @@
+program humedad
+dim text         as string[5] ' lleva informacion de humedad
+dim VALOR,TEMP_VALOR AS WORD  ' variables de transporte de datos internos
+DIM PORCENTAJE AS FLOAT       ' variables de transporte de datos internos
+sub procedure SONIDO
+PORTD.RD2=1   'ENDENDIDO DE BUZZER
+PORTD.RD1=1   'ENDENDIDO DE LED
+Delay_ms(200) 'RETARDO DE 200MS
+PORTD.RD2=0   'APAGADO DE BUZZER
+PORTD.RD1=0   'APAGADO DE LED
+Delay_ms(200) 'RETARDO
+end sub
+main:
+     OPTION_REG = 0X00
+' Registro Oscilador de control
+     OSCCON = 0X75   ' Oscilador interno de 8mhz
+' Registro PUERTO A
+     TRISA = 0X01    ' porta.0 como entrada analogica
+     PORTA = 0X00
+' Registro PUERTO B
+     TRISB = 0X00
+     PORTB = 0X00
+' Registro PUERTO C
+     TRISC = 0X80     'tx datos y rx datos
+     PORTC = 0X00
+' Registro PUERTO D
+     TRISD = 0X00
+     PORTD = 0X00
+' Seleccion de registro analogico. 1 analogico, 0 digitales
+     ANSEL = 0X01  ' AN<7:0> tipo de sensor anañogico
+     ANSELH = 0X00 ' AN<13:8> no hay mas sensores analogicos
+     delay_ms(250)
+    UART1_Init(9600)
+    SONIDO()
+    SONIDO()
+    while (TRUE)
+        VALOR=Adc_Read(0)        'lectura del VALOR e humedadd
+        TEMP_VALOR=1024-VALOR    '
+        PORCENTAJE =100-(TEMP_VALOR /1023)*100 'trsnaformacion de datos a valores de humedad
+        FLOATToStr(PORCENTAJE ,text)  'prepara informacion para ser transmitida
+        UART1_Write(TEXT[0])  'se envian los datos
+        UART1_Write(TEXT[1])
+        UART1_Write(".")
+        UART1_Write(TEXT[2])
+        UART1_Write(TEXT[3])
+        UART1_Write_Text("H")  'H identificador de humedad
+        UART1_Write_Text("L")  'L indentificador de fin de dato
+        'if PORCENTAJE<60 then
+'           SONIDO
+'        end iF
+        Delay_ms(1000)
+    wend
+end.

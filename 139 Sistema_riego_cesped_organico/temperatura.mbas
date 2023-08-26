@@ -1,0 +1,94 @@
+program temperatura
+dim Raw_temp, TempC, comma as word
+dim i, j1, j2, minus       as byte
+dim text                   as string[14]
+sub procedure sonido
+PORTD.RD2=1
+PORTD.RD1=1
+Delay_ms(200)
+PORTD.RD2=0
+PORTD.RD1=0
+Delay_ms(200)
+end sub
+main:
+
+     OPTION_REG = 0X00
+' Registro Oscilador de control
+     OSCCON = 0X75 ' Oscilador interno de 8mhz
+' Registro PUERTO A
+     TRISA = 0X00 ' porta.5 como entrada digital
+     PORTA = 0X00
+' Registro PUERTO B
+     TRISB = 0XFF ' porta.5 como entrada digital
+     PORTB = 0X00
+' Registro PUERTO c
+     TRISC = 0X80 ' porta.5 como entrada digital
+     PORTC = 0X00
+' Registro PUERTO D
+     TRISD = 0X00 ' porta.5 como entrada digital
+     PORTD = 0X00
+     
+' Seleccion de registro analogico. 1 analogico, 0 digitales
+     ANSEL = 0X00 ' AN<7:0>
+     ANSELH = 0X00 ' AN<13:8>
+
+     text = "000.0000" ' formato del texto a mostrar
+     TRISC=0X00
+     PORTC=0X00
+     delay_ms(250)
+
+    UART1_Init(9600)
+    sonido()
+    sonido
+    while (TRUE)
+
+          if ow_reset(PORTB, 5) = 0 then ' senal de reset onewire
+          ow_write(PORTB, 5, 0xCC) ' pase rom
+          ow_write(PORTB, 5, 0x44) ' convertir a t
+          delay_us(120)
+
+          ow_reset(PORTB, 5)  ' 0 = presente, 1= no presente
+
+
+          ow_write(PORTB, 5, 0xCC) ' pase rom
+          ow_write(PORTB, 5, 0xBE) ' leer a SCRATCHPAD
+
+          j1 = ow_Read(PORTB, 5) ' leer parte baja
+          j2 = ow_Read(PORTB, 5) ' leer parte alta
+
+          minus = j2
+          minus = minus >> 3
+
+          if minus = 0x1F then ' chequeamos la temperatura (+ o -)
+               j2 = not j2
+               j1 = not j1
+               j1 = j1 + 1
+          end if
+
+          Raw_temp = (j2 << 8) or j1 ' obteniendo la data raw
+
+          TempC = (Raw_temp and $0FF0) >> 4
+          comma = (j1 and $0F) * 625
+
+          WordToStrWithZeros(TempC, text)
+          'UART1_Write(text[2])
+          UART1_Write(text[3])
+          UART1_Write(text[4])
+          UART1_Write(".")
+
+          WordToStrWithZeros(comma, text)
+          UART1_Write(text[1])
+          UART1_Write(text[2])
+          UART1_Write("T")
+          UART1_Write("L")
+          '
+          'UART1_Write(text[3])
+          'UART1_Write(text[4])
+          end if
+          
+          if Tempc>25 then
+             sonido
+          end if
+          Delay_ms(1000)
+    wend
+end.
