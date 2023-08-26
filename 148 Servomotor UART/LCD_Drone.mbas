@@ -1,0 +1,88 @@
+program LCD_Drone
+symbol BOTON1 = PORTC.RC0
+symbol BOTON2 = PORTC.RC1
+symbol BOTON3 = PORTC.RC2
+symbol BOTON4 = PORTC.RC3
+symbol BOTON5 = PORTD.RD0
+symbol BOTON6 = PORTD.RD1
+' ***************CONECXIONES PARA EL MODULO LCD*************************
+dim LCD_RS as sbit at RB2_bit
+    LCD_EN as sbit at RB3_bit
+    LCD_D4 as sbit at RB4_bit
+    LCD_D5 as sbit at RB5_bit
+    LCD_D6 as sbit at RB6_bit
+    LCD_D7 as sbit at RB7_bit
+
+    LCD_RS_Direction as sbit at TRISB2_bit
+    LCD_EN_Direction as sbit at TRISB3_bit
+    LCD_D4_Direction as sbit at TRISB4_bit
+    LCD_D5_Direction as sbit at TRISB5_bit
+    LCD_D6_Direction as sbit at TRISB6_bit
+    LCD_D7_Direction as sbit at TRISB7_bit
+' **********VARIABLES Y CADENAS DE CARACTERES A UTILIZAR**********
+
+dim txt2 as char[33]
+dim counter as byte
+
+' Declarations section
+
+main:
+' Registro Oscilador de control
+     OSCCON = 0X75 ' Oscilador interno de 8mhz
+ ' Registro PUERTO A
+     TRISA = 0X00 ' PORTA.0 Entrada
+     PORTA = 0X00
+' Registro PUERTO B
+     TRISB = 0X00 ' PORTB salidas
+     PORTB = 0X00
+' Registro PUERTO C
+     TRISC = 0X8F ' PORTC salidas
+     PORTC = 0X00
+' Registro PUERTO D
+     TRISD = 0X03 ' PORTE  como salidas digital
+     PORTD = 0X00
+' Seleccion de registro analogico. 1 analogico, 0 digitales
+     ANSEL = 0X00 ' AN<7:0>
+     ANSELH = 0X00 ' AN<13:8>
+     UART1_Init(9600)
+     Lcd_Init()                        ' Inicializacion Lcd
+     Lcd_Cmd(_LCD_CLEAR)               ' encera display
+     Lcd_Cmd(_LCD_CURSOR_OFF)          ' Cursor off
+     Lcd_Out(1,1,"SISTEMA DE CONTROL ")                 ' escribe la cadena en la primera fila
+     Lcd_Out(2,1,"ELECTROMUSCULAR ")                 ' escribe la cadena en la segunda fila
+     delay_ms(2000)
+     Lcd_Cmd(_LCD_CLEAR)               ' encera display
+     Lcd_Out(1,1,"POR:")                 ' escribe la cadena en la primera fila
+     Lcd_Out(2,1,"JOSE JACOME")                 ' escribe la cadena en la segunda fila
+     delay_ms(2000)
+     Lcd_Cmd(_LCD_CLEAR)               ' encera display
+     delay_ms(250)
+     UART1_Init(9600)
+     portd.rd2=1
+     Delay_ms(200)
+     portd.rd2=0
+     Delay_ms(200)
+     portd.rd2=1
+     Delay_ms(200)
+     portd.rd2=0
+     Delay_ms(200)
+     txt2 ="________________________________"
+while(1)
+     Lcd_Cmd(_LCD_CLEAR)               ' encera display
+     Lcd_Out(1,1,"SISTEMA CONTROL")                 ' escribe la cadena en la primera fila
+     Lcd_Out(2,1,"ELECTROMUSCULAR ")                 ' escribe la cadena en la segunda fila
+     delay_ms(2000)
+     
+     Lcd_Cmd(_LCD_CLEAR)               ' encera display
+     Lcd_Out(1,1,"POR:")                 ' escribe la cadena en la primera fila
+     Lcd_Out(2,1,"JOSE JACOME")                 ' escribe la cadena en la segunda fila
+     delay_ms(2000)
+
+     Lcd_Cmd(_LCD_CLEAR)               ' encera display
+     Lcd_Out(1,1,"TECNOLOGICO")                 ' escribe la cadena en la primera fila
+     Lcd_Out(2,1,"SUDAMERICANO")                 ' escribe la cadena en la segunda fila
+     delay_ms(2000)
+
+  wend
+ end.
+

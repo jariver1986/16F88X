@@ -1,0 +1,16 @@
+Line	MessageNo	File Name
+0	1	mBPic.exe -DBG -pP16F887 -MSF -Y -DL -O11111114 -fo8 -N"C:\Users\johnanibal\Documents\Desarrollo_Mikrobasic\Proyectos 2016\Drone_Jacom\LCD_Drone.mbppi" -SP"C:\Program Files (x86)\Mikroelektronika\mikroBasic PRO for PIC\defs\" -SP"C:\Program Files (x86)\Mikroelektronika\mikroBasic PRO for PIC\Uses\P16\" -SP"C:\Users\johnanibal\Documents\Desarrollo_Mikrobasic\Proyectos 2016\Drone_Jacom\" "__Lib_Math.mcl" "__Lib_MathDouble.mcl" "__Lib_System.mcl" "__Lib_Delays.mcl" "__Lib_CType.mcl" "__Lib_String.mcl" "__Lib_Conversions.mcl" "__Lib_Time.mcl" "__Lib_Trigon.mcl" "__Lib_Trigonometry.mcl" "__Lib_Button.mcl" "__Lib_Keypad4x4.mcl" "__Lib_Manchester.mcl" "__Lib_OneWire.mcl" "__Lib_PS2.mcl" "__Lib_Sound.mcl" "__Lib_SoftI2C.mcl" "__Lib_SoftSPI.mcl" "__Lib_SoftUART.mcl" "__Lib_ADC_88X.mcl" "__Lib_EEPROM.mcl" "__Lib_FLASH_RW.mcl" "__Lib_I2C_c34.mcl" "__Lib_PWM_c21.mcl" "__Lib_SPI_c345.mcl" "__Lib_UART_c67.mcl" "__Lib_PortExpander.mcl" "__Lib_CANSPI.mcl" "__Lib_CF.mcl" "__Lib_GlcdFonts.mcl" "__Lib_Glcd.mcl" "__Lib_LcdConsts.mcl" "__Lib_Lcd.mcl" "__Lib_RS485.mcl" "__Lib_T6963C.mcl" "__Lib_SPIGlcd.mcl" "__Lib_SPILcd.mcl" "__Lib_SPILcd8.mcl" "__Lib_SPIT6963C.mcl" "__Lib_EthEnc28j60.mcl" "LCD_Drone.mbas"	 
+diagnostics: 0	154	Available RAM: 352 [bytes], Available ROM: 8192 [bytes]	 
+diagnostics: 0	132	Compilation Started	C:\Users\johnanibal\Documents\Desarrollo_Mikrobasic\Proyectos 2016\Drone_Jacom\LCD_Drone.mbas
+hint: 1	1015	Hint: Compiling unit "C:\Users\johnanibal\Documents\Desarrollo_Mikrobasic\Proyectos 2016\Drone_Jacom\LCD_Drone.mbas"	LCD_Drone.mbas
+hint: 47	1006	Warning: Generated baud rate is 9615 bps (error = 0.16 percent)	LCD_Drone.mbas
+hint: 60	1006	Warning: Generated baud rate is 9615 bps (error = 0.16 percent)	LCD_Drone.mbas
+hint: 87	1010	Hint: Unit "LCD_Drone.mbas" has been recompiled	LCD_Drone.mbas
+diagnostics: 0	133	Compiled Successfully	C:\Users\johnanibal\Documents\Desarrollo_Mikrobasic\Proyectos 2016\Drone_Jacom\LCD_Drone.mbas
+diagnostics: 0	138	All files Compiled in 140 ms	 
+hint: 0	1143	Used RAM (bytes): 62 (18%)  Free RAM (bytes): 290 (82%)	Used RAM (bytes): 62 (18%)  Free RAM (bytes): 290 (82%)
+hint: 0	1143	Used ROM (program words): 1006 (12%)  Free ROM (program words): 7186 (88%)	Used ROM (program words): 1006 (12%)  Free ROM (program words): 7186 (88%)
+diagnostics: 0	144	Project Linked Successfully	LCD_Drone.mbppi
+diagnostics: 0	139	Linked in 1266 ms	 
+diagnostics: 0	140	Project 'LCD_Drone.mbppi' completed: 2250 ms	 
+diagnostics: 0	103	Finished successfully: 26 nov. 2016, 07:58:52	LCD_Drone.mbppi

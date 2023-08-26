@@ -1,0 +1,81 @@
+program temperatura
+dim LCD_RS as sbit at RB2_bit
+    LCD_EN as sbit at RB3_bit
+    LCD_D4 as sbit at RB4_bit
+    LCD_D5 as sbit at RB5_bit
+    LCD_D6 as sbit at RB6_bit
+    LCD_D7 as sbit at RB7_bit
+
+    LCD_RS_Direction as sbit at TRISB2_bit
+    LCD_EN_Direction as sbit at TRISB3_bit
+    LCD_D4_Direction as sbit at TRISB4_bit
+    LCD_D5_Direction as sbit at TRISB5_bit
+    LCD_D6_Direction as sbit at TRISB6_bit
+    LCD_D7_Direction as sbit at TRISB7_bit
+    
+dim texto as string[10]
+dim dato as float
+
+sub procedure led
+PORTD.RD1=1
+Delay_ms(200)
+PORTD.RD1=0
+Delay_ms(200)
+end sub
+main:
+     OPTION_REG = 0X00
+' Registro Oscilador de control
+     OSCCON = 0X75 ' Oscilador interno de 8mhz
+' Registro PUERTO A
+     TRISA = 0X01 ' porta.5 como entrada digital
+     PORTA = 0X00
+' Registro PUERTO B
+     TRISB = 0X00 ' porta.5 como entrada digital
+     PORTB = 0X00
+' Registro PUERTO c
+     TRISC = 0X80 ' porta.5 como entrada digital
+     PORTC = 0X00
+' Registro PUERTO D
+     TRISD = 0X00 ' porta.5 como entrada digital
+     PORTD = 0X00
+     ANSEL = 0X01 ' AN<7:0>
+     ANSELH = 0X00 ' AN<13:8>
+     Lcd_Init()                        ' Inicializacion Lcd
+     Lcd_Cmd(_LCD_CLEAR)               ' encera display
+     Lcd_Cmd(_LCD_CURSOR_OFF)          ' Cursor off
+
+     texto = "000.0000" ' formato del texto a mostrar
+     Lcd_Out(1,1," U. Tecnica")
+     Lcd_Out(2,1," de Machala")
+     Delay_1sec
+     Delay_1sec
+     Lcd_Cmd(_LCD_CLEAR)
+     Lcd_Out(1,1," Por: Jhonathan")
+     Lcd_Out(2,1,"      Rodriguez")
+     Delay_1sec
+     Delay_1sec
+     Lcd_Cmd(_LCD_CLEAR)
+     Lcd_Out(1,1," Cargando")
+     Delay_1sec
+     Lcd_Out(1,1," Cargando.")
+     Delay_1sec
+     Lcd_Out(1,1," Cargando..")
+     Delay_1sec
+     Lcd_Out(1,1," Cargando...")
+     Delay_1sec
+     Lcd_Out(1,1," Cargando....")
+     Delay_1sec
+     Lcd_Cmd(_LCD_CLEAR)
+     Lcd_Out(1,1," Temperatura[c]:")
+    while (TRUE)
+           dato = Adc_Read(0)*0.488
+           floatToStr(dato,texto)
+           Lcd_Chr(2,7,texto[0])
+           Lcd_Chr(2,8,texto[1])
+           Lcd_Chr(2,9,texto[2])
+           Lcd_Chr(2,10,texto[3])
+           Lcd_Chr(2,11,texto[4])
+
+           Delay_ms(1000)
+    wend
+end.
