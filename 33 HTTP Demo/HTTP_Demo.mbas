@@ -1,0 +1,396 @@
+' *
+' * Project Name:
+'     enc28j60Demo (Ethernet Library demo for ENC28J60 mcu)
+' * Target Platform:
+'     PIC
+' * Copyright:
+'     (c) mikroElektronika, 2006.
+' * Revision History:
+'     20060810:
+'       - Initial release. Author: Bruno Gavand.
+' *
+' * V1.0 : first release
+' * V1.1 : bad MIME type for / path request, changed to HTML instead of SCRIPT (thanks Srdjan !)
+' *
+' * description  :
+' *      this code shows how to use the Spi_Ethernet mini library :
+' *              the board will reply to ARP & ICMP echo requests
+' *              the board will reply to UDP requests on any port :
+' *                      returns the request in upper char with a header made of remote host IP & port number
+' *              the board will reply to HTTP requests on port 80, GET method with pathnames :
+' *                      /               will return the HTML main page
+' *                      /s              will return board status as text string
+' *                      /t0 ... /t7     will toggle RD0 to RD7 bit and return HTML main page
+' *                      all other requests return also HTML main page
+' *
+' * target devices :
+' *      any PIC with integrated SPI and more than 4 Kb ROM memory
+' *      32 to 40 MHz clock is recommended to get from 8 to 10 Mhz SPI clock,
+' *      otherwise PIC should be clocked by ENC clock output due to ENC silicon bug in SPI hardware
+' *      if you try lower PIC clock speed, don't be surprised if the board hang or miss some requests !
+' *
+' * EP settings :
+' *      RA2 & RA3 pots jumper : closed
+' *      PORTA : pull-down  (place jumper J1 to lower position)  (board specific)
+' *      PORTB : pull-down  (place jumper J2 to lower position)  (board specific)
+' *      PORTC : pull-down  (place jumper J3 to lower position)  (board specific)
+' *      BUTTONS : pull-up  (place jumper J17 to upper position)  (board specific)
+' *
+' *      mE Serial Ethernet board on PORTC
+' *      RC0 : !RESET    to ENC reset input pin
+' *      RC1 : !CS       to ENC chip select input pin
+' *      the ENC28J60 SPI bus CLK, SO, SI must be connected to the corresponding SPI pins of the PIC
+' *      the INT and WOL signals from the ENC are not used *
+' * Test configuration:
+'     MCU:             PIC18F4520
+'                      http://ww1.microchip.com/downloads/en/DeviceDoc/39631E.pdf
+'     Dev.Board:       EasyPIC6
+'                      http://www.mikroe.com/en/tools/easypic6/
+'     Oscillator:      HS-PLL4, 08.000MHz
+'     Ext. Modules:    mE Serial Ethernet board
+'                      http://www.mikroe.com/en/tools/serialeth/
+'     SW:              mikroBasic PRO for PIC
+'                      http://www.mikroe.com/en/compilers/mikrobasic/pro/pic/
+' * NOTES:
+'     - Since the ENC28J60 doesn't support auto-negotiation, full-duplex mode is
+'       not compatible with most switches/routers.  If a dedicated network is used
+'       where the duplex of the remote node can be manually configured, you may
+'       change this configuration.  Otherwise, half duplex should always be used.
+'     - External power supply should be used due to Serial Ethernet Board power consumption.
+'     - PORTC : pull-up    (place jumper J3 to upper position)  (board specific)
+' *
+
+program enc_ethernet
+
+' ***********************************
+' * RAM variables
+' *
+
+' mE ehternet NIC pinout
+dim
+  SPI_Ethernet_Rst as sbit at LATC0_bit  ' for writing to output pin always use latch (PIC18 family)
+  SPI_Ethernet_CS  as sbit at LATC1_bit  ' for writing to output pin always use latch (PIC18 family)
+  SPI_Ethernet_Rst_Direction as sbit at TRISC0_bit
+  SPI_Ethernet_CS_Direction  as sbit at TRISC1_bit
+' end ethernet NIC definitions
+
+dim myMacAddr   as byte[6]   ' my MAC address
+    myIpAddr    as byte[4]   ' my IP address
+    gwIpAddr    as byte[4]   ' gateway (router) IP address
+    ipMask      as byte[4]   ' network mask (for example : 255.255.255.0)
+    dnsIpAddr   as byte[4]   ' DNS server IP address
+
+' ************************************************************
+' * ROM constant strings
+' *
+const httpHeader as string[31]         = "HTTP/1.1 200 OK"+chr(10)+"Content-type: "  ' HTTP header
+const httpMimeTypeHTML as string[13]   = "text/html"+chr(10)+chr(10)                 ' HTML MIME type
+const httpMimeTypeScript as string[14] = "text/plain"+chr(10)+chr(10)                ' TEXT MIME type
+const httpMethod as string[5]          = "GET /"
+' *
+' * web page, splited into 2 parts :
+' * when coming short of ROM, fragmented data is handled more efficiently by linker
+' *
+' * this HTML page calls the boards to get its status, and builds itself with javascript
+' *
+const indexPage as string[763] =
+                    "<meta http-equiv=" + Chr(34) + "refresh"  + Chr(34) + " content="  + Chr(34) + "3;url=http://192.168.20.60"  + Chr(34) + ">" +
+                    "<HTML><HEAD></HEAD><BODY>"+
+                    "<h1>PIC + ENC28J60 Mini Web Server</h1>"+
+                    "<a href=/>Reload</a>"+
+                    "<script src=/s></script>"+
+                    "<table><tr><td valign=top><table border=1 style="+chr(34)+"font-size:20px ;font-family: terminal ;"+chr(34)+"> "+
+                    "<tr><th colspan=2>ADC</th></tr>"+
+                    "<tr><td>AN2</td><td><script>document.write(AN2)</script></td></tr>"+
+                    "<tr><td>AN3</td><td><script>document.write(AN3)</script></td></tr>"+
+                    "</table></td><td><table border=1 style="+chr(34)+"font-size:20px ;font-family: terminal ;"+chr(34)+"> "+
+                    "<tr><th colspan=2>PORTB</th></tr>"+
+                    "<script>"+
+                    "var str,i;"+
+                    "str="+chr(34)+chr(34)+"; "+
+                    "for(i=0;i<8;i++)"+
+                    "{str+="+chr(34)+"<tr><td bgcolor=pink>BUTTON #"+chr(34)+"+i+"+chr(34)+"</td>"+chr(34)+"; "+
+                    "if(PORTB&(1<<i)){str+="+chr(34)+"<td bgcolor=red>ON"+chr(34)+";}"+
+                    "else {str+="+chr(34)+"<td bgcolor=#cccccc>OFF"+chr(34)+";}"+
+                    "str+="+chr(34)+"</td></tr>"+chr(34)+";}"+
+                    "document.write(str) ;"+
+                    "</script>"
+
+const indexPage2 as string[470] =
+                    "</table></td><td>"+
+                    "<table border=1 style="+chr(34)+"font-size:20px ;font-family: terminal ;"+chr(34)+"> "+
+                    "<tr><th colspan=3>PORTD</th></tr>"+
+                    "<script>"+
+                    "var str,i;"+
+                    "str="+chr(34)+chr(34)+"; "+
+                    "for(i=0;i<8;i++)"+
+                    "{str+="+chr(34)+"<tr><td bgcolor=yellow>LED #"+chr(34)+"+i+"+chr(34)+"</td>"+chr(34)+"; "+
+                    "if(PORTD&(1<<i)){str+="+chr(34)+"<td bgcolor=red>ON"+chr(34)+";}"+
+                    "else {str+="+chr(34)+"<td bgcolor=#cccccc>OFF"+chr(34)+";}"+
+                    "str+="+chr(34)+"</td><td><a href=/t"+chr(34)+"+i+"+chr(34)+">Toggle</a></td></tr>"+chr(34)+";}"+
+                    "document.write(str) ;"+
+                    "</script>"+
+                    "</table></td></tr></table>"+
+                    "This is HTTP request #<script>document.write(REQ)</script></BODY></HTML>"
+
+dim    getRequest  as byte[15]   ' HTTP request buffer
+       dyna        as char[30]   ' buffer for dynamic response
+       httpCounter as word       ' counter of HTTP requests
+       txt         as string[11]
+
+' *******************************************
+' * user defined functions
+' *
+
+' *
+' * this function is called by the library
+' * the user accesses to the HTTP request by successive calls to Spi_Ethernet_getByte()
+' * the user puts data in the transmit buffer by successive calls to Spi_Ethernet_putByte()
+' * the function must return the length in bytes of the HTTP reply, or 0 if nothing to transmit
+' *
+' * if you don't need to reply to HTTP requests,
+' * just define this function with a return(0) as single statement
+' *
+' *
+sub function Spi_Ethernet_UserTCP(dim byref remoteHost as byte[4],
+                              dim remotePort, localPort, reqLength as word, dim byref canClose as byte) as word
+  dim  i as word        ' my reply length
+       bitMask as byte  ' for bit mask
+       txt         as string[11]
+    result = 0
+
+    ' should we close tcp socket after response is sent?
+    ' library closes tcp socket by default if canClose flag is not reset here
+    '  canClose = 0 ' 0 - do not close socket
+                    ' otherwise - close socket
+
+    if(localPort <> 80) then          ' I listen only to web request on port 80
+      result = 0
+      exit
+    end if
+
+    ' get 10 first bytes only of the request, the rest does not matter here
+    for i = 0 to 10
+      getRequest[i] = Spi_Ethernet_getByte()
+    next i
+
+    getRequest[i] = 0
+
+    ' copy httpMethod to ram for use in memcmp routine
+    for i = 0 to 4
+      txt[i] = httpMethod[i]
+    next i
+
+    if(memcmp(@getRequest, @txt, 5) <> 0) then  ' only GET method is supported here
+      result = 0
+      exit
+    end if
+
+    Inc(httpCounter)                           ' one more request done
+
+    if(getRequest[5] = "s") then               ' if request path name starts with s, store dynamic data in transmit buffer
+      ' the text string replied by this request can be interpreted as javascript statements
+      ' by browsers
+      
+      result = SPI_Ethernet_putConstString(@httpHeader)                    ' HTTP header
+      result = result + SPI_Ethernet_putConstString(@httpMimeTypeScript)   ' with text MIME type
+
+      ' add AN2 value to reply
+      WordToStr(ADC_Read(2), dyna)
+      txt  = "var AN2="
+      result = result + Spi_Ethernet_putString(@txt)
+      result = result + Spi_Ethernet_putString(@dyna)
+      txt  = ";"
+      result = result + Spi_Ethernet_putString(@txt)
+
+      ' add AN3 value to reply
+      WordToStr(ADC_Read(3), dyna)
+      txt  = "var AN3="
+      result = result + Spi_Ethernet_putString(@txt)
+      result = result + Spi_Ethernet_putString(@dyna)
+      txt  = ";"
+      result = result + Spi_Ethernet_putString(@txt)
+
+      ' add PORTB value (buttons) to reply
+      txt  = "var PORTB="
+      result = result + Spi_Ethernet_putString(@txt)
+      WordToStr(PORTB, dyna)
+      result = result + Spi_Ethernet_putString(@dyna)
+      txt  = ";"
+      result = result + Spi_Ethernet_putString(@txt)
+
+      ' add PORTD value (LEDs) to reply
+      txt  = "var PORTD="
+      result = result + Spi_Ethernet_putString(@txt)
+      WordToStr(PORTD, dyna)
+      result = result + Spi_Ethernet_putString(@dyna)
+      txt  = ";"
+      result = result + Spi_Ethernet_putString(@txt)
+
+      ' add HTTP requests counter to reply
+      WordToStr(httpCounter, dyna)
+      txt  = "var REQ="
+      result = result + Spi_Ethernet_putString(@txt)
+      result = result + Spi_Ethernet_putString(@dyna)
+      txt  = ";"
+      result = result + Spi_Ethernet_putString(@txt)
+    else
+      if(getRequest[5] = "t") then                         ' if request path name starts with t, toggle PORTD (LED) bit number that comes after
+        bitMask = 0
+        if(isdigit(getRequest[6]) <> 0) then               ' if 0 <= bit number <= 9, bits 8 & 9 does not exist but does not matter
+          bitMask = getRequest[6] - "0"                    ' convert ASCII to integer
+          bitMask = 1 << bitMask                           ' create bit mask
+          PORTD   = PORTD xor bitMask                      ' toggle PORTD with xor operator
+        end if
+      end if
+    end if
+
+    if(result = 0) then ' what do to by default
+      result = SPI_Ethernet_putConstString(@httpHeader)                  ' HTTP header
+      result = result + SPI_Ethernet_putConstString(@httpMimeTypeHTML)   ' with HTML MIME type
+      result = result + SPI_Ethernet_putConstString(@indexPage)          ' HTML page first part
+      result = result + SPI_Ethernet_putConstString(@indexPage2)         ' HTML page second part
+    end if
+    
+    ' return to the library with the number of bytes to transmit
+end sub
+
+' *
+' * this function is called by the library
+' * the user accesses to the UDP request by successive calls to Spi_Ethernet_getByte()
+' * the user puts data in the transmit buffer by successive calls to Spi_Ethernet_putByte()
+' * the function must return the length in bytes of the UDP reply, or 0 if nothing to transmit
+' *
+' * if you don't need to reply to UDP requests,
+' * just define this function with a return(0) as single statement
+' *
+' *
+sub function Spi_Ethernet_UserUDP(dim byref remoteHost as byte[4],
+                              dim remotePort, destPort, reqLength as word) as word
+  dim txt as string[5]
+    result = 0
+    ' reply is made of the remote host IP address in human readable format
+    byteToStr(remoteHost[0], dyna)            ' first IP address byte
+    dyna[3] = "."
+    byteToStr(remoteHost[1], txt)             ' second
+    dyna[4] = txt[0]
+    dyna[5] = txt[1]
+    dyna[6] = txt[2]
+    dyna[7] = "."
+    byteToStr(remoteHost[2], txt)             ' second
+    dyna[8]  = txt[0]
+    dyna[9]  = txt[1]
+    dyna[10] = txt[2]
+
+    dyna[11] = "."
+    byteToStr(remoteHost[3], txt)             ' second
+    dyna[12] = txt[0]
+    dyna[13] = txt[1]
+    dyna[14] = txt[2]
+
+    dyna[15] = ":"                            ' add separator
+
+    ' then remote host port number
+    WordToStr(remotePort, txt)
+    dyna[16] = txt[0]
+    dyna[17] = txt[1]
+    dyna[18] = txt[2]
+    dyna[19] = txt[3]
+    dyna[20] = txt[4]
+    dyna[21] = "["
+    WordToStr(destPort, txt)
+    dyna[22] = txt[0]
+    dyna[23] = txt[1]
+    dyna[24] = txt[2]
+    dyna[25] = txt[3]
+    dyna[26] = txt[4]
+    dyna[27] = "]"
+    dyna[28] = 0
+
+    ' the total length of the request is the length of the dynamic string plus the text of the request
+    result = 28 + reqLength
+
+    ' puts the dynamic string into the transmit buffer
+    Spi_Ethernet_putBytes(@dyna, 28)
+
+    ' then puts the request string converted into upper char into the transmit buffer
+    while(reqLength <> 0)
+      Spi_Ethernet_putByte(Spi_Ethernet_getByte())
+      reqLength = reqLength - 1
+    wend
+    
+    ' back to the library with the length of the UDP reply
+end sub
+
+main:
+  ADCON1 = 0x0B           ' ADC convertors will be used with AN2 and AN3
+  CMCON  = 0x07           ' turn off comparators
+
+  PORTA  = 0
+  TRISA  = 0xFF           ' set PORTA as input for ADC
+
+  PORTB  = 0
+  TRISB  = 0xFF           ' set PORTB as input for buttons
+
+  PORTD  = 0
+  TRISD  = 0              ' set PORTD as output
+
+  httpCounter = 0
+
+  ' set mac address
+  myMacAddr[0] = 0x00
+  myMacAddr[1] = 0x14
+  myMacAddr[2] = 0xA5
+  myMacAddr[3] = 0x76
+  myMacAddr[4] = 0x19
+  myMacAddr[5] = 0x3F
+
+  ' set IP address
+  myIpAddr[0] = 192
+  myIpAddr[1] = 168
+  myIpAddr[2] = 20
+  myIpAddr[3] = 60
+
+  ' set gateway address
+  gwIpAddr[0]  = 192
+  gwIpAddr[1]  = 168
+  gwIpAddr[2]  = 20
+  gwIpAddr[3]  = 6
+
+  ' set dns address
+  dnsIpAddr[0] = 192
+  dnsIpAddr[1] = 168
+  dnsIpAddr[2] = 20
+  dnsIpAddr[3] = 1
+
+  ' set subnet mask
+  ipMask[0]    = 255
+  ipMask[1]    = 255
+  ipMask[2]    = 255
+  ipMask[3]    = 0
+
+'   *
+'   * starts ENC28J60 with :
+'   * reset bit on PORTC.B0
+'   * CS bit on PORTC.B1
+'   * my MAC & IP address
+'   * full duplex
+'   *
+
+  SPI1_Init()  ' init spi module
+  SPI_Ethernet_Init(myMacAddr, myIpAddr, _SPI_Ethernet_FULLDUPLEX)           ' init ethernet module
+  SPI_Ethernet_setUserHandlers(@SPI_Ethernet_UserTCP, @SPI_Ethernet_UserUDP) ' set user handlers
+
+  ' dhcp will not be used here, so use preconfigured addresses
+  SPI_Ethernet_confNetwork(ipMask, gwIpAddr, dnsIpAddr)
+
+  while TRUE                      ' do forever
+    SPI_Ethernet_doPacket()       ' process incoming Ethernet packets
+
+'     *
+'     * add your stuff here if needed
+'     * SPI_Ethernet_doPacket() must be called as often as possible
+'     * otherwise packets could be lost
+'     *
+  wend
+end.

@@ -1,0 +1,56 @@
+Line	MessageNo	File Name
+0	1	mBPic.exe -DBG -pP18F4520 -MSF -Y -DL -O11111114 -fo32 -N"C:\Program Files\Mikroelektronika\mikroBasic PRO for PIC\Examples\Extra Boards\SPI Ethernet\P18\HTTP Demo\HTTP_Demo.mbppi" -SP"C:\Program Files\Mikroelektronika\mikroBasic PRO for PIC\defs\" -SP"C:\Program Files\Mikroelektronika\mikroBasic PRO for PIC\Uses\P18\" -SP"C:\Program Files\Mikroelektronika\mikroBasic PRO for PIC\Examples\Extra Boards\SPI Ethernet\P18\HTTP Demo\" "__Lib_Math.mcl" "__Lib_MathDouble.mcl" "__Lib_System.mcl" "__Lib_Delays.mcl" "__Lib_CType.mcl" "__Lib_String.mcl" "__Lib_Conversions.mcl" "__Lib_ADC_A_D.mcl" "__Lib_SPI_c345.mcl" "__Lib_EthEnc28j60.mcl" "HTTP_Demo.mbas"	 
+diagnostics: 0	154	Available RAM: 1515 [bytes], Available ROM: 32768 [bytes]	 
+diagnostics: 0	132	Compilation Started	C:\Program Files\Mikroelektronika\mikroBasic PRO for PIC\uses\P18\__Lib_Delays.mbas
+hint: 1	1015	Hint: Compiling unit "C:\Program Files\Mikroelektronika\mikroBasic PRO for PIC\uses\P18\__Lib_Delays.mbas"	__Lib_Delays.mbas
+hint: 161	1010	Hint: Unit "__Lib_Delays.mbas" has been recompiled	__Lib_Delays.mbas
+diagnostics: 0	133	Compiled Successfully	C:\Program Files\Mikroelektronika\mikroBasic PRO for PIC\uses\P18\__Lib_Delays.mbas
+diagnostics: 0	132	Compilation Started	C:\Program Files\Mikroelektronika\mikroBasic PRO for PIC\Examples\Extra Boards\SPI Ethernet\P18\HTTP Demo\HTTP_Demo.mbas
+hint: 1	1015	Hint: Compiling unit "C:\Program Files\Mikroelektronika\mikroBasic PRO for PIC\Examples\Extra Boards\SPI Ethernet\P18\HTTP Demo\HTTP_Demo.mbas"	HTTP_Demo.mbas
+hint: 86	1017	Warning: Aggregate padded with zeros (1) in order to match declared size (31)	HTTP_Demo.mbas
+hint: 87	1017	Warning: Aggregate padded with zeros (2) in order to match declared size (13)	HTTP_Demo.mbas
+hint: 88	1017	Warning: Aggregate padded with zeros (2) in order to match declared size (14)	HTTP_Demo.mbas
+hint: 134	1017	Warning: Aggregate padded with zeros (1) in order to match declared size (470)	HTTP_Demo.mbas
+hint: 184	1018	Warning: Suspicious pointer conversion	HTTP_Demo.mbas
+hint: 195	1018	Warning: Suspicious pointer conversion	HTTP_Demo.mbas
+hint: 196	1018	Warning: Suspicious pointer conversion	HTTP_Demo.mbas
+hint: 199	1016	Warning: Source size (30) does not match destination size (5)	HTTP_Demo.mbas
+hint: 201	1018	Warning: Suspicious pointer conversion	HTTP_Demo.mbas
+hint: 202	1018	Warning: Suspicious pointer conversion	HTTP_Demo.mbas
+hint: 204	1018	Warning: Suspicious pointer conversion	HTTP_Demo.mbas
+hint: 207	1016	Warning: Source size (30) does not match destination size (5)	HTTP_Demo.mbas
+hint: 209	1018	Warning: Suspicious pointer conversion	HTTP_Demo.mbas
+hint: 210	1018	Warning: Suspicious pointer conversion	HTTP_Demo.mbas
+hint: 212	1018	Warning: Suspicious pointer conversion	HTTP_Demo.mbas
+hint: 216	1018	Warning: Suspicious pointer conversion	HTTP_Demo.mbas
+hint: 217	1016	Warning: Source size (30) does not match destination size (5)	HTTP_Demo.mbas
+hint: 218	1018	Warning: Suspicious pointer conversion	HTTP_Demo.mbas
+hint: 220	1018	Warning: Suspicious pointer conversion	HTTP_Demo.mbas
+hint: 224	1018	Warning: Suspicious pointer conversion	HTTP_Demo.mbas
+hint: 225	1016	Warning: Source size (30) does not match destination size (5)	HTTP_Demo.mbas
+hint: 226	1018	Warning: Suspicious pointer conversion	HTTP_Demo.mbas
+hint: 228	1018	Warning: Suspicious pointer conversion	HTTP_Demo.mbas
+hint: 231	1016	Warning: Source size (30) does not match destination size (5)	HTTP_Demo.mbas
+hint: 233	1018	Warning: Suspicious pointer conversion	HTTP_Demo.mbas
+hint: 234	1018	Warning: Suspicious pointer conversion	HTTP_Demo.mbas
+hint: 236	1018	Warning: Suspicious pointer conversion	HTTP_Demo.mbas
+hint: 249	1018	Warning: Suspicious pointer conversion	HTTP_Demo.mbas
+hint: 250	1018	Warning: Suspicious pointer conversion	HTTP_Demo.mbas
+hint: 251	1018	Warning: Suspicious pointer conversion	HTTP_Demo.mbas
+hint: 252	1018	Warning: Suspicious pointer conversion	HTTP_Demo.mbas
+hint: 273	1016	Warning: Source size (30) does not match destination size (3)	HTTP_Demo.mbas
+hint: 275	1016	Warning: Source size (5) does not match destination size (3)	HTTP_Demo.mbas
+hint: 280	1016	Warning: Source size (5) does not match destination size (3)	HTTP_Demo.mbas
+hint: 286	1016	Warning: Source size (5) does not match destination size (3)	HTTP_Demo.mbas
+hint: 314	1018	Warning: Suspicious pointer conversion	HTTP_Demo.mbas
+hint: 155	1001	Hint: Variable "remoteHost" has been declared, but not used	HTTP_Demo.mbas
+hint: 156	1001	Hint: Variable "remotePort" has been declared, but not used	HTTP_Demo.mbas
+hint: 156	1001	Hint: Variable "reqLength" has been declared, but not used	HTTP_Demo.mbas
+hint: 156	1001	Hint: Variable "canClose" has been declared, but not used	HTTP_Demo.mbas
+hint: 158	1011	Hint: Variable "bitMask" has been eliminated by optimizer	HTTP_Demo.mbas
+hint: 396	1010	Hint: Unit "HTTP_Demo.mbas" has been recompiled	HTTP_Demo.mbas
+diagnostics: 0	133	Compiled Successfully	C:\Program Files\Mikroelektronika\mikroBasic PRO for PIC\Examples\Extra Boards\SPI Ethernet\P18\HTTP Demo\HTTP_Demo.mbas
+diagnostics: 0	138	All files Compiled in 234 ms	 
+error: 0	433	Demo Limit	Demo Limit
+error: 0	452	Unsuccessful linking 'HTTP_Demo.mbppi'	Unsuccessful linking 'HTTP_Demo.mbppi'
+error: 0	102	Finished (with errors): 10 Jul 2013, 17:45:55	HTTP_Demo.mbppi
