@@ -1,0 +1,120 @@
+program robot_bluetooth
+
+
+SYMBOL DIR1= PORTA.2
+SYMBOL NDIR1=PORTA.4
+SYMBOL DIR2= PORTA.3
+SYMBOL NDIR2=PORTA.5
+DIM DATO, LUZ1,LUZ2,luz AS BYTE
+DIM TEXTO AS STRING [5]
+dim S1,S2,S3,limite AS WORD
+sub procedure ADELANTE()
+PORTA.RA2 = 0
+PORTA.RA4 = 1
+PORTA.RA3 = 1
+PORTA.RA5 = 0
+PWM1_Set_Duty(200)
+PWM2_Set_Duty(200)
+end sub
+sub procedure ATRAS()
+PORTA.RA2 = 1
+PORTA.RA4 = 0
+PORTA.RA3 = 0
+PORTA.RA5 = 1
+PWM1_Set_Duty(200)
+PWM2_Set_Duty(200)
+end sub
+sub procedure GIRO_DERECHA()
+PORTA.RA2 = 0
+PORTA.RA4 = 1
+PORTA.RA3 = 0
+PORTA.RA5 = 1
+PWM1_Set_Duty(200)
+PWM2_Set_Duty(200)
+end sub
+sub procedure GIRO_IZQUIERDA()
+PORTA.RA2 = 1
+PORTA.RA4 = 0
+PORTA.RA3 = 1
+PORTA.RA5 = 0
+PWM1_Set_Duty(200)
+PWM2_Set_Duty(200)
+end sub
+sub procedure PARAR()
+PORTA.RA2 = 0
+PORTA.RA4 = 0
+PORTA.RA3 = 0
+PORTA.RA5 = 0
+PWM1_Set_Duty(0)
+PWM2_Set_Duty(0)
+end sub
+sub procedure ADELANTE_IZQUIERDA()
+PORTA.RA2 = 0
+PORTA.RA4 = 1
+PORTA.RA3 = 1
+PORTA.RA5 = 0
+PWM1_Set_Duty(250)
+PWM2_Set_Duty(150)
+Delay_ms(200)
+end sub
+sub procedure ADELANTE_DERECHA()
+PORTA.RA2 = 0
+PORTA.RA4 = 1
+PORTA.RA3 = 1
+PORTA.RA5 = 0
+PWM1_Set_Duty(150)
+PWM2_Set_Duty(250)
+Delay_ms(200)
+end sub
+main:
+OPTION_REG=0X86
+OSCCON  = 0X75
+PORTA   = %00000000
+TRISA   = %00000011
+PORTB   = %00000000
+TRISB   = %00000100
+PORTC   = %00000000
+TRISC   = %10000000
+PORTE=0
+TRISE=0X80
+ANSEL   = %00000011
+ANSELH  = %00010001
+PWM1_Init(1000)
+PWM2_Init(1000)
+PWM1_Start()
+PWM2_Start()
+UART1_Init(9600)
+limite=50
+
+while 1
+       if UART1_Data_Ready then
+          DATO = UART1_Read
+       end if
+       if DATO = "1" then
+          portb= 1
+          ADELANTE
+          DATO=0
+       end if
+       if DATO = "2" then
+          portb= 2
+           PARAR
+           DATO=0
+       end if
+       if DATO = "3" then
+            ATRAS
+            DATO=0
+            portb= 4
+       end if
+       if DATO = "4" then
+            GIRO_IZQUIERDA
+            DATO=0
+            portb= 8
+       end if
+       if DATO = "5" then
+            GIRO_DERECHA
+            DATO=0
+            portb= 16
+       end if
+
+wend
+end.

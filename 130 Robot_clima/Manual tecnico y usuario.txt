@@ -1,0 +1,12 @@
+Tecnico
+Todos los detalles de codificacion
+Teclado
+App
+
+Usuario
+Instruccion de trabajo
+
+Induccion uso robot empresa.
+Induccion software.
+Video Proceso de implementacion paso a paso.
+Asesoria ultimos detalles.

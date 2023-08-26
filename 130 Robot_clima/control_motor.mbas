@@ -1,0 +1,317 @@
+program control_motor
+
+SYMBOL DIR1= PORTA.2
+SYMBOL NDIR1=PORTA.4
+SYMBOL DIR2= PORTA.3
+SYMBOL NDIR2=PORTA.5
+
+dim LCD_RS as sbit at RC4_bit
+    LCD_EN as sbit at RC5_bit
+    LCD_D4 as sbit at RD4_bit
+    LCD_D5 as sbit at RD5_bit
+    LCD_D6 as sbit at RD6_bit
+    LCD_D7 as sbit at RD7_bit
+
+    LCD_RS_Direction as sbit at TRISC4_bit
+    LCD_EN_Direction as sbit at TRISC5_bit
+    LCD_D4_Direction as sbit at TRISD4_bit
+    LCD_D5_Direction as sbit at TRISD5_bit
+    LCD_D6_Direction as sbit at TRISD6_bit
+    LCD_D7_Direction as sbit at TRISD7_bit
+
+DIM DATO, LUZ1,LUZ2,KP,NUMERO2,CONTADOR,NUMERO,LISTO,turno AS BYTE
+DIM TEXTO AS STRING [5]
+sub procedure PARAR()
+PORTC.RC0 = 1
+PORTC.RC1 = 1
+PORTC.RC2 = 1
+PORTC.RC3 = 1
+end sub
+sub procedure ADELANTE()
+PARAR()
+Delay_ms(400)
+PORTC.RC0 = 0
+PORTC.RC1 = 1
+PORTC.RC2 = 0
+PORTC.RC3 = 1
+end sub
+sub procedure ATRAS()
+PARAR()
+Delay_ms(400)
+PORTC.RC0 = 1
+PORTC.RC1 = 0
+PORTC.RC2 = 1
+PORTC.RC3 = 0
+end sub
+sub procedure DERECHA()
+PARAR()
+Delay_ms(400)
+PORTC.RC0 = 1
+PORTC.RC1 = 0
+Delay_ms(300)
+PARAR
+PORTC.RC2 = 0
+PORTC.RC3 = 1
+Delay_ms(300)
+PARAR
+end sub
+sub procedure IZQUIERDA()
+PARAR()
+Delay_ms(400)
+PORTC.RC0 = 0
+PORTC.RC1 = 1
+Delay_ms(300)
+PARAR
+PORTC.RC2 = 1
+PORTC.RC3 = 0
+Delay_ms(300)
+PARAR
+end sub
+sub procedure sonido()
+PORTD.RD2 = 1
+Delay_ms(200)
+PORTD.RD2 = 0
+Delay_ms(200)
+end sub
+sub procedure led()
+PORTD.RD3 = 0
+Delay_ms(200)
+PORTD.RD3 = 1
+Delay_ms(200)
+end sub
+sub procedure TECLADOMEMBRANA()
+   kp = 255
+   portb=%11101111        'EXPLORO FILA 1
+   if(portb.0=0)then      'EXPLORO COLUMNA1
+     while(portb.0=0) wend
+      numero2 = 0x4f
+      KP=0
+   end if'1
+
+   if(portb.1=0)then      'EXPLORO COLUMNA2
+      while(portb.1=0) wend
+      numero2 = 0x55
+      KP=0
+   end if'2
+
+   if(portb.2=0)then      'EXPLORO COLUMNA3
+     while(portb.2=0) wend
+      numero2 = 0x30
+      KP=0
+   end if'3
+
+   if (portb.3=0)then    'EXPLORO COLUMNA4
+     while(portb.3=0) wend
+      numero2 = 0x4f
+      KP=0
+   end if'A
+
+  if(kp=255)then
+    portb=%11011111          'EXPLORO FILA 2
+   if(portb.0=0)then       'EXPLORO COLUMNA1
+     while(portb.0=0) wend
+      numero2 = 0x49 ' c
+      KP=0
+   end if'4
+
+
+   if(portb.1=0)then      'EXPLORO COLUMNA2
+     while(portb.1=0) wend
+      numero2 = 0x39 ' 9
+      KP=0
+      end if'5
+   if(portb.2=0)then     'EXPLORO COLUMNA3
+      while(portb.2=0) wend
+      numero2 = 0x38 ' c
+      KP=0
+      end if'6
+   if (portb.3=0)then    'EXPLORO COLUMNA4
+      while(portb.3=0) wend
+      numero2 = 0x37 ' c
+      KP=0
+   end if'B
+   else return
+   end if
+
+  if(kp=255) then
+    portb=%10111111         'EXPLORO FILA 3
+   if(portb.0=0)then      'EXPLORO COLUMNA1
+     while(portb.0=0) wend
+      numero2 = 0x45 ' c
+      KP=0
+      end if'7
+
+   if(portb.1=0)then      'EXPLORO COLUMNA2
+      while(portb.1=0) wend
+      numero2 = 0x36 ' c
+      KP=0
+      end if'8
+   if(portb.2=0)then      'EXPLORO COLUMNA3
+      while(portb.2=0) wend
+      numero2 = 0x35 ' c
+      KP=0
+      end if'9
+
+   if (portb.3=0)then     'EXPLORO COLUMNA4
+      while(portb.3=0) wend
+      numero2 = 0x34 ' c
+      KP=0
+   end if'C
+   else return
+  end if
+  if(kp=255)then
+     portb=%01111111  'EXPLORO FILA 4
+   if(portb.0=0)then      'EXPLORO COLUMNA1
+      while(portb.0=0) wend
+      numero2 = 0x2A ' c
+      KP=0
+      end if '*
+   if(portb.1=0)then      'EXPLORO COLUMNA2
+      while(portb.1=0) wend
+      numero2 = 0x33 ' c
+      KP=0
+      end if'0
+   if(portb.2=0)then      'EXPLORO COLUMNA3
+      while(portb.2=0) wend
+      numero2 = 0x32 ' c
+      KP=0
+      end if'#
+   if (portb.3=0)then     'EXPLORO COLUMNA4
+      while(portb.3=0) wend
+      numero2 = 0x31 ' c
+      KP=0
+      end if'D
+   else return
+  end if
+
+end sub
+main:
+OPTION_REG = %00000111
+OSCCON  = 0X75
+PORTA   = %00000000
+TRISA   = %10000000
+PORTB   = %00000000
+TRISB   = %00001111
+PORTC   = %00001111
+TRISC   = %10000000
+PORTD   = %00001000
+TRISD   = %00000000
+ANSEL   = %00000000
+ANSELH  = %00000000
+WPUB       = %00001111
+UART1_Init(9600)
+Lcd_Init()                        ' Inicializacion Lcd
+Lcd_Cmd(_LCD_CLEAR)               ' encera display
+Lcd_Cmd(_LCD_CURSOR_OFF)          ' Cursor off
+Lcd_Out(1,1,"INGRESE CLAVE")                 ' escribe la cadena en la primera fila
+Lcd_Out(2,1,"")                 ' escribe la cadena en la segunda fila
+LED
+SONIDO
+CONTADOR=0
+LISTO=0
+turno=1
+while 1
+       while (turno=1)
+        if UART1_Data_Ready then
+          DATO = UART1_Read
+       end if
+       if DATO = "C" then
+          SONIDO
+          turno=2
+       end if
+        TECLADOMEMBRANA
+        if KP<>255 then
+           UART1_Write(numero2)       ' ENVIA NUMERO
+           Delay_ms(200)             ' TIEMPO DE ESPERA
+           contador = contador+1
+           SONIDO
+           IF (NUMERO2 = 0X31) and (contador=1)  then
+               listo = listo + 1
+           end if
+           IF (NUMERO2 = 0X32) and (contador=2) then
+               listo = listo + 1
+           end if
+           IF (NUMERO2 = 0X33) and (contador=3) then
+               listo = listo + 1
+           end if
+           IF (NUMERO2 = 0X34) and (contador=4) then
+               listo = listo + 1
+           end if
+          Lcd_Out(2,contador,"*")
+           if CONTADOR=4 then
+              SONIDO
+              SONIDO
+              SONIDO
+              Lcd_Cmd(_LCD_CLEAR)
+             ' escribe la cadena en la segunda fila
+              if listo=4 then
+                 listo=0
+                 contador=0
+                 Lcd_Out(1,1,"ACCESO")                 ' escribe la cadena en la primera fila
+                 Lcd_Out(2,1,"CORRECTO")                 ' escribe la cadena en la segunda fila
+                 led
+                 led
+                 turno=2
+                 Lcd_Cmd(_LCD_CLEAR)
+              else
+                 contador=0
+                 listo=0
+                 Lcd_Out(1,1,"ACCESO")                 ' escribe la cadena en la primera fila
+                 Lcd_Out(2,1,"INCORRECTO")                 ' escribe la cadena en la segunda fila
+                 Delay_ms(2000)
+                 Lcd_Cmd(_LCD_CLEAR)
+                 Lcd_Out(1,1,"INGRESE CLAVE")                 ' escribe la cadena en la primera fila
+                 Lcd_Out(2,1,"")
+              end if
+
+           end if
+
+        end if
+       wend
+       
+       while ((turno=2))
+       if UART1_Data_Ready then
+          DATO = UART1_Read
+          Lcd_Cmd(_LCD_CLEAR)
+       end if
+       if DATO = "1" then
+          SONIDO
+          ADELANTE
+          UART1_Write_Text("ADELANTE")
+          Lcd_Out(1,1,"ADELANTE")
+       end if
+       if DATO = "2" then
+           SONIDO
+           PARAR
+           UART1_Write_Text("PARAR")
+           Lcd_Out(1,1,"PARAR")
+       end if
+       if DATO = "3" then
+            SONIDO
+            ATRAS
+            UART1_Write_Text("ATRAS")
+            Lcd_Out(1,1,"ATRAS")
+       end if
+       if DATO = "4" then
+            SONIDO
+            IZQUIERDA
+            UART1_Write_Text("GIRO IZQUIERDA")
+            Lcd_Out(1,1,"IZQUIERDA")
+       end if
+       if DATO = "5" then
+            SONIDO
+            DERECHA
+            UART1_Write_Text("GIRO DERECHA")
+            Lcd_Out(1,1,"DERECHA")
+       end if
+       if DATO = "B" then
+            SONIDO
+            DATO=0
+            TURNO=1
+            GOTO main
+       end if
+       DATO=0
+       wend
+
+wend
+end.

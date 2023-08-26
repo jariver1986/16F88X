@@ -1,0 +1,310 @@
+program master
+DIM DATO,DISTANCIA1,DISTANCIA2,DISTANCIA3 AS WORD
+DIM RECEP AS BYTE
+DIM TEXTO1,TEXTO2,TEXTO3,TEXTO4,TEXTO5,TEXTO6,TEXTO7,TEXTO8,TEXTO9 AS CHAR[5]
+dim Raw_temp, TempC, comma as word
+dim i, j1, j2, minus       as byte
+dim text                   as string[14]
+dim valor as float
+dim textotal as string[12]
+
+dim LCD_RS as sbit at RC4_bit
+    LCD_EN as sbit at RC5_bit
+    LCD_D4 as sbit at RD4_bit
+    LCD_D5 as sbit at RD5_bit
+    LCD_D6 as sbit at RD6_bit
+    LCD_D7 as sbit at RD7_bit
+
+    LCD_RS_Direction as sbit at TRISC4_bit
+    LCD_EN_Direction as sbit at TRISC5_bit
+    LCD_D4_Direction as sbit at TRISD4_bit
+    LCD_D5_Direction as sbit at TRISD5_bit
+    LCD_D6_Direction as sbit at TRISD6_bit
+    LCD_D7_Direction as sbit at TRISD7_bit
+
+sub procedure interrupt
+     if (PIR1.RCIF=1) then
+          PIR1.RCIF=0
+          recep = UART1_Read()
+
+     end if
+     INTCON = INTCON or 0xC0
+end sub
+sub procedure sonido()
+PORTD.RD2 = 1
+Delay_ms(200)
+PORTD.RD2 = 0
+Delay_ms(200)
+end sub
+sub procedure led()
+PORTD.RD3 = 0
+Delay_ms(200)
+PORTD.RD3 = 1
+Delay_ms(200)
+end sub
+sub procedure temperatura
+
+end sub
+
+sub function ultrasonico1( ) as word
+     dim flanco as byte
+     dim distan,tiempo as word
+     flanco = 0
+
+     PORTC.RC0 = 1
+     Delay_us(150)
+     PORTC.RC0 = 0
+
+     DO
+          IF( PORTC.RC1 = 1 )THEN
+               TMR0 = 0
+               flanco = 1
+          END IF
+     LOOP UNTIL( flanco = 1 )
+
+     DO
+          IF( PORTC.RC1 = 0 )THEN
+               tiempo = TMR0
+               flanco = 0
+          END IF
+          'if(TMR0>254)THEN
+'           FLANCO=0
+'          END IF
+     LOOP UNTIL( FLANCO = 0 )
+
+     distan = (tiempo*128)/58
+     Delay_ms (50)
+     result = distan
+end sub
+sub function ultrasonico2( ) as word
+     dim flanco as byte
+     dim distan,tiempo as word
+     flanco = 0
+
+     PORTC.RC2 = 1
+     Delay_us(150)
+     PORTC.RC2 = 0
+
+     DO
+          IF( PORTC.RC3 = 1 )THEN
+               TMR0 = 0
+               flanco = 1
+          END IF
+     LOOP UNTIL( flanco = 1 )
+
+     DO
+          IF( PORTC.RC3 = 0 )THEN
+               tiempo = TMR0
+               flanco = 0
+          END IF
+          'if(TMR0>254)THEN
+'           FLANCO=0
+'          END IF
+     LOOP UNTIL( FLANCO = 0 )
+
+     distan = (tiempo*128)/58
+     Delay_ms (50)
+     result = distan
+end sub
+sub function ultrasonico3( ) as word
+     dim flanco as byte
+     dim distan,tiempo as word
+     flanco = 0
+
+     PORTD.RD0 = 1
+     Delay_us(150)
+     PORTD.RD0 = 0
+
+     DO
+          IF( PORTD.RD1 = 1 )THEN
+               TMR0 = 0
+               flanco = 1
+          END IF
+     LOOP UNTIL( flanco = 1 )
+
+     DO
+          IF( PORTD.RD1 = 0 )THEN
+               tiempo = TMR0
+               flanco = 0
+          END IF
+          'if(TMR0>254)THEN
+'           FLANCO=0
+'          END IF
+     LOOP UNTIL( FLANCO = 0 )
+
+     distan = (tiempo*128)/58
+     Delay_ms (50)
+     result = distan
+end sub
+main:
+OPTION_REG = %00000110
+OSCCON  = 0X65
+PORTA   = %00000000
+TRISA   = %00000111
+PORTB   = %00000000
+TRISB   = %00111111
+PORTC   = %00000000
+TRISC   = %10011010
+PORTD   = %00001000
+TRISD   = %00000010
+ANSEL   = %00000111
+ANSELH  = %00111111
+INTCON = 0XC0
+PIR1.RCIF=0
+PIE1.RCIE=1
+UART1_Init(9600)
+
+Lcd_Init()                        ' Inicializacion Lcd
+Lcd_Cmd(_LCD_CLEAR)               ' encera display
+Lcd_Cmd(_LCD_CURSOR_OFF)          ' Cursor off
+'Lcd_Out(1,1,"ROBOT SENSOR")                 ' escribe la cadena en la primera fila
+'Lcd_Out(2,1,"PROYECTO FINAL")                 ' escribe la cadena en la segunda fila
+'Lcd_Out(3,1,"")
+'Lcd_Out(4,1,"a")
+LED
+SONIDO
+'Delay_ms(2000)
+Lcd_Cmd(_LCD_CLEAR)
+Lcd_Out(4,1,"LOADING")                 ' escribe la cadena en la primera fila
+Delay_ms(500)
+Lcd_Out(4,1,"LOADING.")                 ' escribe la cadena en la primera fila
+Delay_ms(700)
+Lcd_Out(4,1,"LOADING..")                 ' escribe la cadena en la primera fila
+Delay_ms(800)
+Lcd_Out(4,1,"LOADING...")                 ' escribe la cadena en la primera fila
+Delay_ms(1000)
+Lcd_Cmd(_LCD_CLEAR)
+TEXTO1=""
+TEXTO2=""
+TEXTO3=""
+TEXTO4=""
+TEXTO5=""
+TEXTO6=""
+TEXTO7=""
+TEXTO8=""
+TEXTO9=""
+while 1
+
+      if recep="1" then
+         dato = (Adc_Read(0)*100)/1024
+         WordToStr(DATO,TEXTO1)
+         Lcd_Out(1,1,"MQ135:")      'ra0
+         Lcd_Out(1,10,TEXTO1)
+         Delay_ms(20)
+         textotal = "A"+texto1+"B"
+         UART1_Write_Text(TEXTOTAL)
+         recep=0
+
+      end if
+
+      if recep="2" then
+         dato = (Adc_Read(1)*100)/1024
+         WordToStr(DATO,TEXTO2)
+         Lcd_Out(2,1,"MQ7:")         'ra1
+         Lcd_Out(2,10,TEXTO2)
+         Delay_ms(20)
+         textotal = "C"+texto2+"D"
+         UART1_Write_Text(TEXTOTAL)
+         recep=0
+      end if
+      
+
+     if recep="3" then
+         dato = (Adc_Read(8)*100)/1024
+         WordToStr(DATO,TEXTO3)
+         Lcd_Out(3,1,"MQ8:")  'rb2
+         Lcd_Out(3,10,TEXTO3)
+         Delay_ms(20)
+         textotal = "E"+texto3+"F"
+         UART1_Write_Text(TEXTOTAL)
+         recep=0
+      end if
+
+
+     if recep="4" then
+         dato = (Adc_Read(9)*100)/1024
+         WordToStr(DATO,TEXTO4)
+         Lcd_Out(4,1,"MQ131:") 'rb3
+         Lcd_Out(4,10,TEXTO4)
+         Delay_ms(1000)
+         Lcd_Cmd(_LCD_CLEAR)
+         textotal = "G"+texto4+"H"
+         UART1_Write_Text(TEXTOTAL)
+         recep=0
+      end if
+     '
+
+     if recep="5" then
+          dato = (Adc_Read(10)*100)/1024
+         WordToStr(DATO,TEXTO5)
+         Lcd_Out(1,1,"MQ3:")    'rb1
+         Lcd_Out(1,10,TEXTO5)
+         Delay_ms(20)
+         textotal = "I"+texto5+"J"
+         UART1_Write_Text(TEXTOTAL)
+         recep=0
+      end if
+
+     if recep="6" then
+         dato = (Adc_Read(11)*100)/1024
+         WordToStr(DATO,TEXTO6)
+         Lcd_Out(2,1,"MG811:")  'rb4
+         Lcd_Out(2,10,TEXTO6)
+         textotal = "K"+texto6+"L"
+         UART1_Write_Text(TEXTOTAL)
+         recep=0
+      end if
+
+      if recep="7" then
+         dato = (Adc_Read(12)*100)/1024
+     WordToStr(DATO,TEXTO7)
+     Lcd_Out(3,1,"HUMEDAD AMB.:") 'rb0
+     Lcd_Out(3,14,TEXTO7)
+     Delay_ms(20)
+
+
+         textotal = "M"+texto7+"N"
+         UART1_Write_Text(TEXTOTAL)
+         recep=0
+      end if
+
+
+
+      if recep="8" then
+     dato = (Adc_Read(13)*100)/1024
+     WordToStr(DATO,TEXTO8)
+     Lcd_Out(4,1,"HUMEDAD REL.:")   'rb5
+     Lcd_Out(4,14,TEXTO8)
+
+
+         textotal = "O"+texto8+"P"
+         UART1_Write_Text(TEXTOTAL)
+         recep=0
+      end if
+
+      if recep="9" then
+          valor = Adc_Read(2)*0.488
+         FloatToStr(VALOR,TEXTO9)
+         Lcd_Out(1,1,"TEMPERATURA[°C]:")      'ra0
+         Lcd_Out(2,10,TEXTO9)
+
+         textotal = "Q"+texto9+"R"
+         UART1_Write_Text(TEXTOTAL)
+         recep=0
+      end if
+
+
+
+
+ '     DISTANCIA1=ULTRASONICO1
+'      DISTANCIA2=ULTRASONICO2
+'      DISTANCIA3=ULTRASONICO3
+' if((DISTANCIA1>50)AND(DISTANCIA2>50)AND(DISTANCIA3>50))then
+'     Lcd_Cmd(_LCD_CLEAR)
+'     Lcd_Out(1,1,"Obstaculo")
+'     Delay_ms(200)
+'     Lcd_Cmd(_LCD_CLEAR)
+'     sonido
+' end if
+wend
+end.

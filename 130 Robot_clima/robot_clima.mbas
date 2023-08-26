@@ -1,0 +1,220 @@
+program robot_clima
+symbol boton= portc.rc0
+DIM LCD_RS as sbit at RD2_bit
+LCD_EN as sbit at RD3_bit
+LCD_D4 as sbit at RD4_bit
+LCD_D5 as sbit at RD5_bit
+LCD_D6 as sbit at RD6_bit
+LCD_D7 as sbit at RD7_bit
+LCD_RS_Direction as sbit at TRISD2_bit
+LCD_EN_Direction as sbit at TRISD3_bit
+LCD_D4_Direction as sbit at TRISD4_bit
+LCD_D5_Direction as sbit at TRISD5_bit
+LCD_D6_Direction as sbit at TRISD6_bit
+LCD_D7_Direction as sbit at TRISD7_bit
+
+DIM KP,NUMERO,TURNO,CONTADOR,DATO,COUNTER,SERIAL AS BYTE
+DIM ACCESO,CLAVE AS BYTE [10]
+DIM TEXTO AS STRING[15]
+sub procedure TECLADO()
+   kp = 255
+   portb=%11101111        'EXPLORO FILA 1
+   if(portb.0=0)then      'EXPLORO COLUMNA1
+     while(portb.0=0) wend
+      kp=1 end if'1
+      numero = 0x31
+   if(portb.1=0)then      'EXPLORO COLUMNA2
+      while(portb.1=0) wend
+      kp=2 end if'2
+      numero = 0x32
+   if(portb.2=0)then      'EXPLORO COLUMNA3
+     while(portb.2=0) wend
+      kp=3 end if'3
+      numero = 0x33
+   if (portb.3=0)then    'EXPLORO COLUMNA4
+     while(portb.3=0) wend
+      kp=$41 end if'A
+  if(kp=255)then
+    portb=%11011111          'EXPLORO FILA 2
+   if(portb.0=0)then       'EXPLORO COLUMNA1
+     while(portb.0=0) wend
+      kp=4 end if'4
+      numero = 0x34
+   if(portb.1=0)then      'EXPLORO COLUMNA2
+     while(portb.1=0) wend
+      kp=5 end if'5
+      numero = 0x35
+   if(portb.2=0)then     'EXPLORO COLUMNA3
+      while(portb.2=0) wend
+      kp=6 end if'6
+      numero = 0x36
+   if (portb.3=0)then    'EXPLORO COLUMNA4
+      while(portb.3=0) wend
+      kp=$42 end if'B
+   else return
+   end if
+  if(kp=255) then
+    portb=%10111111         'EXPLORO FILA 3
+   if(portb.0=0)then      'EXPLORO COLUMNA1
+     while(portb.0=0) wend
+      kp=7 end if'7
+      numero = 0x37
+   if(portb.1=0)then      'EXPLORO COLUMNA2
+      while(portb.1=0) wend
+      kp=8 end if'8
+       numero = 0x38
+   if(portb.2=0)then      'EXPLORO COLUMNA3
+      while(portb.2=0) wend
+      kp=9 end if'9
+      numero = 0x39
+   if (portb.3=0)then     'EXPLORO COLUMNA4
+      while(portb.3=0) wend
+      kp=$43 end if'C
+   else return
+  end if
+  if(kp=255)then
+     portb=%01111111  'EXPLORO FILA 4
+   if(portb.0=0)then      'EXPLORO COLUMNA1
+      while(portb.0=0) wend
+      kp=$2A end if '*
+   if(portb.1=0)then      'EXPLORO COLUMNA2
+      while(portb.1=0) wend
+      kp=0 end if'0
+      numero = 0x30
+   if(portb.2=0)then      'EXPLORO COLUMNA3
+      while(portb.2=0) wend
+      kp=$23 end if'#
+   if (portb.3=0)then     'EXPLORO COLUMNA4
+      while(portb.3=0) wend
+      kp=$44 end if'D
+   else return
+  end if
+
+end sub
+
+main:
+
+    OSCCON     = %01110101
+    OPTION_REG = %00000111
+    TRISA      = %11000011
+    PORTA      = %00000000
+    TRISB      = %00001111
+    PORTB      = %00000000
+    TRISC      = %10000001
+    PORTC      = %00000000
+    TRISC      = %10000000
+    PORTC      = %00000000
+    TRISE      = %00001111
+    PORTE      = %00000000
+    ANSEL      = %00000000
+    ANSELH     = %00000000
+    WPUB       = %00001111
+    UART1_Init(1382400)
+    'perifericos
+     Lcd_Init()                        ' Inicializacion Lcd
+     Lcd_Cmd(_LCD_CLEAR)               ' encera display
+     Lcd_Cmd(_LCD_CURSOR_OFF)          ' Cursor off
+     Lcd_Out(1,1,"  UNIVERSIDAD  ")                 ' escribe la cadena en la primera fila
+     Lcd_Out(2,1,"    AGRARIA    ")                 ' escribe la cadena en la segunda fila
+     Lcd_Out(3,1,"ING. SISTEMAS")                 ' escribe la cadena en la primera fila
+     delay_ms(2000)
+     Lcd_Cmd(_LCD_CLEAR)
+     Lcd_Out(1,1,"AUTORES:")                 ' escribe la cadena en la primera fila
+     Lcd_Out(2,1,"SIMON DAVILA ")                 ' escribe la cadena en la segunda fila
+     Lcd_Out(3,1,"XXXXXXXXXXXX")                 ' escribe la cadena en la segunda fila
+     delay_ms(2000)
+     Lcd_Cmd(_LCD_CLEAR)               ' encera display
+     Lcd_Out(1,1,"TUTOR")                 ' escribe la cadena en la primera fila
+     Lcd_Out(2,1,"ING. JOHN RIVERA")                 ' escribe la cadena en la segunda fila
+     Lcd_Cmd(_LCD_CLEAR)               ' encera display
+     Lcd_Out(1,1,"INGRESE CLAVE")                 ' escribe la cadena en la primera fila
+
+
+     Delay_1sec
+     KP=0
+     NUMERO=0
+     TURNO=0
+     CONTADOR=0
+     CLAVE[1]=6
+     CLAVE[2]=7
+     CLAVE[3]=8
+     CLAVE[4]=9
+     
+     ACCESO[1]=6
+     ACCESO[2]=7
+     ACCESO[3]=8
+     ACCESO[4]=9
+     SERIAL =0
+
+while(1)
+    while TURNO=0
+      TECLADO()
+      if boton =1 then 'if KP<>255 then
+         while   boton =1
+         wend
+         INC(CONTADOR)
+         Lcd_Out(2,CONTADOR,"*")
+         'ACCESO[CONTADOR]=KP
+      end if
+      if CONTADOR=4 then
+         TURNO=1
+         CONTADOR=0
+      end if
+    wend
+    while TURNO=1
+      DATO=0
+      for counter = 1 to 4
+          if CLAVE[COUNTER]= ACCESO[COUNTER] then
+             INC(DATO)
+          end if
+      next counter
+      if DATO = 4 then
+          Lcd_Cmd(_LCD_CLEAR)
+          TURNO=2
+          Lcd_Out(1,1,"ACCESO")
+          Lcd_Out(2,1,"PERMITIDO")
+      ELSE
+          TURNO=0
+          Lcd_Out(1,1,"ACCESO")
+          Lcd_Out(2,1,"NEGADO")
+          
+      end if
+      Delay_ms(2000)
+      Lcd_Cmd(_LCD_CLEAR)
+    wend
+    
+    while TURNO=2
+         if UART1_Data_Ready then
+            SERIAL = UART1_Read
+             if SERIAL = "W"   then
+                UART1_Write_Text("ADELANTE")
+             end if
+             if SERIAL = "X"   then
+             UART1_Write_Text("ATRAS")
+             end if
+             if SERIAL = "A"   then
+             UART1_Write_Text("IZQUIERDA")
+             end if
+             if SERIAL = "D"   then
+             UART1_Write_Text("DERECHA")
+             end if
+             if SERIAL = "S"   then
+             UART1_Write_Text("PARAR")
+             end if
+             if SERIAL = "1"   then
+             UART1_Write_Text("Alerta Sensor 1 ")
+             end if
+             if SERIAL = "2"   then
+             UART1_Write_Text("Alerta Sensor 2")
+             end if
+         end if
+         SERIAL=0
+         
+         
+         
+         
+    wend
+    
+wend
+
+end.

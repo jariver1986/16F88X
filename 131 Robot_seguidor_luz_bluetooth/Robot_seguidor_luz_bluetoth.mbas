@@ -1,0 +1,121 @@
+PROGRAM Robot_seguidor_luz_bluetooth
+
+SYMBOL DIR1= PORTA.2
+SYMBOL NDIR1=PORTA.4
+SYMBOL DIR2= PORTA.3
+SYMBOL NDIR2=PORTA.5
+DIM DATO, LUZ1,LUZ2,luz AS BYTE
+DIM TEXTO AS STRING [5]
+dim S1,S2,S3,limite AS WORD
+sub procedure ADELANTE()
+PORTA.RA2 = 0
+PORTA.RA4 = 1
+PORTA.RA3 = 0
+PORTA.RA5 = 0
+PWM1_Set_Duty(250)
+PWM2_Set_Duty(250)
+end sub
+sub procedure ATRAS()
+PORTA.RA2 = 1
+PORTA.RA4 = 0
+PORTA.RA3 = 0
+PORTA.RA5 = 0
+PWM1_Set_Duty(250)
+PWM2_Set_Duty(250)
+end sub
+sub procedure ADELANTE_DERECHA()
+PORTA.RA2 = 0
+PORTA.RA4 = 1
+PORTA.RA3 = 0
+PORTA.RA5 = 1
+PWM1_Set_Duty(250)
+PWM2_Set_Duty(250)
+end sub
+sub procedure ADELANTE_IZQUIERDA()
+PORTA.RA2 = 0
+PORTA.RA4 = 1
+PORTA.RA3 = 1
+PORTA.RA5 = 0
+PWM1_Set_Duty(250)
+PWM2_Set_Duty(250)
+end sub
+sub procedure PARAR()
+PORTA.RA2 = 0
+PORTA.RA4 = 0
+PORTA.RA3 = 0
+PORTA.RA5 = 0
+PWM1_Set_Duty(0)
+PWM2_Set_Duty(0)
+end sub
+sub procedure ATRAS_IZQUIERDA()
+PORTA.RA2 = 1
+PORTA.RA4 = 0
+PORTA.RA3 = 1
+PORTA.RA5 = 0
+PWM1_Set_Duty(250)
+PWM2_Set_Duty(250)
+Delay_ms(200)
+end sub
+sub procedure ATRAS_DERECHA()
+PORTA.RA2 = 1
+PORTA.RA4 = 0
+PORTA.RA3 = 0
+PORTA.RA5 = 1
+PWM1_Set_Duty(250)
+PWM2_Set_Duty(250)
+Delay_ms(200)
+end sub
+main:
+OPTION_REG=0X86
+OSCCON  = 0X75
+PORTA   = %00000000
+TRISA   = %00000011
+PORTB   = %00000000
+TRISB   = %00000100
+PORTC   = %00000000
+TRISC   = %10000000
+PORTE=0
+TRISE=0X80
+ANSEL   = %00000011
+ANSELH  = %00010001
+PWM1_Init(1000)
+PWM2_Init(1000)
+PWM1_Start()
+PWM2_Start()
+UART1_Init(9600)
+limite=50
+
+while 1
+       if UART1_Data_Ready then
+          DATO = UART1_Read
+       end if
+       if DATO = "1" then
+          ADELANTE
+          DATO=0
+       end if
+       if DATO = "7" then
+           PARAR
+           DATO=0
+       end if
+       if DATO = "2" then
+            ATRAS
+            DATO=0
+       end if
+       if DATO = "3" then
+            ADELANTE_IZQUIERDA
+            DATO=0
+       end if
+       if DATO = "4" then
+            ADELANTE_DERECHA
+            DATO=0
+       end if
+       if DATO = "5" then
+            ATRAS_IZQUIERDA
+            DATO=0
+       end if
+       if DATO = "6" then
+            ATRAS_DERECHA
+            DATO=0
+       end if
+wend
+end.
