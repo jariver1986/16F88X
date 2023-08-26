@@ -1,4 +1,4 @@
-# MicroChip Microcontrollers
+# 152 MicroChip Microcontrollers Projects
 
 Projects with PIC16F882/883/884/886/887 Data Sheet 28/40/44-Pin, Enhanced Flash-Based 8-Bit CMOS Microcontrollers with nanoWatt Technology.
 # 16F88X
