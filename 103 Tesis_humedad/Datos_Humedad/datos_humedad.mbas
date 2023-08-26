@@ -1,0 +1,39 @@
+program datos_humedad
+
+dim text         as string[8]
+dim VALOR,TEMP_VALOR,HUMEDAD AS WORD
+DIM PORCENTAJE AS FLOAT
+main:
+     OPTION_REG = 0X00
+' Registro Oscilador de control
+     OSCCON = 0X75 ' Oscilador interno de 8mhz
+' Registro PUERTO A
+     TRISA = 0X01 ' porta.0 como entrada analógica
+     PORTA = 0X00
+' Registro PUERTO B
+     TRISB = 0X00
+     PORTB = 0X00
+' Registro PUERTO C
+     TRISC = 0X80
+     PORTC = 0X00
+' Selección de registro analógico. 1 analógico, 0 digitales
+     ANSEL = 0X01  ' AN<7:0>
+     ANSELH = 0X00 ' AN<13:8>
+'Inicio de comunicacion UART
+    UART1_Init(9600)
+    delay_ms(1000)
+    while (TRUE)
+        PORTB=0XFF                              ' ENCENDIDO DE LUCES LED
+        VALOR=Adc_Read(0)>>2                    ' CONVERSION ANALOGICA/DIGITAL
+        HUMEDAD= (100*VALOR-4080)/153           ' RELACION MATEMATICA EN PORCENTAJE
+        WordToStr(HUMEDAD ,text)                ' PASAR A MODO TEXTO
+        'UART1_Write_Text(" HUMEDAD: ")
+        UART1_Write_Text(text)                  ' TRANSMITIR DATO
+        UART1_Write_Text(" %")
+        'UART1_Write(0X0A)
+        'UART1_Write(0X0D)
+        Delay_ms(500)                           ' DELAY
+        PORTB=0X00                              ' APAGAR LUCES LED
+        Delay_ms(500)                           ' DELAY
+    wend
+end.

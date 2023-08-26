@@ -1,0 +1,128 @@
+program sumito
+
+SYMBOL DIR1= PORTA.2  'CONTROL DIRECCION MOTOR1
+SYMBOL NDIR1=PORTA.4  'CONTROL DIRECCION MOTOR1
+
+SYMBOL DIR2= PORTA.3  'CONTROL DIRECCION MOTOR2
+SYMBOL NDIR2=PORTA.5  'CONTROL DIRECCION MOTOR2
+
+symbol S1=PORTB.0   'SENSOR INFRARROJO DELANTE
+symbol S2=PORTB.3   'SENSOR INFRARROJO DELANTE
+symbol S3=PORTA.0   'SENSOR INFRARROJO ATRAS
+symbol S4=PORTB.0   'SENSOR INFRARROJO ATRAS
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' ULTRASONICO 1               'SENSOR FRENTE
+SYMBOL DISPARO1 = PORTC.5 'PIN TRIGGER
+SYMBOL ECO1 = PORTC.4     'PIN ECHO
+dim distancia1, distancia2, distancia3,distancia4 as word
+dim delante,dato_recep as byte
+
+SUB PROCEDURE SET_MOTOR(DIM MOTOR2,MOTOR1 AS INTEGER)
+ '******************** MOTOR 1***************
+   IF(MOTOR1<0)THEN
+     MOTOR1=-MOTOR1
+     DIR1=0
+     NDIR1=1
+   ELSE
+     DIR1=1
+     NDIR1=0
+   END IF
+   '******************** MOTOR 2***************
+     IF(MOTOR2<0)THEN
+     MOTOR2=-MOTOR2
+     DIR2=0
+     NDIR2=1
+   ELSE
+     DIR2=1
+     NDIR2=0
+   END IF
+   PWM1_Set_Duty(MOTOR1)
+   PWM2_Set_Duty(MOTOR2)
+   Delay_5ms
+END SUB
+'************FUNCIONES PARA MEDIR DISTNCIA MEDIANTE SENSORES ULTRASONICOS****************
+
+sub function ultrasonico1( ) as word
+     dim flanco as byte
+     dim distan,tiempo as word
+     flanco = 0
+
+     disparo1 = 1
+     Delay_us(50)
+     disparo1 = 0
+
+     DO
+          IF( eco1 = 1 )THEN
+               TMR0 = 0
+               flanco = 1
+          END IF
+     LOOP UNTIL( flanco = 1 )
+
+     DO
+          IF( eco1 = 0 )THEN
+               tiempo = TMR0
+               flanco = 0
+          END IF
+          if(TMR0>254)THEN
+           FLANCO=0
+          END IF
+     LOOP UNTIL( FLANCO = 0 )
+
+     distan = (tiempo*128)/58
+     Delay_ms (50)
+     result = distan
+end sub
+'*******************************************************************************
+
+main:
+' REGISTRO OPTION_REG
+     OPTION_REG = %10000110 ' pull up desactivado
+     OSCCON = 0X65
+
+' REGISTRO PORTA
+     TRISA = %10000011
+     PORTA = %00000000
+
+' REGISTRO PORTB
+     TRISB = %01101111  'PIN RB1,RB2  ENTRADAS PARA SENSAR CORRIENTE DE MOTORES
+     PORTB = %00000000
+
+' REGISTRO PORTC
+     TRISC = %10010001
+     PORTC = %00000000
+' REGISTRO ANSEL
+     ANSEL =  %00000000 ' RE1-RE2 ANALOGICO, RESTO DIGITALES
+     ANSELH = %00000000
+     delante=0
+     delay_ms(100)
+
+' CONFIGURO EL PWM PARA MOVER LOE MOTORES A UNA FRECUENCIA DE 1000HZ
+     PWM1_Init(1000)
+     PWM2_Init (1000)
+     PWM1_Start ()
+     PWM2_Start ()
+     PWM1_Set_Duty (0)
+     PWM2_Set_Duty (0)
+
+     delay_ms(100)
+WHILE(1)
+        distancia1 = ultrasonico1()  'SENSOR FRENTE
+        IF ((S1=1) AND (S2=1)) THEN
+          IF(distancia1<35)THEN
+            SET_MOTOR(255,255)
+          ELSE
+            SET_MOTOR(-255,255)
+          END IF
+        ELSE
+          IF (S1=0) THEN
+            SET_MOTOR(-255,-255)
+            Delay_ms(1000)
+          ELSE
+            IF (S2=0) THEN
+             SET_MOTOR(255,255)
+             Delay_ms(1000)
+            END IF
+          END IF
+       END IF
+WEND
+end.
