@@ -1,0 +1,168 @@
+program control_robot
+symbol MA1 = PORTC.RC2
+symbol MA2 = PORTC.RC3
+symbol MB1 = PORTD.RD0
+symbol MB2 = PORTD.RD1
+
+DIM DATO AS WORD
+DIM RECEP AS BYTE
+DIM TEXTO AS CHAR[5]
+dim valor as float
+
+dim LCD_RS as sbit at RC4_bit
+    LCD_EN as sbit at RC5_bit
+    LCD_D4 as sbit at RD4_bit
+    LCD_D5 as sbit at RD5_bit
+    LCD_D6 as sbit at RD6_bit
+    LCD_D7 as sbit at RD7_bit
+
+    LCD_RS_Direction as sbit at TRISC4_bit
+    LCD_EN_Direction as sbit at TRISC5_bit
+    LCD_D4_Direction as sbit at TRISD4_bit
+    LCD_D5_Direction as sbit at TRISD5_bit
+    LCD_D6_Direction as sbit at TRISD6_bit
+    LCD_D7_Direction as sbit at TRISD7_bit
+
+sub procedure sonido()
+PORTD.RD2 = 1
+Delay_ms(200)
+PORTD.RD2 = 0
+Delay_ms(200)
+end sub
+sub procedure led()
+PORTD.RD3 = 0
+Delay_ms(200)
+PORTD.RD3 = 1
+Delay_ms(200)
+end sub
+sub procedure PARAR()
+MA1 = 0
+MA2 = 1
+MB1 = 1
+MB2 = 1
+Delay_ms(400)
+end sub
+sub procedure ADELANTE()
+MA1 = 1
+MA2 = 1
+MB1 = 0
+MB2 = 1
+end sub
+sub procedure ATRAS()
+MA1 = 0
+MA2 = 0
+MB1 = 1
+MB2 = 0
+end sub
+sub procedure DERECHA()
+PARAR()
+Delay_ms(400)
+MA1 = 1
+MA2 = 1
+MB1 = 1
+MB2 = 0
+Delay_ms(300)
+PARAR
+end sub
+sub procedure IZQUIERDA()
+PARAR()
+Delay_ms(400)
+MA1 = 0
+MA2 = 0
+MB1 = 0
+MB2 = 1
+Delay_ms(300)
+PARAR
+end sub
+main:
+OPTION_REG = %00000110
+OSCCON  = 0X65
+PORTA   = %00000000
+TRISA   = %00000000
+PORTB   = %00000000
+TRISB   = %00111111
+PORTC   = %00001000
+TRISC   = %10000000
+PORTD   = %00000011
+TRISD   = %00000000
+ANSEL   = %00000000
+ANSELH  = %00100000
+UART1_Init(9600)
+
+Lcd_Init()                        ' Inicializacion Lcd
+Lcd_Cmd(_LCD_CLEAR)               ' encera display
+Lcd_Cmd(_LCD_CURSOR_OFF)          ' Cursor off
+LED
+SONIDO
+Lcd_Cmd(_LCD_CLEAR)
+Lcd_Out(1,1,"LOADING")                 ' escribe la cadena en la primera fila
+Delay_ms(500)
+Lcd_Out(1,1,"LOADING.")                 ' escribe la cadena en la primera fila
+Delay_ms(700)
+Lcd_Out(1,1,"LOADING..")                 ' escribe la cadena en la primera fila
+Delay_ms(800)
+Lcd_Out(1,1,"LOADING...")                 ' escribe la cadena en la primera fila
+Delay_ms(1000)
+Lcd_Cmd(_LCD_CLEAR)
+TEXTO=""
+while 1
+      if UART1_Data_Ready then
+          DATO = UART1_Read
+          Lcd_Cmd(_LCD_CLEAR)
+       end if
+
+      if dato="D" then
+         valor = Adc_Read(13)*0.488
+         FloatToStr(VALOR,TEXTO)
+         Lcd_Out(1,1,"TEMPERATURA[°C]:")      'ra0
+         Lcd_Out(2,10,TEXTO)
+         UART1_Write(TEXTO[0])
+         UART1_Write(TEXTO[1])
+         UART1_Write(TEXTO[2])
+         UART1_Write(TEXTO[3])
+         recep=0
+         if valor>=39 then
+            sonido
+            UART1_Write_Text("_")
+         end if
+         DATO=0
+         
+      end if
+       if DATO = "1" then
+          SONIDO
+          ADELANTE
+          Lcd_Out(1,1,"ADELANTE")
+          DATO=0
+       end if
+       if DATO = "5" then
+           SONIDO
+           PARAR
+           Lcd_Out(1,1,"PARAR")
+           DATO=0
+       end if
+       if DATO = "2" then
+            SONIDO
+            ATRAS
+            Lcd_Out(1,1,"ATRAS")
+            DATO=0
+       end if
+       if DATO = "3" then
+            SONIDO
+            IZQUIERDA
+            Lcd_Out(1,1,"IZQUIERDA")
+             Delay_ms(1000)
+             PARAR
+             DATO=0
+       end if
+       if DATO = "4" then
+            SONIDO
+            DERECHA
+            Lcd_Out(1,1,"DERECHA")
+            Delay_ms(1000)
+            PARAR
+            DATO=0
+       end if
+
+      
+wend
+end.

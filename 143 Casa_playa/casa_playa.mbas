@@ -1,0 +1,49 @@
+program casa_playa
+
+DIM DATO AS WORD
+DIM CONTADOR AS BYTE
+DIM ACTIVAR AS BIT
+main:
+' Registro Oscilador de control
+     OSCCON = 0X75 ' Oscilador interno de 8mhz
+ ' Registro PUERTO A
+     TRISA = 0X01 ' PORTA.0 Entrada
+     PORTA = 0X00
+' Registro PUERTO B
+     TRISB = 0X00 ' PORTB salidas
+     PORTB = 0X00
+' Registro PUERTO C
+     TRISC = 0X80 ' PORTC salidas
+     PORTC = 0X00
+' Registro PUERTO D
+     TRISD = 0X00 ' PORTD
+     PORTD = 0X00
+' Registro PUERTO E
+     TRISE = 0X00 ' PORTE  como salidas digital
+     PORTE = 0X00
+' Seleccion de registro analogico. 1 analogico, 0 digitales
+     ANSEL = 0X01  ' AN<7:0>
+     ANSELH = 0X00 ' AN<13:8>
+     UART1_Init(9600)
+     DATO=0
+     CONTADOR=0
+     PORTB.RB0=1
+     
+while(1)
+     dato =  Adc_Read(0)>>2
+     if dato>100 then
+        CONTADOR = 1
+     end if
+     if CONTADOR=1 then
+        PORTB.RB0=0     'luz
+        Delay_ms(10000)
+        PORTB.RB1=1      'radio
+        Delay_ms(20000)
+        PORTB.RB1=0      'radio
+        Delay_ms(10000)
+        PORTB.RB0=1       'luz
+        Delay_ms(1000)
+        CONTADOR=0
+     end if
+wend
+ end.

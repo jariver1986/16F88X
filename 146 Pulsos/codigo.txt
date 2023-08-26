@@ -1,0 +1,291 @@
+program pulso
+DIM DATO,CONT,X,CENTINELA, UNIDAD,DECENA AS BYTE
+DIM ADC AS WORD
+sub procedure sonido
+PORTD.RD2=1
+Delay_ms(100)
+PORTD.RD2=0
+end sub
+sub procedure INICIO
+    UART1_Write(0X7E)
+    UART1_Write(0XFF)
+    UART1_Write(0X06)
+    UART1_Write(0X03)
+    UART1_Write(0X00)
+    UART1_Write(0X00)'HIGH
+    UART1_Write(0X00)'LOW
+    UART1_Write(0XFF)
+    UART1_Write(0XE6)
+    UART1_Write(0XEF)
+end sub
+sub procedure FIN
+    UART1_Write(0X7E)
+    UART1_Write(0XFF)
+    UART1_Write(0X06)
+    UART1_Write(0X03)
+    UART1_Write(0X00)
+    UART1_Write(0X00)'HIGH
+    UART1_Write(0X00)'LOW
+    UART1_Write(0XFF)
+    UART1_Write(0XE6)
+    UART1_Write(0XEF)
+end sub
+sub procedure SESENTA '0070
+    UART1_Write(0X7E)
+    UART1_Write(0XFF)
+    UART1_Write(0X06)
+    UART1_Write(0X03)
+    UART1_Write(0X00)
+    UART1_Write(0X00)'HIGH
+    UART1_Write(0X3C)'LOW
+    UART1_Write(0XFF)
+    UART1_Write(0XE6)
+    UART1_Write(0XEF)
+end sub
+sub procedure SETENTA
+    UART1_Write(0X7E)
+    UART1_Write(0XFF)
+    UART1_Write(0X06)
+    UART1_Write(0X03)
+    UART1_Write(0X00)
+    UART1_Write(0X00)'HIGH
+    UART1_Write(0X46)'LOW
+    UART1_Write(0XFF)
+    UART1_Write(0XE6)
+    UART1_Write(0XEF)
+end sub
+sub procedure OCHENTA
+    UART1_Write(0X7E)
+    UART1_Write(0XFF)
+    UART1_Write(0X06)
+    UART1_Write(0X03)
+    UART1_Write(0X00)
+    UART1_Write(0X00)'HIGH
+    UART1_Write(0X50)'LOW
+    UART1_Write(0XFF)
+    UART1_Write(0XE6)
+    UART1_Write(0XEF)
+end sub
+sub procedure NOVENTA
+    UART1_Write(0X7E)
+    UART1_Write(0XFF)
+    UART1_Write(0X06)
+    UART1_Write(0X03)
+    UART1_Write(0X00)
+    UART1_Write(0X00)'HIGH
+    UART1_Write(0X5A)'LOW
+    UART1_Write(0XFF)
+    UART1_Write(0XE6)
+    UART1_Write(0XEF)
+end sub
+sub procedure UNO
+    UART1_Write(0X7E)
+    UART1_Write(0XFF)
+    UART1_Write(0X06)
+    UART1_Write(0X03)
+    UART1_Write(0X00)
+    UART1_Write(0X00)'HIGH
+    UART1_Write(0X01)'LOW
+    UART1_Write(0XFF)
+    UART1_Write(0XE6)
+    UART1_Write(0XEF)
+end sub
+sub procedure DOS
+    UART1_Write(0X7E)
+    UART1_Write(0XFF)
+    UART1_Write(0X06)
+    UART1_Write(0X03)
+    UART1_Write(0X00)
+    UART1_Write(0X00)'HIGH
+    UART1_Write(0X02)'LOW
+    UART1_Write(0XFF)
+    UART1_Write(0XE6)
+    UART1_Write(0XEF)
+end sub
+sub procedure TRES
+    UART1_Write(0X7E)
+    UART1_Write(0XFF)
+    UART1_Write(0X06)
+    UART1_Write(0X03)
+    UART1_Write(0X00)
+    UART1_Write(0X00)'HIGH
+    UART1_Write(0X03)'LOW
+    UART1_Write(0XFF)
+    UART1_Write(0XE6)
+    UART1_Write(0XEF)
+end sub
+sub procedure CUATRO
+    UART1_Write(0X7E)
+    UART1_Write(0XFF)
+    UART1_Write(0X06)
+    UART1_Write(0X03)
+    UART1_Write(0X00)
+    UART1_Write(0X00)'HIGH
+    UART1_Write(0X04)'LOW
+    UART1_Write(0XFF)
+    UART1_Write(0XE6)
+    UART1_Write(0XEF)
+end sub
+sub procedure CINCO
+    UART1_Write(0X7E)
+    UART1_Write(0XFF)
+    UART1_Write(0X06)
+    UART1_Write(0X03)
+    UART1_Write(0X00)
+    UART1_Write(0X00)'HIGH
+    UART1_Write(0X05)'LOW
+    UART1_Write(0XFF)
+    UART1_Write(0XE6)
+    UART1_Write(0XEF)
+end sub
+sub procedure SEIS
+    UART1_Write(0X7E)
+    UART1_Write(0XFF)
+    UART1_Write(0X06)
+    UART1_Write(0X03)
+    UART1_Write(0X00)
+    UART1_Write(0X00)'HIGH
+    UART1_Write(0X06)'LOW
+    UART1_Write(0XFF)
+    UART1_Write(0XE6)
+    UART1_Write(0XEF)
+end sub
+sub procedure SIETE
+    UART1_Write(0X7E)
+    UART1_Write(0XFF)
+    UART1_Write(0X06)
+    UART1_Write(0X03)
+    UART1_Write(0X00)
+    UART1_Write(0X00)'HIGH
+    UART1_Write(0X07)'LOW
+    UART1_Write(0XFF)
+    UART1_Write(0XE6)
+    UART1_Write(0XEF)
+end sub
+sub procedure OCHO
+    UART1_Write(0X7E)
+    UART1_Write(0XFF)
+    UART1_Write(0X06)
+    UART1_Write(0X03)
+    UART1_Write(0X00)
+    UART1_Write(0X00)'HIGH
+    UART1_Write(0X08)'LOW
+    UART1_Write(0XFF)
+    UART1_Write(0XE6)
+    UART1_Write(0XEF)
+end sub
+sub procedure NUEVE
+    UART1_Write(0X7E)
+    UART1_Write(0XFF)
+    UART1_Write(0X06)
+    UART1_Write(0X03)
+    UART1_Write(0X00)
+    UART1_Write(0X00)'HIGH
+    UART1_Write(0X09)'LOW
+    UART1_Write(0XFF)
+    UART1_Write(0XE6)
+    UART1_Write(0XEF)
+end sub
+
+main:
+OSCCON     =  0X65  'FRECUENCIA DE TRABAJO A 4 MHz
+UART1_Init(9600)                'COMUNICACION SERIAL INICIADA
+TRISA      =  %00000001         'INICIO DE MODO INTERNO O EXTERNO
+TRISB      =  0
+TRISC      =  %10000000         'PARA REECEPCION DE DATOS DESDE EL RFID
+PORTA      =  %00000000         'PARA EL VIBRADOR
+PORTB      =  0
+PORTC      =  0
+ANSEL      =  %00000001         'INICIO DE MODO INTERNO O EXTERNO
+ANSELH     =  0
+Delay_ms(2000)
+UART1_Write(0X7E)
+UART1_Write(0X07)
+UART1_Write(0XA4)
+UART1_Write(0X19)
+UART1_Write(0X7E)
+CONT=0
+CENTINELA=0
+WHILE(1)
+   ADC = Adc_Read(0)
+   if ADC>950 then
+      CONT=CONT+1
+   end if
+   
+   Delay_ms(100)
+   CENTINELA=CENTINELA+1
+   if CENTINELA=600 then
+      X=CONT
+      CENTINELA=0
+      CONT=0
+      sonido
+      decena = X/10
+      unidad = X MOD 10
+      '++++++++++++++++++++++
+      INICIO           'SONIDO INICIO
+      IF DECENA= 6 THEN
+         SESENTA
+      END IF
+      IF DECENA= 7 THEN
+         SETENTA
+      END IF
+      IF DECENA= 8 THEN
+         OCHENTA
+      END IF
+      IF DECENA= 9 THEN
+         NOVENTA
+      END IF
+      '++++++++++++++++++++++
+      IF UNIDAD= 1 THEN
+         UNO
+      END IF
+      IF UNIDAD= 2 THEN
+         DOS
+      END IF
+      IF UNIDAD= 3 THEN
+         TRES
+      END IF
+      IF UNIDAD= 4 THEN
+         CUATRO
+      END IF
+      IF UNIDAD= 5 THEN
+         CINCO
+      END IF
+      IF UNIDAD= 6 THEN
+         SEIS
+      END IF
+      IF UNIDAD= 7 THEN
+         SIETE
+      END IF
+      IF UNIDAD= 8 THEN
+         OCHO
+      END IF
+      IF UNIDAD= 9 THEN
+         NUEVE
+      END IF
+      FIN
+   end if
+   
+  if UART1_Data_Ready then
+      DATO = UART1_Read
+  end if
+
+
+  if DATO = "1" then
+
+    UART1_Write(0X7E)
+    UART1_Write(0XFF)
+    UART1_Write(0X06)
+    UART1_Write(0X03)
+    UART1_Write(0X00)
+    UART1_Write(0X00)'HIGH
+    UART1_Write(0X01)'LOW
+    UART1_Write(0XFF)
+    UART1_Write(0XE6)
+    UART1_Write(0XEF)
+    DATO=0
+  end if
+
+  
+WEND
+end.

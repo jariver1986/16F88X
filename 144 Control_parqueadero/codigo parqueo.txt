@@ -1,0 +1,370 @@
+program Control_parqueo
+symbol led1=portd.rd3
+symbol sonido=portd.rd2
+
+DIM LCD_RS as sbit at RC4_bit
+    LCD_EN as sbit at RC5_bit
+    LCD_D4 as sbit at RD4_bit
+    LCD_D5 as sbit at RD5_bit
+    LCD_D6 as sbit at RD6_bit
+    LCD_D7 as sbit at RD7_bit
+
+    LCD_RS_Direction as sbit at TRISC4_bit
+    LCD_EN_Direction as sbit at TRISC5_bit
+    LCD_D4_Direction as sbit at TRISD4_bit
+    LCD_D5_Direction as sbit at TRISD5_bit
+    LCD_D6_Direction as sbit at TRISD6_bit
+    LCD_D7_Direction as sbit at TRISD7_bit
+
+DIM CONT1,CONT2,CONT3,CONT4,CONT5,CONT6,CONT7,CONT8,CONT9,CONT10,CONT11,CONT12,CONT13,CONT14,CONT15,por,giro,kp,contador,listo,dato,datorx,tecla AS BYTE
+DIM ACUMULADOR AS BYTE
+DIM TEXTO AS STRING [5]
+DIM ESTACION1, ESTACION2,ESTACION3 AS BIT
+
+
+sub procedure buzzer()
+PORTD.RD2 = 1
+Delay_ms(200)
+PORTD.RD2 = 0
+Delay_ms(200)
+end sub
+sub procedure abrir()
+dim i as longword
+  i=0
+  while (i<10000)
+     inc(i)
+  if INTCON.TMR0IF=1 THEN
+    if por=1 then
+    giro=109
+    por=2
+    PORTD.RD1=0
+    GOTO final
+    end if
+    if por=2 then
+    giro=243
+    por=1
+    PORTD.RD1=1
+    GOTO final
+    end if
+    final:
+  TMR0 = giro
+  INTCON = 0x20
+  end if
+  wend
+end sub
+sub procedure cerrar()
+  dim i as longword
+  i=0
+  while (i<10000)
+     inc(i)
+     if INTCON.TMR0IF=1 THEN
+    if por=1 then
+    giro=114
+    por=2
+    PORTD.RD1=0
+    GOTO final
+    end if
+    if por=2 then
+    giro=238
+    por=1
+    PORTD.RD1=1
+    GOTO final
+    end if
+    final:
+    TMR0 = giro
+    INTCON = 0x20
+  end if
+  wend
+End sub
+sub procedure leer_teclado()
+   kp = 0
+   portb=%11101111        'EXPLORO FILA 1
+   if(portb.0=0)then      'EXPLORO COLUMNA1
+     while(portb.0=0) wend
+      kp=0x31 end if'1
+   if(portb.1=0)then      'EXPLORO COLUMNA2
+      while(portb.1=0) wend
+      kp=0x32 end if'2
+   if(portb.2=0)then      'EXPLORO COLUMNA3
+     while(portb.2=0) wend
+      kp=0x33 end if'3
+   if (portb.3=0)then    'EXPLORO COLUMNA4
+     while(portb.3=0) wend
+      kp=$41 end if'A
+  if(kp=0)then
+    portb=%11011111          'EXPLORO FILA 2
+   if(portb.0=0)then       'EXPLORO COLUMNA1
+     while(portb.0=0) wend
+      kp=0x34 end if'4
+   if(portb.1=0)then      'EXPLORO COLUMNA2
+     while(portb.1=0) wend
+      kp=0x35 end if'5
+   if(portb.2=0)then     'EXPLORO COLUMNA3
+      while(portb.2=0) wend
+      kp=0x36 end if'6
+   if (portb.3=0)then    'EXPLORO COLUMNA4
+      while(portb.3=0) wend
+      kp=$42 end if'B
+   else return
+   end if
+  if(kp=0) then
+    portb=%10111111         'EXPLORO FILA 3
+   if(portb.0=0)then      'EXPLORO COLUMNA1
+     while(portb.0=0) wend
+      kp=0x37 end if'7
+   if(portb.1=0)then      'EXPLORO COLUMNA2
+      while(portb.1=0) wend
+      kp=0x38 end if'8
+   if(portb.2=0)then      'EXPLORO COLUMNA3
+      while(portb.2=0) wend
+      kp=0x39 end if'9
+   if (portb.3=0)then     'EXPLORO COLUMNA4
+      while(portb.3=0) wend
+      kp=$43 end if'C
+   else return
+  end if
+  if(kp=0)then
+     portb=%01111111  'EXPLORO FILA 4
+   if(portb.0=0)then      'EXPLORO COLUMNA1
+      while(portb.0=0) wend
+      kp=$23 end if '*
+   if(portb.1=0)then      'EXPLORO COLUMNA2
+      while(portb.1=0) wend
+      kp=0x30 end if'0
+   if(portb.2=0)then      'EXPLORO COLUMNA3
+      while(portb.2=0) wend
+      kp=$24 end if'#
+   if (portb.3=0)then     'EXPLORO COLUMNA4
+      while(portb.3=0) wend
+      kp=$44 end if'D
+   else return
+  end if
+
+end sub
+
+
+main:
+OSCCON = 0X65
+OPTION_REG=0X06
+'OPTION_REG=%00000111 ' teclado
+WPUB = $0F
+PORTA = %00000000
+TRISA = %11111111
+PORTB = %00000000
+TRISB = %00001111
+PORTC = %00000000
+TRISC = %10000000
+PORTD = %00000000
+TRISD = %00000000
+PORTE = %00000000
+TRISE = %00000000
+ANSEL = %00000000
+ANSELH = %00000000
+UART1_Init(9600)
+Delay_ms(200)
+'INTCON = 0XC0
+'PIR1.RCIF=0
+'PIE1.RCIE=1
+'por=2
+'TMR0=100
+listo=0
+dato=0
+
+CONT1 =0
+CONT2 =0
+CONT3 =0
+CONT4 =0
+CONT5 =0
+CONT6 =0
+CONT7 =0
+CONT8 =0
+CONT9 =0
+CONT10 =0
+CONT11 =0
+CONT12 =0
+CONT13 =0
+CONT14 =0
+CONT15 =0
+ESTACION1=0
+ESTACION2=0
+ESTACION3=0
+
+Lcd_Init()
+Lcd_Cmd(_LCD_CLEAR)
+Lcd_Cmd(_LCD_CURSOR_OFF)
+Lcd_Out(1,1,"TESCU")
+Lcd_Out(2,1,"")
+Delay_ms(1000)
+Lcd_Cmd(_LCD_CLEAR)
+''''''''''''''''''''''''''''''
+Lcd_Out(1,1,"CONTROL DE ")
+Lcd_Out(2,1,"PARQUEO")
+Delay_ms(1000)
+Lcd_Cmd(_LCD_CLEAR)
+''''''''''''''''''''''''''''''
+Lcd_Out(1,1,"POR: NELSON")
+Lcd_Out(2,1,"     GUZMAN")
+Delay_ms(1000)
+Lcd_Cmd(_LCD_CLEAR)
+contador=0
+tecla=1
+while 1
+        if UART1_Data_Ready then
+           datorx = UART1_Read
+        end if
+           if datorx="X" then
+               Lcd_Cmd(_LCD_CLEAR)
+               Lcd_Out(1,1,"ACCESO")                 ' escribe la cadena en la primera fila
+               Lcd_Out(2,1,"CORRECTO")                 ' escribe la cadena en la segunda fila
+               Delay_ms(2000)
+               Lcd_Cmd(_LCD_CLEAR)
+               datorx=0
+           end if
+           if datorx="Y" then
+               Lcd_Cmd(_LCD_CLEAR)
+               Lcd_Out(1,1,"ACCESO")                 ' escribe la cadena en la primera fila
+               Lcd_Out(2,1,"NEGADO")                 ' escribe la cadena en la segunda fila
+               Delay_ms(2000)
+               Lcd_Cmd(_LCD_CLEAR)
+               datorx=0
+           end if
+
+
+        leer_teclado()
+        if KP<>0 then
+           'UART1_Write(kp)       ' ENVIA NUMERO
+           while(tecla=1)
+           leer_teclado()
+          if KP<>0 then
+           Delay_ms(200)             ' TIEMPO DE ESPERA
+           contador = contador+1
+           buzzer
+           IF (kp = 0X31) and (contador=1)  then
+              Lcd_Cmd(_LCD_CLEAR)
+               listo = listo + 1
+               Lcd_Out(2,1,"*")
+           end if
+           IF (kp = 0X32) and (contador=2) then
+              Lcd_Cmd(_LCD_CLEAR)
+               listo = listo + 1
+               Lcd_Out(2,1,"**")
+           end if
+           IF (kp = 0X33) and (contador=3) then
+              Lcd_Cmd(_LCD_CLEAR)
+               listo = listo + 1
+               Lcd_Out(2,1,"***")
+           end if
+           IF (kp = 0X34) and (contador=4) then
+              Lcd_Cmd(_LCD_CLEAR)
+               listo = listo + 1
+               Lcd_Out(2,1,"****")
+           end if
+           Delay_ms(300)
+           if CONTADOR=4 then
+              buzzer
+              buzzer
+              buzzer
+              Lcd_Cmd(_LCD_CLEAR)
+             ' escribe la cadena en la segunda fila
+              if listo=4 then
+                 listo=0
+                 contador=0
+                 Lcd_Out(1,1,"ACCESO")                 ' escribe la cadena en la primera fila
+                 Lcd_Out(2,1,"CORRECTO")                 ' escribe la cadena en la segunda fila
+                 Delay_ms(2000)
+                 Lcd_Cmd(_LCD_CLEAR)
+                 tecla=0
+              else
+                 contador=0
+                 listo=0
+                 Lcd_Out(1,1,"ACCESO")                 ' escribe la cadena en la primera fila
+                 Lcd_Out(2,1,"INCORRECTO")                 ' escribe la cadena en la segunda fila
+                 Delay_ms(2000)
+                 Lcd_Cmd(_LCD_CLEAR)
+                 Lcd_Out(1,1,"INGRESE CLAVE")                 ' escribe la cadena en la primera fila
+                 Lcd_Out(2,1,"")
+                 Delay_ms(2000)
+                 Lcd_Cmd(_LCD_CLEAR)
+                 tecla=0
+              end if
+
+           end if
+          end if
+          wend
+        end if
+
+    ACUMULADOR=0
+    Lcd_Out(1,1,"LIBRES:         ")
+    Lcd_Out(2,1,"OCUPADOS:       ")
+    Lcd_Out(3,1,"ESTACION:")
+    if ESTACION1=1 THEN
+       Lcd_Out(4,3,"A")
+    else
+       Lcd_Out(4,3,"_")
+    end if
+    if ESTACION2=1 THEN
+       Lcd_Out(4,7,"B")
+    else
+       Lcd_Out(4,7,"_")
+    end if
+    if ESTACION3=1 THEN
+       Lcd_Out(4,11,"C")
+    else
+       Lcd_Out(4,11,"_")
+    end if
+    if PORTA.RA0 = 0 then CONT1 = 0 ESTACION1=0 ELSE CONT1 = 1 ESTACION1=1  end if
+    if PORTA.RA1 = 0 then CONT2 = 0 ESTACION2=0 ELSE CONT2 = 1 ESTACION2=1 end if
+    if PORTA.RA2 = 0 then CONT3 = 0 ESTACION3=0 ELSE CONT3 = 1 ESTACION3=1 end if
+    'if PORTA.RA3 = 0 then CONT4 = 0 ELSE CONT4 = 1 end if
+'    if PORTA.RA4 = 0 then CONT5 = 0 ELSE CONT5 = 1 end if
+'    if PORTA.RA5 = 0 then CONT6 = 0 ELSE CONT6 = 1 end if
+'    if PORTA.RA6 = 0 then CONT7 = 0 ELSE CONT7 = 1 end if
+'    if PORTA.RA7 = 0 then CONT8 = 0 ELSE CONT8 = 1 end if
+
+   ' if PORTB.RB0 = 0 then CONT9 = 0 ELSE CONT9  = 1 end if
+'    if PORTB.RB1 = 0 then CONT10 = 0 ELSE CONT10 = 1 end if
+'    if PORTB.RB2 = 0 then CONT11 = 0 ELSE CONT11 = 1 end if
+'    if PORTB.RB3 = 0 then CONT12 = 0 ELSE CONT12 = 1 end if
+'    if PORTB.RB4 = 0 then CONT13 = 0 ELSE CONT13 = 1 end if
+'    if PORTB.RB5 = 0 then CONT14 = 0 ELSE CONT14 = 1 end if
+'    if PORTB.RB6 = 0 then CONT15 = 0 ELSE CONT15 = 1 end if
+
+    ACUMULADOR = CONT1 +CONT2 +CONT3 +CONT4 +CONT5 +CONT6 +CONT7 +CONT8 +CONT9 +CONT10 +CONT11 +CONT12 +CONT13 +CONT14 +CONT15
+    ByteToStr(3-ACUMULADOR, TEXTO)
+    Lcd_Out(1,10,TEXTO)
+    ByteToStr(ACUMULADOR, TEXTO)
+    Lcd_Out(2,10,TEXTO)
+    Delay_ms(100)
+    if UART1_Data_Ready=1 then
+           dato = UART1_Read
+        end if
+    if (ACUMULADOR = 3)and(PORTA.RA3=1)  THEN
+       Lcd_Out(1,1,"PARQUEADERO     ")
+       Lcd_Out(2,1,"LLENO           ")
+       sonido=1
+       Delay_ms(1000)
+       sonido=0
+       Lcd_Cmd(_LCD_CLEAR)
+       Lcd_Out(1,1,"INGRESO         ")
+       Lcd_Out(2,1,"BLOQUEADO       ")
+       led1=1
+       Delay_ms(1000)
+       Lcd_Cmd(_LCD_CLEAR)
+       CERRAR()
+
+    else
+        if PORTA.RA3=1 then
+           led1=0
+           'ABRIR()
+           Lcd_Out(1,1,"INGRESO         ")
+           Lcd_Out(2,1,"PERMITIDO       ")
+           'Delay_ms(1000)
+           Delay_ms(1000)
+           'CERRAR()
+           'Delay_ms(1000)
+           Lcd_Cmd(_LCD_CLEAR)
+        end if
+    end if
+
+wend
+end.
