@@ -1,0 +1,172 @@
+program smartcity
+symbol led1=portd.rd3
+symbol sonido=portd.rd2
+
+DIM LCD_RS as sbit at RC4_bit
+    LCD_EN as sbit at RC5_bit
+    LCD_D4 as sbit at RD4_bit
+    LCD_D5 as sbit at RD5_bit
+    LCD_D6 as sbit at RD6_bit
+    LCD_D7 as sbit at RD7_bit
+
+    LCD_RS_Direction as sbit at TRISC4_bit
+    LCD_EN_Direction as sbit at TRISC5_bit
+    LCD_D4_Direction as sbit at TRISD4_bit
+    LCD_D5_Direction as sbit at TRISD5_bit
+    LCD_D6_Direction as sbit at TRISD6_bit
+    LCD_D7_Direction as sbit at TRISD7_bit
+
+    dim dato as byte
+    dim tacho,CAR1,CAR2,CAR3,CONTADOR1, CONTADOR2, CONTADOR3, LIBRE, OCUPADO,luminaria as word
+    dim texto1, texto2 as char[6]
+
+sub procedure buzzer()
+PORTD.RD2 = 1
+Delay_ms(200)
+PORTD.RD2 = 0
+Delay_ms(200)
+end sub
+sub procedure led()
+PORTD.RD3 = 0
+Delay_ms(200)
+PORTD.RD3 = 1
+Delay_ms(200)
+end sub
+
+
+
+main:
+OSCCON = 0X75
+OPTION_REG=0X06
+PORTA = %00000000
+TRISA = %11111111
+PORTB = %00000000
+TRISB = %11111111
+PORTC = %00000000
+TRISC = %10000000
+PORTD = %00000000
+TRISD = %00000000
+PORTE = %00000001
+TRISE = %00000000
+ANSEL = %00011111
+ANSELH = %00000000
+
+Lcd_Init()
+Lcd_Cmd(_LCD_CLEAR)
+Lcd_Cmd(_LCD_CURSOR_OFF)
+Lcd_Out(1,1,"UNIVERSIDAD")
+Lcd_Out(2,1,"AGRARIA")
+Delay_ms(4000)
+Lcd_Cmd(_LCD_CLEAR)
+''''''''''''''''''''''''''''''
+Lcd_Out(1,1," SMART CITY ")
+Lcd_Out(2,1," 2017")
+Delay_ms(4000)
+Lcd_Cmd(_LCD_CLEAR)
+''''''''''''''''''''''''''''''
+UART1_Init(9600)
+buzzer
+led
+led
+while 1
+    if UART1_Data_Ready then
+       DATO=UART1_Read
+    end if
+    if dato= "1" then
+       UART1_Write_Text("OCUPADOS: ")
+       UART1_Write_Text(TEXTO2)
+       UART1_Write_Text("  LIBRES")
+       UART1_Write_Text(TEXTO1)
+       UART1_Write(0x0D)
+       UART1_Write(0x0A)
+       dato=0
+    end if
+    
+    'semaforo|
+    if dato= "V" then
+       PORTC.RC0=1
+       PORTC.RC1=0
+       PORTC.RC2=0
+       PORTC.RC3=0
+       PORTD.RD0=0
+       PORTD.RD1=1
+       DATO=0
+    end if
+    if dato= "A" then
+       PORTC.RC0=0
+       PORTC.RC1=1
+       PORTC.RC2=0
+       PORTC.RC3=0
+       PORTD.RD0=0
+       PORTD.RD1=1
+       DATO=0
+    end if
+    if dato= "R" then
+       PORTC.RC0=0
+       PORTC.RC1=0
+       PORTC.RC2=1
+       PORTC.RC3=1
+       PORTD.RD0=0
+       PORTD.RD1=0
+       DATO=0
+    end if
+    
+    'Tacho de basura
+    tacho =Adc_Read(0)
+    if tacho>800 then 'tacho lleno
+       buzzer()
+       buzzer()
+       Delay_ms(500)
+    end if
+    
+    luminaria =Adc_Read(4)
+    if luminaria>800 then 'tacho lleno
+       PORTE.RE0=0
+    else
+        PORTE.RE0=1
+    end if
+    
+    'LUCES
+
+    if dato= "2" then
+       dato=0
+       PORTE.RE0=1
+    end if
+     'ESTACIONAMIENTO
+    CAR1 =Adc_Read(1)
+    if car1>750 then 'tacho lleno
+       contador1=1
+    else
+        contador1=0
+    end if
+    
+
+    CAR2 =Adc_Read(2)
+    if car2>750 then 'tacho lleno
+       contador2=1
+    else
+        contador2=0
+    end if
+    CAR3 =Adc_Read(3)
+    if car3>750 then 'tacho lleno
+        contador3=1
+    else
+        contador3=0
+    end if
+    
+    OCUPADO= contador1+contador2+contador3
+    LIBRE=3-OCUPADO
+    WordToStr(OCUPADO,texto1)
+    WordToStr(LIBRE,textO2)
+    
+    Lcd_Cmd(_LCD_CLEAR)
+    ''''''''''''''''''''''''''''''
+    Lcd_Out(1,1,"OCUPADOS:")
+    Lcd_Out(1,10,TEXTO2)
+    Lcd_Out(2,1,"LIBRES:")
+    Lcd_Out(2,10,TEXTO1)
+    
+    Delay_ms(100)
+
+wend
+end.

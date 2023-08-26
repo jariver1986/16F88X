@@ -1,0 +1,459 @@
+program Sistema_seguridad_teclado_lcd
+symbol led1=portd.rd3
+symbol sonido=portd.rd2
+DIM DISTANCIA1, DISTANCIA2 ,DISTANCIA3 AS WORD
+DIM LCD_RS as sbit at RC4_bit
+    LCD_EN as sbit at RC5_bit
+    LCD_D4 as sbit at RD4_bit
+    LCD_D5 as sbit at RD5_bit
+    LCD_D6 as sbit at RD6_bit
+    LCD_D7 as sbit at RD7_bit
+
+    LCD_RS_Direction as sbit at TRISC4_bit
+    LCD_EN_Direction as sbit at TRISC5_bit
+    LCD_D4_Direction as sbit at TRISD4_bit
+    LCD_D5_Direction as sbit at TRISD5_bit
+    LCD_D6_Direction as sbit at TRISD6_bit
+    LCD_D7_Direction as sbit at TRISD7_bit
+
+DIM kp,contador,listo,seguro,alerta,memoria,centinela,alerta1,alerta2,alerta3,counter,habilitado,numero2 AS BYTE
+DIM TEXTO AS STRING [5]
+dim fin as bit
+
+
+sub function ultrasonico1( ) as word
+     dim flanco as byte
+     dim distan,tiempo as word
+     flanco = 0
+
+     PORTC.RC0 = 1
+     Delay_us(150)
+     PORTC.RC0 = 0
+
+     DO
+          IF( PORTC.RC1 = 1 )THEN
+               TMR0 = 0
+               flanco = 1
+          END IF
+     LOOP UNTIL( flanco = 1 )
+
+     DO
+          IF( PORTC.RC1 = 0 )THEN
+               tiempo = TMR0
+               flanco = 0
+          END IF
+          'if(TMR0>254)THEN
+'           FLANCO=0
+'          END IF
+     LOOP UNTIL( FLANCO = 0 )
+
+     distan = (tiempo*128)/58
+     Delay_ms (50)
+     result = distan
+end sub
+sub function ultrasonico2( ) as word
+     dim flanco as byte
+     dim distan,tiempo as word
+     flanco = 0
+
+     PORTC.RC2 = 1
+     Delay_us(150)
+     PORTC.RC2 = 0
+
+     DO
+          IF( PORTC.RC3 = 1 )THEN
+               TMR0 = 0
+               flanco = 1
+          END IF
+     LOOP UNTIL( flanco = 1 )
+
+     DO
+          IF( PORTC.RC3 = 0 )THEN
+               tiempo = TMR0
+               flanco = 0
+          END IF
+         ' if(TMR0>254)THEN
+'           FLANCO=0
+'          END IF
+     LOOP UNTIL( FLANCO = 0 )
+
+     distan = (tiempo*128)/58
+     Delay_ms (50)
+     result = distan
+end sub
+sub function ultrasonico3( ) as word
+     dim flanco as byte
+     dim distan,tiempo as word
+     flanco = 0
+
+     PORTD.RD0 = 1
+     Delay_us(150)
+     PORTD.RD0 = 0
+
+     DO
+          IF( PORTD.RD1 = 1 )THEN
+               TMR0 = 0
+               flanco = 1
+          END IF
+     LOOP UNTIL( flanco = 1 )
+
+     DO
+          IF( PORTD.RD1 = 0 )THEN
+               tiempo = TMR0
+               flanco = 0
+          END IF
+         ' if(TMR0>254)THEN
+'           FLANCO=0
+'          END IF
+     LOOP UNTIL( FLANCO = 0 )
+
+     distan = (tiempo*128)/58
+     Delay_ms (50)
+     result = distan
+end sub
+
+
+sub procedure buzzer()
+PORTD.RD2 = 1
+Delay_ms(200)
+PORTD.RD2 = 0
+Delay_ms(200)
+end sub
+sub procedure led()
+PORTD.RD3 = 0
+Delay_ms(200)
+PORTD.RD3 = 1
+Delay_ms(200)
+end sub
+sub procedure leer_teclado()
+   kp = 0
+   portb=%11101111        'EXPLORO FILA 1
+   if(portb.0=0)then      'EXPLORO COLUMNA1
+     while(portb.0=0) wend
+      kp=0x31 end if'1
+   if(portb.1=0)then      'EXPLORO COLUMNA2
+      while(portb.1=0) wend
+      kp=0x32 end if'2
+   if(portb.2=0)then      'EXPLORO COLUMNA3
+     while(portb.2=0) wend
+      kp=0x33 end if'3
+   if (portb.3=0)then    'EXPLORO COLUMNA4
+     while(portb.3=0) wend
+      kp=$41 end if'A
+  if(kp=0)then
+    portb=%11011111          'EXPLORO FILA 2
+   if(portb.0=0)then       'EXPLORO COLUMNA1
+     while(portb.0=0) wend
+      kp=0x34 end if'4
+   if(portb.1=0)then      'EXPLORO COLUMNA2
+     while(portb.1=0) wend
+      kp=0x35 end if'5
+   if(portb.2=0)then     'EXPLORO COLUMNA3
+      while(portb.2=0) wend
+      kp=0x36 end if'6
+   if (portb.3=0)then    'EXPLORO COLUMNA4
+      while(portb.3=0) wend
+      kp=$42 end if'B
+   else return
+   end if
+  if(kp=0) then
+    portb=%10111111         'EXPLORO FILA 3
+   if(portb.0=0)then      'EXPLORO COLUMNA1
+     while(portb.0=0) wend
+      kp=0x37 end if'7
+   if(portb.1=0)then      'EXPLORO COLUMNA2
+      while(portb.1=0) wend
+      kp=0x38 end if'8
+   if(portb.2=0)then      'EXPLORO COLUMNA3
+      while(portb.2=0) wend
+      kp=0x39 end if'9
+   if (portb.3=0)then     'EXPLORO COLUMNA4
+      while(portb.3=0) wend
+      kp=$43 end if'C
+   else return
+  end if
+  if(kp=0)then
+     portb=%01111111  'EXPLORO FILA 4
+   if(portb.0=0)then      'EXPLORO COLUMNA1
+      while(portb.0=0) wend
+      kp=$23 end if '*
+   if(portb.1=0)then      'EXPLORO COLUMNA2
+      while(portb.1=0) wend
+      kp=0x30 end if'0
+   if(portb.2=0)then      'EXPLORO COLUMNA3
+      while(portb.2=0) wend
+      kp=$24 end if'#
+   if (portb.3=0)then     'EXPLORO COLUMNA4
+      while(portb.3=0) wend
+      kp=$44 end if'D
+   else return
+  end if
+
+end sub
+
+
+SUB PROCEDURE pila_mensaje1()
+     Delay_1sec
+     Delay_1sec
+     UART1_Write_Text("AT")
+     UART1_Write(0X0D)
+     UART1_Write(0X0A)
+     Delay_1sec
+     UART1_Write_Text("AT+CMGS")
+     UART1_Write(0X3D)
+     UART1_Write(0X22)
+     UART1_Write_Text("0989844982")
+     UART1_Write(0X22)
+     UART1_Write(0X0D)
+     UART1_Write(0X0A)
+     Delay_1sec
+end sub
+SUB PROCEDURE pila_mensaje2()
+     Delay_1sec
+     Delay_1sec
+     UART1_Write_Text("AT")
+     UART1_Write(0X0D)
+     UART1_Write(0X0A)
+     Delay_1sec
+     UART1_Write_Text("AT+CMGS")
+     UART1_Write(0X3D)
+     UART1_Write(0X22)
+     UART1_Write_Text("0998957720")
+     UART1_Write(0X22)
+     UART1_Write(0X0D)
+     UART1_Write(0X0A)
+     Delay_1sec
+end sub
+
+sub procedure cola_mensaje
+     UART1_Write(0X1A)
+     Delay_1sec
+     UART1_Write(0X41)
+     UART1_Write(0X54)
+     UART1_Write(0X0D)
+     UART1_Write(0X0A)
+     Delay_1sec
+     Delay_1sec
+     Delay_1sec
+     Delay_1sec
+END SUB
+
+main:
+OSCCON = 0X65
+OPTION_REG=0X06
+'OPTION_REG=%00000111 ' teclado
+WPUB = $0F
+PORTA = %00000000
+TRISA = %11111111
+PORTB = %00000000
+TRISB = %00001111
+PORTC = %00000000
+TRISC = %10001010
+PORTD = %00000000
+TRISD = %00000010
+PORTE = %00000000
+TRISE = %00000000
+ANSEL = %00000000
+ANSELH = %00000000
+
+Lcd_Init()
+Lcd_Cmd(_LCD_CLEAR)
+Lcd_Cmd(_LCD_CURSOR_OFF)
+Lcd_Out(1,1,"TECSU")
+Lcd_Out(2,1,"")
+Delay_ms(1000)
+Lcd_Cmd(_LCD_CLEAR)
+''''''''''''''''''''''''''''''
+Lcd_Out(1,1,"SISTEMA DE  ")
+Lcd_Out(2,1,"SEGURIDAD")
+Delay_ms(1000)
+Lcd_Cmd(_LCD_CLEAR)
+''''''''''''''''''''''''''''''
+Lcd_Out(1,1,"POR: MIGUEL")
+Lcd_Out(2,1,"     MENDOZA")
+Delay_ms(1000)
+Lcd_Cmd(_LCD_CLEAR)
+Lcd_Out(1,1,"CLAVE:")                 ' escribe la cadena en la primera fila
+Lcd_Out(2,1,"")
+Delay_ms(2000)
+contador=0
+UART1_Init(9600)
+habilitado=0
+listo=0
+alerta=2
+seguro=0
+buzzer
+led
+led
+fin=0
+UART1_Write(0X41)   'A
+UART1_Write(0X54)   'T
+UART1_Write(0X0D)    'enter
+UART1_Write(0X0A)
+distancia1=100
+distancia2=12
+distancia3=12
+while 1
+      ' distancia3 = ultrasonico3()
+'       WordToStr(distancia3,texto)
+'       Lcd_Out(1,1,"DISTANCIA")                 ' escribe la cadena en la primera fila
+'       Lcd_Out(2,1,texto)
+'       Delay_ms(200)                 ' escribe la cadena en la segunda fi
+       'if ((fin=0) and (distancia1<8)) then
+'          pila_mensaje()
+'          UART1_Write_Text("INGRESO NO AUTORIZADO POR LA VENTANA")
+'          cola_mensaje()
+'          fin=1
+'          buzzer
+'          led
+'       end if
+       
+        leer_teclado()
+        'Activacion y desactivacion por teclado
+       if habilitado=0 then
+          Lcd_Out(1,1,"CLAVE:")                 ' escribe la cadena en la primera fila
+          Lcd_Out(2,1,"")
+        if KP<>0 then
+           'UART1_Write(kp)       ' ENVIA NUMERO
+           Delay_ms(200)             ' TIEMPO DE ESPERA
+           contador = contador+1
+           buzzer
+           IF (kp = 0X31) and (contador=1)  then
+              Lcd_Cmd(_LCD_CLEAR)
+               listo = listo + 1
+               Lcd_Out(1,8,"*")
+           end if
+           IF (kp = 0X32) and (contador=2) then
+              Lcd_Cmd(_LCD_CLEAR)
+               listo = listo + 1
+               Lcd_Out(1,8,"**")
+           end if
+           IF (kp = 0X33) and (contador=3) then
+              Lcd_Cmd(_LCD_CLEAR)
+               listo = listo + 1
+               Lcd_Out(1,8,"***")
+           end if
+           IF (kp = 0X34) and (contador=4) then
+              Lcd_Cmd(_LCD_CLEAR)
+               listo = listo + 1
+               Lcd_Out(1,8,"****")
+           end if
+           
+           Delay_ms(300)
+           if CONTADOR=4 then
+              buzzer
+              Lcd_Cmd(_LCD_CLEAR)
+             ' escribe la cadena en la segunda fila
+              if listo=4 then
+                 listo=0
+                 contador=0
+                 Lcd_Out(1,1,"ACCESO")                 ' escribe la cadena en la primera fila
+                 Lcd_Out(2,1,"CORRECTO")                 ' escribe la cadena en la segunda fila
+                 Delay_ms(2000)
+                 Lcd_Cmd(_LCD_CLEAR)
+                 Lcd_Out(1,1,"ALARMA")
+                 Lcd_Out(2,1,"ACTIVADA")
+                 Delay_ms(3000)
+                 Lcd_Cmd(_LCD_CLEAR)
+                 seguro= 1
+                 habilitado=1
+                 ALERTA=1
+              else
+                 contador=0
+                 listo=0
+                 Lcd_Out(1,1,"ACCESO")                 ' escribe la cadena en la primera fila
+                 Lcd_Out(2,1,"INCORRECTO")                 ' escribe la cadena en la segunda fila
+                 Delay_ms(2000)
+                 Lcd_Cmd(_LCD_CLEAR)
+                 Lcd_Out(1,1,"CLAVE:")                 ' escribe la cadena en la primera fila
+                 Lcd_Out(2,1,"")
+                 Delay_ms(2000)
+                 Lcd_Cmd(_LCD_CLEAR)
+              end if
+
+           end if
+        end if
+       end if
+
+
+
+
+    if seguro = 1 THEN   'Alarma activada
+       Lcd_Out(2,1,"Sensor:")
+       Delay_ms(100)
+       distancia1 = ultrasonico1()
+       distancia2 = ultrasonico2()
+       distancia3 = ultrasonico3()
+       if(distancia1<50) then
+           Lcd_Out(2,9,"S1")
+           ALERTA1 = 1
+       else
+           Lcd_Out(2,9,"__")
+       end if
+       if (distancia2>5) then
+           Lcd_Out(2,12,"S2")
+           ALERTA2 = 1
+       ELSE
+           Lcd_Out(2,12,"__")
+       end if
+       if (distancia3>5) then
+           Lcd_Out(2,15,"S3")
+           ALERTA3 = 1
+       ELSE
+           Lcd_Out(2,15,"__")
+       end if
+
+       if alerta1=1 then
+          Lcd_Out(1,1,"ALERTA INTERIOR")                 ' escribe la cadena en la primera fila
+          pila_mensaje1()
+          UART1_Write_Text("ALERTA SENSOR 1")
+          cola_mensaje()
+          pila_mensaje2()
+          UART1_Write_Text("ALERTA SENSOR 1")
+          cola_mensaje()
+          alerta1=0
+          Lcd_Cmd(_LCD_CLEAR)
+          seguro=0
+          habilitado=0
+       end if
+       if alerta2=1 then
+          Lcd_Out(1,1,"ALERTA VENTANA")                 ' escribe la cadena en la primera fila
+          pila_mensaje1()
+          UART1_Write_Text("ALERTA SENSOR 2")
+          cola_mensaje()
+          pila_mensaje2()
+          UART1_Write_Text("ALERTA SENSOR 2")
+          cola_mensaje()
+          alerta2=0
+          Lcd_Cmd(_LCD_CLEAR)
+          seguro=0
+          habilitado=0
+       end if
+       if alerta3=1 then
+          Lcd_Out(1,1,"ALERTA PUERTA")                 ' escribe la cadena en la primera fila
+          pila_mensaje1()
+          UART1_Write_Text("ALERTA SENSOR 3")
+          cola_mensaje()
+          pila_mensaje2()
+          UART1_Write_Text("ALERTA SENSOR 3")
+          cola_mensaje()
+          alerta3=0
+          Lcd_Cmd(_LCD_CLEAR)
+          seguro=0
+          habilitado=0
+       end if
+       delay_ms(100)
+    end if
+    if ALERTA=1 then
+       Lcd_Cmd(_LCD_CLEAR)
+       Lcd_Out(1,1,"TIEMPO ESPERA")
+       for counter = 0 to 10
+            'buzzer()
+            delay_ms(1000)
+       next counter
+       Lcd_Cmd(_LCD_CLEAR)
+       ALERTA=0
+    end if
+    
+wend
+end.
