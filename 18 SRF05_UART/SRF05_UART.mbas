@@ -1,0 +1,109 @@
+'*******************************************************************************
+'*******************       Ideas & Tecnologia         **************************
+'******************* Módulo Desarrollo PIC16F887 I&T  **************************
+'*******************     www.ideastechnology.com      **************************
+'
+' * Nombre proyecto:
+'     SRF05_UART
+' * Descripcion:
+'     Uso del modulo de distancia ultrasonico SRF05
+'     PORTC.0 disparo el tiempo minimo de alto 10us
+'     PORTB.0 tomara el eco de la recepcion
+' * Configuraciones:
+'     Microcontrolador:    PIC16F887
+'     Oscillator:          INT_RC_OSC_NOCLKOUT, 8MHz
+'     Compilador:          mikrobasic 3.2v
+'*******************************************************************************
+
+'*****         Nombre proyecto       *****
+program SRF05_UART
+
+' declaracion de variables
+dim text as string[5]
+dim flanco, pulso as byte
+dim valor as word
+
+' proceso de interrupcion
+sub procedure interrupt
+     if TestBit(INTCON,INTF) then ' bandera de la interrupcion externa activada
+          ClearBit(INTCON,INTF) ' bandera de la interrupcion externa borrada
+          if flanco = 0 then ' cuando el flanco va de vajo a alto
+               ClearBit(OPTION_REG,INTEDG) ' interrupcion cuando paso al rizado bajo
+               flanco = 1 ' cambiamos el flanco bajo
+               TMR0 = 0 ' enceramos el timer
+          else ' cuando el flanco va de alto bajo
+               pulso = TMR0 ' tomamos el valor del timer
+               SetBit(OPTION_REG,INTEDG) ' interrupcion cuando paso al rizado alto 
+               flanco = 0 ' cambiamos de flanco alto
+          end if
+     end if
+     ClearBit(INTCON,T0IF)
+end sub
+
+' Funcion que me permite medir la distancia del sensor ultrasonico
+sub function srf05_leer() as word
+     dim tiempo as word
+     PORTC.0 = 1 ' habilitamos el disparo
+     delay_us(10) ' con un tiempo minimo de 10us
+     PORTC.0 = 0 ' apagamos el disparo
+     delay_ms(20) ' hay un tiempo de espera del eco
+     tiempo = pulso*255 ' ya para este paso debio haber aparecido la interrupccion externa
+     tiempo = tiempo/58 ' convertimos de pulgadas a centimetros
+     tiempo = tiempo/2 ' ya que el eco viene y va, solo necesito saber la mitad del recorrido
+     result = tiempo ' resultado de la distancia
+end sub
+
+main:
+' Registro Oscilador de control
+     OSCCON = 0X75 ' Oscilador interno de 8mhz
+' Registro de Opciones
+     OPTION_REG = 0XC7 ' desactiva el pull up de portb
+                       ' altiva el rizado alto
+                       ' prescalador tmr0 255
+' Registro control de interrupciones
+     INTCON = 0XD0 ' Activado interrupciones globales
+                   ' Activado interrupciones perifericas
+                   ' Activado interrupcion externa portb.0
+' Registro PUERTO A
+     TRISA = 0X00 ' todas los pines comom salidas
+     PORTA = 0X00
+' Registro PUERTO B
+     TRISB = 0X01 ' portb.0 como entrada digital, las demas salidas
+     PORTB = 0X00
+' Registro PUERTO C
+     TRISC = 0X80 ' portc.7 entrada RX, las demas salidas
+     PORTC = 0X00
+' Seleccion de registro analogico. 1 analogico, 0 digitales
+     ANSEL = 0X00 ' AN<7:0>
+     ANSELH = 0X00 ' AN<13:8>
+
+     flanco = 0 ' primer flanco bajo
+     valor = 0
+     
+     UART1_Init(9600) ' inicializamos la comunicacion serial a una velocidad 9600bps
+     Delay_ms(250)
+     UART1_Write_Text("ideastechnology.com") ' escribimos el texo serialmente
+     UART1_Write(0x0a) ' escribimos el ascci de fin de cadena
+     UART1_Write(0x0d) ' escribimos el ascci de enter
+
+     while true
+           valor = srf05_leer() ' leemos el valor del sensor y lo depositamos en valor
+'           WordToStr(valor,text) ' convertimos el dato word a string
+'           UART1_Write_Text("distancia. ") ' escribimos el texo serialmente
+'           UART1_Write_Text(text) ' escribimos el texo serialmente
+'           UART1_Write_Text(" cm") ' escribimos el texo serialmente
+'           UART1_Write(0x0d) ' enviamos el ascci del enter
+            if (valor<130) then
+                UART1_Write_Text("A")
+                Delay_1sec
+                Delay_1sec
+                Delay_1sec
+            end if
+           delay_ms(500)
+     wend
+end.
+'*******************************************************************************
+'*******************       Ideas & Tecnologia         **************************
+'******************* Módulo Desarrollo PIC16F887 I&T  **************************
+'*******************     www.ideastechnology.com      **************************
+'*******************************************************************************

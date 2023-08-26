@@ -1,0 +1,71 @@
+program TACOMETRO
+'*********************conexiones del L293********************************
+'symbol ENA = PORTC.1
+symbol DIRA = PORTA.2
+symbol DIRNA = PORTA.4
+'***********************variables a utilizar*****************************
+dim revol, valor as word
+dim veloc as byte
+dim txt as string[5]
+'***********************interrupcion***********************************
+sub procedure interrupt
+     if TestBit(INTCON,INTF) then ' hubo la interrupcion por portb.0
+          ClearBit(INTCON,INTF)
+          inc(revol) ' incrementamos las revoluciones
+     end if
+
+end sub
+
+main:
+
+' Registro Oscilador de control
+     OSCCON = 0X75 ' Oscilador interno de 8mhz
+' Registro de Opciones
+     OPTION_REG = 0X83 ' Pull up PORTB desactivado
+                       ' TMR0 prescaler 16
+' Registro control de interrupciones
+     INTCON = 0XD0 ' Activado interrupciones globales
+                   ' Activado interrupciones perifericas
+                   ' Activado interrupciones externas
+                   ' Activado interrupcion timer 0
+     TRISA = 0X01
+     PORTA = 0x00
+
+     TRISB = 0X01
+     PORTB = 0X00
+
+     TRISC = 0X80
+     PORTC = 0X00
+
+     ANSEL = 0X01
+     ANSELH = 0X00
+     '*************inicializacion del uart y pwm************
+     UART1_Init(9600)
+     PWM2_Init(1000)
+     PWM2_Start()
+     PWM1_Init(1000)
+     PWM1_Start()
+     '*************para la direccion de giro del motro******
+     DIRA = 0
+     DIRNA = 1
+     '******************************************************
+     veloc = 0x00
+
+     while 1
+
+          veloc = Adc_Read(0)>>2 ' obtenemos el valor del adc
+          PWM2_Set_Duty(veloc) ' variamos la velocidad del motor
+          PWM1_Set_Duty(veloc) ' variamos la velocidad del motor
+
+          revol = 0 ' revoluciones son iguales a 0
+          Delay_ms(1000) ' con este tiempo sabemos cuantas revoluciones van haber en 1seg
+          valor = revol ' asignamos las revoluciones al dato valor
+          WordToStr(valor, txt)
+          'PORTB= revol
+          UART1_Write_Text("RPS = ")
+          UART1_Write_Text(txt)
+          UART1_Write(0X0D)
+          UART1_Write(0X0A)
+          
+     wend
+end.
