@@ -1,0 +1,36 @@
+program aleatorio
+
+main:
+OSCCON = 0X75      ' Oscilador interno de 8mhz
+
+TRISA  = 0
+TRISB  = 0
+TRISC  = %10000000
+PORTA  = 0
+PORTB  = 0
+PORTC  = 0
+ANSEL  = 0
+ANSELH = 0
+UART1_Init(9600)
+
+  while(1)
+     UART1_Write_Text("1")
+     Delay_1sec
+     UART1_Write_Text("9")
+     Delay_1sec
+     UART1_Write_Text("8")
+     Delay_1sec
+     UART1_Write_Text("6")
+     Delay_1sec
+     UART1_Write_Text("5")
+     Delay_1sec
+     UART1_Write_Text("6")
+     Delay_1sec
+     UART1_Write_Text("7")
+     Delay_1sec
+     UART1_Write_Text("8")
+     Delay_1sec
+     UART1_Write_Text("9")
+     Delay_1sec
+  wend
+end.

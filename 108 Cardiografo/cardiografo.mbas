@@ -1,0 +1,47 @@
+' *
+' * Nombre de función:
+' *   CARDIOGRAFO
+' * Descripcion:
+' *   DIGITALIZA LA SEÑAL ANALÓGICA OBTENIDA POR EL PIN RA0
+' *   Y LA TRANSMITE POR PROTOCOLO DE COMUNICACION UART
+' * Asesor:
+' *   John Rivera
+ '* Estudiante Capacitado:
+' *   Miguel Mora
+' * NOTAS:
+' *   Señal de entrada analogica entre valor de 0-5 voltios
+' *
+
+program cardiografo
+DIM PULSO AS WORD
+DIM DATO AS STRING[10]
+DIM DATO2 AS CHAR
+DIM FIN AS STRING[10]
+
+
+main:
+OSCCON = %01110101               ' FRECUENCIA DE TRABAJO A 8 MHZ
+PORTA  = %00000000               ' ENCERA PUERTA A
+PORTB  = %00000000               ' ENCERA PUERTA B
+PORTC  = %00000000               ' ENCERA PUERTA C
+TRISA  = %00000011               ' ENCERA PUERTA RA0 COMO ENTRADA
+TRISB  = %00000000               ' ENCERA TRIS B COMO SALIDA
+TRISC  = %00000000               ' ENCERA TRIS C COMO SALIDA RC6
+ANSEL  = %00000011               ' ENCERA PUERTO COMO ENTRADA ANALOGICA RA0
+ANSELH = %00000000               ' ENCERA PUERTO B COMO E/S DIGITAL
+UART1_Init(9600)
+DATO2=0x13
+while (1)
+      PULSO = Adc_Read(1)        'LECTURA DE VALOR DE VOLTAJE ANALOGIC
+      if PULSO<=99 then
+         WordToStr(PULSO,DATO)
+         FIN = DATO[3] +DATO[4]+DATO2
+         UART1_Write_Text(fin)
+      else
+          WordToStr(PULSO,DATO)
+          FIN = DATO[2] +DATO[3] +DATO[4]+DATO2
+          UART1_Write_Text(fin)
+      end if
+      Delay_us(5000)
+wend
+end.

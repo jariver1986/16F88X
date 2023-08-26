@@ -1,0 +1,70 @@
+program carro_bombero
+DIM DATO AS BYTE
+sub procedure adelante
+    PORTC=%00000011
+end sub
+sub procedure izquierda
+    PORTC=%00001001
+end sub
+sub procedure derecha
+    PORTC=%00000110
+end sub
+sub procedure atras
+    PORTC=%00001100
+end sub
+sub procedure parar
+    PORTC=%00000000
+end sub
+
+main:
+     OSCCON = 0X75
+     TRISB = %00000111
+     PORTB = %00000000
+     TRISC = %10000000
+     PORTC = %00000000
+     TRISE = %00000000
+     PORTE = %00000000
+     TRISA = %00000000
+     PORTA = %00000000
+     ANSEL = %00000000
+     ANSELH = %00000000
+     UART1_Init(9600)
+     
+     while 1
+        IF UART1_Data_Ready() THEN
+           DATO = UART1_Read
+        END IF
+        if DATO = "1" then
+           ADELANTE
+           DATO=0
+        end if
+        if DATO = "2" then
+           ATRAS
+           DATO=0
+        end if
+        if DATO = "3" then
+           IZQUIERDA
+           DATO=0
+        end if
+        if DATO = "4" then
+           DERECHA
+           DATO=0
+        end if
+        if DATO = "5" then
+           PARAR
+           DATO=0
+        end if
+        if DATO = "S" then
+             if PORTB.RB0 = 1 then
+                ADELANTE
+             end if
+             if PORTB.RB1 = 1 then
+                IZQUIERDA
+             end if
+             if PORTB.RB2 = 1 then
+                 DERECHA
+             end if
+             Delay_ms(100)
+        end if
+     wend
+end.

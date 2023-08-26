@@ -1,0 +1,176 @@
+program fisica_gravedad
+
+dim centinela,turno,DATO,LDR1,LDR2 as byte
+dim tiempo,tiempo2,VARIABLE, DISTANCIA as word
+dim texto as string [5]
+DIM giro,giro1,giro2,por AS BYTE
+
+sub procedure interrupt
+'N = 255-(FOSCXTIEMPO)/4PREESCALADOR
+     'FOSC= 4MHZ
+     'PREESCALADOR = 256
+if INTCON.TMR0IF=1 THEN
+inc(tiempo2)
+TMR0 = 251
+INTCON = 0x20
+end if
+end sub
+sub function ultrasonico1( ) as word
+     dim flanco as byte
+     dim distan,tiempo as word
+     flanco = 0
+
+     PORTC.RC0 = 1
+     Delay_us(150)
+     PORTC.RC0 = 0
+
+     DO
+          IF( PORTC.RC1 = 1 )THEN
+               TMR0 = 0
+               flanco = 1
+          END IF
+     LOOP UNTIL( flanco = 1 )
+
+     DO
+          IF( PORTC.RC1 = 0 )THEN
+               tiempo = TMR0
+               flanco = 0
+          END IF
+          'if(TMR0>254)THEN
+'           FLANCO=0
+'          END IF
+     LOOP UNTIL( FLANCO = 0 )
+
+     distan = (tiempo*128)/58
+     Delay_ms (50)
+     result = distan
+end sub
+
+'sub procedure abrir_pinza()
+'dim i as longword
+'  i=0
+'  while (i<10000)
+'     inc(i)
+'  if INTCON.TMR0IF=1 THEN
+'    if por=1 then
+'    giro=109
+'    por=2
+'    PORTC.RC4=0
+'    GOTO final
+'    end if
+'    if por=2 then
+'    giro=243
+'    por=1
+'    PORTC.RC4=1
+'    GOTO final
+'    end if
+'    final:
+'  TMR0 = giro
+'  INTCON = 0x20
+'  end if
+'  wend
+'end sub
+
+
+'sub procedure cerrar_pinza()
+'  dim i as longword
+'  i=0
+'  while (i<10000)
+'     inc(i)
+'     if INTCON.TMR0IF=1 THEN
+'    if por=1 then
+'    giro=114
+'    por=2
+'    PORTC.RC4=0
+'    GOTO final
+'    end if
+'    if por=2 then
+'    giro=238
+'    por=1
+'    PORTC.RC4=1
+'    GOTO final
+'    end if
+'    final:
+'    TMR0 = giro
+'    INTCON = 0x20
+'  end if
+'  wend
+
+'end sub
+
+main:
+OSCCON     =  0X65
+OPTION_REG =  0x07
+TRISA  = %00000000
+TRISB  = %00000000
+TRISC  = %00001110
+PORTA  = %00000000
+PORTB  = %00000000
+PORTC  = %00010000
+ANSEL  = %00000000
+ANSELH = %00000000
+TMR0 = 251
+tiempo=0
+centinela=0
+INTCON = 0XA0
+turno=1
+UART1_Init(9600)
+
+while 1
+   if UART1_Data_Ready=1 then
+      DATO = UART1_Read
+   end if
+   
+   if DATO = "1" then
+
+       DISTANCIA = ULTRASONICO1
+       WordToStr(DISTANCIA,TEXTO)
+       UART1_Write_Text("D")
+       UART1_Write_Text(TEXTO)
+       DATO =0
+       TURNO = 2
+       'POR=2
+       'TMR0=100
+   end if
+   
+   if DATO = "2" then
+      PORTC.RC4=0
+      Delay_ms(500)
+      PORTC.RC4=1
+      PORTB = 255
+      centinela=1
+      DATO=0
+    end if
+    
+
+
+
+
+    if centinela=1 then
+       if PORTC.RC2=1 then  ' LDR ARRIBA
+          tiempo2=0
+          UART1_Write_Text("ldr1")
+          centinela=2
+       end if
+    end if
+    if centinela = 2 then
+       if PORTC.RC3=1 then  'LDR ABAJO
+          variable = tiempo2
+          UART1_Write_Text("ldr2")
+          centinela=3
+       end if
+    end if
+    
+    if centinela=3 then
+         WordToStr(variable,texto)
+         UART1_Write_Text("T")
+         UART1_Write_Text(TEXTO)
+         centinela=0
+    end if
+    if DATO = "R" then
+       GOTO MAIN
+       DATO=0
+    end if
+    
+wend
+end.

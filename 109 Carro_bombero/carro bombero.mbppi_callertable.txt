@@ -1,0 +1,9 @@
+main
+	UART1_Init
+	UART1_Data_Ready
+	UART1_Read
+	adelante
+	atras
+	izquierda
+	derecha
+	parar
