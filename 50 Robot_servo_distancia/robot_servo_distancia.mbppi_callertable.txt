@@ -1,0 +1,24 @@
+main
+	PWM1_Init
+	PWM2_Init
+	PWM1_Set_Duty
+		Mul_16x16_U
+	PWM2_Set_Duty
+		Mul_16x16_U
+	PWM1_Start
+	PWM2_Start
+	UART1_Init
+	adelante_m2
+	adelante_m1
+	atras_m1
+	parar_m2
+	parar_m1
+	ultrasonico1
+		Div_16x16_U
+	WordToStr
+		Div_16x16_U
+	UART1_Write_Text
+		UART1_Write
+	UART1_Write
+interrupt
+	UART1_Read

@@ -1,0 +1,114 @@
+program Robot_RadioControlado
+
+SYMBOL DIR1= PORTA.2
+SYMBOL NDIR1=PORTA.4
+
+SYMBOL DIR2= PORTA.3
+SYMBOL NDIR2=PORTA.5
+
+DIM RECIBIDO,INDICE,direc1,direc2,VEL1,VEL2,DATO_COMPLETO AS integer
+
+sub procedure set_motors(dim motor1, motor2 as integer)
+
+     if motor1 < 0 then
+          motor1 = -motor1
+          DIR1 = 0
+          NDIR1 = 1
+     else
+          DIR1 = 1
+          NDIR1 = 0
+     end if
+
+     if motor2 < 0 then
+          motor2= -motor2
+          DIR2 = 0
+          NDIR2 = 1
+     else
+          DIR2 = 1
+          NDIR2 = 0
+     end if
+
+     if motor1 > 0xFF then
+          motor1 = 0xFF
+     end if
+
+     if motor2 > 0xFF then
+          motor2 = 0xFF
+     end if
+     
+     PWM1_Set_Duty(motor1)
+     PWM2_Set_Duty(motor2)
+
+end sub
+
+main:
+ OSCCON=0x75
+ TRISA=0
+ TRISB=0
+ TRISC=%10000000
+ ANSEL=0
+ ANSELH=0
+ PORTA=0
+ UART1_Init(9600)
+ PWM1_Init(1000)
+ PWM2_Init(1000)
+ PWM1_Start()
+ PWM2_Start()
+ PWM2_Set_Duty(0)
+ PWM1_Set_Duty(0)
+ INDICE=0
+ DATO_COMPLETO=0
+
+ WHILE(1)
+         DELAY_MS(100)
+         PORTB=0XFF
+   IF(UART1_Data_Ready =1)THEN
+      RECIBIDO = UART1_Read()
+      SELECT CASE INDICE
+       CASE 0
+          IF(RECIBIDO=0x24)THEN 'INICIO
+           INDICE=1
+          ELSE
+           INDICE=0
+          END IF
+        CASE 1
+        IF(RECIBIDO=7)THEN  'IDENTIFICADOR
+          INDICE=2
+        ELSE
+          INDICE=0
+        END IF
+       CASE 2
+         direc1=RECIBIDO      'DATO
+         INDICE=3
+       CASE 3
+         VEL1=RECIBIDO
+         INDICE=4
+       CASE 4
+         Direc2=RECIBIDO      'DATO
+         INDICE=5
+       CASE 5
+         VEL2=RECIBIDO      'DATO
+         INDICE=6
+         DATO_COMPLETO=1
+      END SELECT
+   END IF
+       IF(DATO_COMPLETO=1)THEN
+            if((direc1=1) and (direc2=1))then
+             set_motors(vel1,vel2)
+            else
+            if((direc1=1) and (direc2=0))then
+             set_motors(vel1,-vel2)
+            else
+            if((direc1=0) and (direc2=1))then
+             set_motors(-vel1,vel2)
+            else
+             set_motors(-vel1,-vel2)
+            end if
+            end if
+            end if
+
+          DATO_COMPLETO=0
+          INDICE=0
+       END IF
+ WEND
+end.

@@ -1,0 +1,205 @@
+program robot_servo_distancia
+
+SYMBOL DIR1= PORTA.2  'CONTROL DIRECCION MOTOR1
+SYMBOL NDIR1=PORTA.4  'CONTROL DIRECCION MOTOR1
+
+SYMBOL DIR2= PORTA.3  'CONTROL DIRECCION MOTOR2
+SYMBOL NDIR2=PORTA.5  'CONTROL DIRECCION MOTOR2
+
+SYMBOL DISPARO1 = PORTB.7 'PIN TRIGGER
+SYMBOL ECO1 = PORTB.6     'PIN ECHO
+
+dim adc_rd as word
+dim datos_set, dato_recep,viajero,vel,dato1,dato2 as byte
+
+' declaracion de variables
+dim Raw_temp, TempC, comma, distancia1 as word
+dim i, j1, j2, minus, vel1, vel2 as byte
+dim text as string[14]
+dim dato as string[3]
+
+sub procedure interrupt
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' RECIVE POR PUERTO SERIAL
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+     if (PIR1.RCIF=1) then
+
+          dato_recep = UART1_Read()
+          select case viajero
+          'IDENTIFICADORES
+               case 0
+                     if dato_recep = 0X24 then ' I
+                          viajero = 1
+                     else
+                          viajero = 0
+                     end if
+               case 1
+                     if dato_recep = 0X07then
+                          viajero = 2
+                     else
+                          viajero=0
+                     end if
+               case 2
+                     dato1 = dato_recep    'ADELANTE
+                     viajero=3
+               case 3
+                     vel1 = dato_recep    'ATRAS
+                     viajero=4
+               case 4
+                     dato2 = dato_recep    'IZQUIERDA
+                     viajero=5
+               case 5
+                     vel2 = dato_recep    'DERECHA
+                     viajero=6
+
+
+          end select
+     end if
+     INTCON=0XE0
+     PIE1.RCIE=1
+     PIR1.RCIF=0
+     end sub
+
+sub procedure adelante_m1()
+     DIR1  = 1
+     NDIR1 = 0
+end sub
+sub procedure adelante_m2()
+     DIR2  = 1
+     NDIR2 = 0
+end sub
+sub procedure atras_m1()
+     DIR1  = 0
+     NDIR1 = 1
+end sub
+sub procedure atras_m2()
+     DIR2  = 0
+     NDIR2 = 1
+end sub
+
+sub procedure parar_m1()
+     DIR1  = 0
+     NDIR1 = 0
+end sub
+
+sub procedure parar_m2()
+     DIR2  = 0
+     NDIR2 = 0
+end sub
+sub function ultrasonico1( ) as word
+     dim flanco as byte
+     dim distan,tiempo as word
+     flanco = 0
+
+     disparo1 = 1
+     Delay_us(50)
+     disparo1 = 0
+
+     DO
+          IF( eco1 = 1 )THEN
+               TMR0 = 0
+               flanco = 1
+          END IF
+     LOOP UNTIL( flanco = 1 )
+
+     DO
+          IF( eco1 = 0 )THEN
+               tiempo = TMR0
+               flanco = 0
+          END IF
+          if(TMR0>254)THEN
+           FLANCO=0
+          END IF
+     LOOP UNTIL( FLANCO = 0 )
+
+     distan = (tiempo*128)/58
+     Delay_ms (50)
+     result = distan
+end sub
+main:
+OPTION_REG = 0X86
+' Registro Oscilador de control
+OSCCON = 0X65 ' Oscilador interno de 8mhz
+' Registro PUERTO A
+INTCON = 0XE0      ' Activado interrupciones globales
+                   ' Registro control de interrupciones
+                   ' Activado interrupciones perifericas
+PIR1.RCIF=0
+PIE1.RCIE=1
+
+TRISA = 0X01 ' como entrada digital
+PORTA = 0X00
+' Registro PUERTO B
+TRISB = 0X40 '  como entrada digital
+PORTB = 0X00
+' Registro PUERTO C
+TRISC = 0X80 '  como entrada digital
+PORTC = 0X00
+
+PWM1_Init(1000)'FRECUENCIA (HZ)
+PWM2_Init(1000)'FRECUENCIA (HZ)
+PWM1_Set_Duty(0)' VEL0CIDAD 255-> 100%  MAXIMA
+               ' VELOCIDAD 0->0%   MINIMA
+PWM2_Set_Duty(0)
+PWM1_Start()
+PWM2_Start()
+
+UART1_Init(9600)
+viajero=0
+ANSEL = 0X01 ' AN<7:0>
+ANSELH = 0X00 ' AN<13:8>
+
+while (TRUE)
+
+   if viajero=6 then
+       viajero=0
+       if (dato1=0x01)and (dato2=0x01) then
+          PORTC.RC0=1
+          Delay_us(1400)
+          PORTC.RC0=0
+          Delay_us(600)
+          adelante_m2()
+          'adelante_m1()
+          PWM1_Set_Duty(vel1)
+          PWM2_Set_Duty(vel2)
+       else
+          if (dato1=0x01)and (dato2=0x00) then
+          PORTC.RC0=1
+          Delay_us(2200)
+          PORTC.RC0=0
+          Delay_us(400)
+          adelante_m1()
+          'atras_m2()
+          PWM1_Set_Duty(vel1)
+          PWM2_Set_Duty(vel2)
+           else
+               if (dato1=0x00)and (dato2=0x01) then
+                  PORTC.RC0=1
+                  Delay_us(600)
+                  PORTC.RC0=0
+                  Delay_us(1400)
+                  'adelante_m2()
+                  atras_m1()
+                  PWM1_Set_Duty(vel1)
+                  PWM2_Set_Duty(vel2)
+               else
+                  if (dato1=0x00)and (dato2=0x00) then
+                     parar_m2()
+                     parar_m1()
+                  end if
+
+               end if
+           end if
+       end if
+   end if
+   while(viajero=0)
+     distancia1 = ultrasonico1()
+     WordToStr(distancia1,dato)
+     UART1_Write_Text(dato)
+     UART1_Write_Text("cm")
+     UART1_Write(0x0D)
+     UART1_Write(0x0A)
+     PIR1.RCIF=0
+   wend
+wend
+end.
