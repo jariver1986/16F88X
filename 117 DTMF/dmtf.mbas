@@ -1,0 +1,131 @@
+program dmtf
+dim LCD_RS as sbit at RB2_bit
+    LCD_EN as sbit at RB3_bit
+    LCD_D4 as sbit at RB4_bit
+    LCD_D5 as sbit at RB5_bit
+    LCD_D6 as sbit at RB6_bit
+    LCD_D7 as sbit at RB7_bit
+
+    LCD_RS_Direction as sbit at TRISB2_bit
+    LCD_EN_Direction as sbit at TRISB3_bit
+    LCD_D4_Direction as sbit at TRISB4_bit
+    LCD_D5_Direction as sbit at TRISB5_bit
+    LCD_D6_Direction as sbit at TRISB6_bit
+    LCD_D7_Direction as sbit at TRISB7_bit
+
+DIM DATO,CENTINELA,contador AS BYTE
+dim txt2 as char[33]
+sub procedure Init_Main
+  '--------------------------------------
+  ' Disable interrupts
+  '--------------------------------------
+  TRISE=0X07
+  PORTE=0
+  TRISD=0
+  PORTD=0
+  INTCON = 0                             ' Disable GIE, PEIE, TMR0IE,INT0IE,RBIE
+  INTCON2 = 0xF5
+  INTCON3 = 0xC0
+  RCON.IPEN = 0                          ' Disable Priority Levels on interrupts
+  PIE1 = 0
+  PIE2 = 0
+  PIR1 = 0
+  PIR2 = 0
+
+  ADCON1 = ADCON1 or 0x0F                         ' Configure all ports with analog sub function as digital
+  '--------------------------------------
+  ' Ports Configuration
+  '--------------------------------------
+  TRISA = 0xFF
+  TRISB = 0x00
+  PORTB = 0
+  TRISC = 0xFF
+  PORTC=0
+  TRISD = 0
+  TRISE = 0x07
+
+
+  LATA = 0
+  LATB = 0
+  LATC = 0
+  LATD = 0
+  LATE = 0
+end sub
+
+main:
+  Init_Main
+  CENTINELA=100
+Lcd_Init()                        ' Inicializacion Lcd
+Lcd_Cmd(_LCD_CLEAR)               ' encera display
+Lcd_Cmd(_LCD_CURSOR_OFF)          ' Cursor off
+Lcd_Out(1,1,"PROYECTO")                 ' escribe la cadena en la primera fila
+Lcd_Out(2,1,"GSM LLAMADAS")                 ' escribe la cadena en la segunda fila
+Lcd_Out(3,1,"POR")                 ' escribe la cadena en la segunda fila
+Lcd_Out(4,1,"JOSE SAENZ")                 ' escribe la cadena en la segunda fila
+Delay_ms(2000)
+'Lcd_Cmd(_LCD_CLEAR)               ' encera display
+contador=0
+UART1_Init(9600)
+
+  while TRUE
+
+
+         UART1_Write_Text("ATA")
+         UART1_Write(0x0d)
+         UART1_Write(0x0a)
+         Delay_ms(200)
+         UART1_Write_Text("ATA")
+         UART1_Write(0x0d)
+         UART1_Write(0x0a)
+         Delay_ms(200)
+         UART1_Write_Text("ATA")
+         UART1_Write(0x0d)
+         UART1_Write(0x0a)
+         Delay_ms(200)
+
+        while (CENTINELA=0)
+              DATO = PORTD
+              if DATO=1 then
+                 CENTINELA=1
+              end if
+              if DATO=5 then
+                 CENTINELA=1
+              end if
+        wend
+        while (CENTINELA=1)
+              DATO = PORTD
+              if DATO=2 then
+                 CENTINELA=2
+              end if
+              if DATO=6 then
+                 CENTINELA=2
+              end if
+        wend
+        while (CENTINELA=2)
+              DATO = PORTD
+              if DATO=3 then
+                 CENTINELA=3
+              end if
+              if DATO=7 then
+                 CENTINELA=3
+              end if
+        wend
+        while (CENTINELA=3)
+              DATO = PORTD
+              if DATO=4 then
+                 CENTINELA=4
+              end if
+              if DATO=8 then
+                 CENTINELA=5
+              end if
+        wend
+        if CENTINELA=4 then
+           PORTA=3
+           CENTINELA=0
+        end if
+        if CENTINELA=5 then
+           PORTA=0
+           CENTINELA=0
+        end if
+  wend
+end.

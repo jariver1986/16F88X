@@ -1,0 +1,38 @@
+    
+    program EKG
+    dim Mx as word          'Variable donde se almacena el dato leído en
+                            'la entrada RA0
+    dim Mx_out as string[3] 'Señal de salida digitalizada
+    main:
+    OSCCON=%01110101        'configuración de oscilador interno
+    OPTION_REG=$80
+    intcon=0
+    CM2CON0=0               'Se apagan comparadores
+    ANSEL=%00000001         'Se configura RA0 como entrada analógica.
+    ANSELH=0                'Parte alta del puerto A se configuran como salidas.  R8-R13
+    TRISA=%00000001         'Declara a RA0 como entrada.
+    TRISB=%00000000         'Declara el Puerto B como salida
+    TRISC=%00000000         'Declara el Puerto C como salida.
+    TRISE=%00000000         'Declara el Puerto E como salida.
+    Mx=0                    'Se incializa Mx con 0
+    UART1_Init(9600)       'Inicializa módulo USART  MAX baud rate
+    PORTA=0
+    PORTB=0
+    PORTC=0
+    
+    WHILE(1)                'Lazo infinito
+    Mx= Adc_Read(0)      'Lee dato analogico de RA0 y digitaliza a
+
+    wordToStr(Mx, Mx_out )
+                            '10 bits lo cual se almacena en Mx
+    'ByteToStr((Mx*5)/255, Mx_out )  'Tomar 8 bits más significativos y
+                            'convertirlos a string.
+    'UART1_Write("s")         'Se envía caracter delimitador que es "z" cuyo
+                            'valor en ascii es 90.
+    'UART1_Write(Mx)
+    UART1_Write_Text(Mx_out)'Se envía dato digitalizado
+    UART1_Write(0X0D)
+    UART1_Write(0X0A)
+    Delay_ms(100)             'Retardo de 5mS
+    WEND                    'Fin de sentencia While que continuará ejecutandose
+    end.

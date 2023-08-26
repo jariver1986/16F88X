@@ -1,0 +1,114 @@
+program control_cisterna
+
+
+DIM TIEMPO,DATO,TURNO,datorx AS BYTE
+DIM DISTANCIA1, DISTANCIA2 ,DISTANCIA3 AS WORD
+DIM TEXTO AS STRING [10]
+DIM TEXTO1,TEXTO2 AS STRING [10]
+DIM DECENA,CENTENA AS INTEGER
+sub function ultrasonico1( ) as word
+     dim flanco as byte
+     dim distan,tiempo as word
+     flanco = 0
+
+     PORTB.RB0 = 1
+     Delay_us(150)
+     PORTB.RB0 = 0
+
+     DO
+          IF( PORTB.RB1 = 1 )THEN
+               TMR0 = 0
+               flanco = 1
+          END IF
+     LOOP UNTIL( flanco = 1 )
+
+     DO
+          IF( PORTB.RB1 = 0 )THEN
+               tiempo = TMR0
+               flanco = 0
+          END IF
+          'if(TMR0>254)THEN
+'           FLANCO=0
+'          END IF
+     LOOP UNTIL( FLANCO = 0 )
+
+     distan = (tiempo*128)/58
+     Delay_ms (50)
+     result = distan
+end sub
+
+
+main:
+OPTION_REG = %00000110
+OSCCON = 0x65
+PORTA  =  0
+TRISA  =  %00000001
+PORTB  =  0
+TRISB  =  %00101010
+PORTC  =  0
+TRISC  =  %10000000
+PORTD  =  %00000000
+TRISD  =  0
+ANSEL =1
+ANSELH = 0
+UART1_Init(9600)
+TURNO=0
+Delay_ms(1000)
+UART1_Write_Text("SALUDOS")
+PORTD.RD2=1
+PORTD.RD3=1
+Delay_ms(200)
+PORTD.RD2=0
+PORTD.RD3=0
+Delay_ms(200)
+PORTD.RD2=1
+PORTD.RD3=1
+Delay_ms(200)
+PORTD.RD2=0
+PORTD.RD3=0
+
+
+
+WHILE (1)
+       if UART1_Data_Ready then
+          datorx = UART1_Read
+       end if
+       if datorx= "1" then
+          PORTD.RD0=1
+       end if
+       if datorx= "2" then
+          PORTD.RD0=0
+       end if
+       if datorx= "3" then
+          PORTD.RD1=1
+       end if
+       if datorx= "4" then
+          PORTD.RD1=0
+       end if
+       datorx=0
+       'DISTANCIA1 = Adc_Read(0)>>2
+       distancia1 = ultrasonico1()
+       if distancia1 > 20 then
+           UART1_Write_Text(" TANQUE VACIO ")
+           UART1_Write(0X0D)
+           UART1_Write(0X0A)
+           PORTD.RD2=1
+           PORTD.RD3=0
+       else
+           if distancia1 < 7 then
+             UART1_Write_Text(" TANQUE LLENO")
+             UART1_Write(0X0D)
+             UART1_Write(0X0A)
+             PORTD.RD2=0
+             PORTD.RD3=1
+           ELSE
+               UART1_Write_Text(" SISTEMA ESTABLE")
+               UART1_Write(0X0D)
+               UART1_Write(0X0A)
+               PORTD.RD2=0
+               PORTD.RD3=0
+           end if
+       end if
+       Delay_ms(1000)
+WEND
+end.

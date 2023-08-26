@@ -1,0 +1,67 @@
+program distancia_1_sensor
+dim dato, DISTANCIA as word
+dim texto as string [10]
+dim serial as byte
+sub function ultrasonico1( ) as word
+     dim flanco as byte
+     dim distan,tiempo as word
+     flanco = 0
+
+     PORTC.RC0 = 1
+     Delay_us(150)
+     PORTC.RC0 = 0
+
+     DO
+          IF( PORTC.RC3 = 1 )THEN
+               TMR0 = 0
+               flanco = 1
+          END IF
+     LOOP UNTIL( flanco = 1 )
+
+     DO
+          IF( PORTC.RC3 = 0 )THEN
+               tiempo = TMR0
+               flanco = 0
+          END IF
+          'if(TMR0>254)THEN
+'           FLANCO=0
+'          END IF
+     LOOP UNTIL( FLANCO = 0 )
+
+     distan = (tiempo*128)/58
+     Delay_ms (50)
+     result = distan
+end sub
+main:
+OSCCON = 0X65
+OPTION_REG = %00000110
+TRISA  = %00000001
+TRISB  = %00000000
+TRISC  = %10001010
+PORTA  = %00000000
+PORTB  = %00000000
+PORTC  = %00000000
+ANSEL  = %00000001
+ANSELH = %00000000
+UART1_Init(9600)
+Delay_100ms
+while 1
+
+  'DISTANCIA = ultrasonico1
+  WordToStr(distancia,texto)
+  UART1_Write_Text("ultrasonico = ")
+  UART1_Write_Text(texto)
+  UART1_Write(0x0d)
+  UART1_Write(0x0a)
+Delay_1sec
+
+  'dato = Adc_Read(0)
+  UART1_Write_Text("LV = ")
+  WordToStr(dato,texto)
+  UART1_Write_Text(texto)
+  UART1_Write(0x0d)
+  UART1_Write(0x0a)
+
+Delay_1sec
+wend
+end.

@@ -1,0 +1,189 @@
+program Control_parqueo
+symbol led1=portc.rc0
+symbol led2=portc.rc1
+symbol led3=portc.rc2
+symbol led4=portc.rc3
+symbol led5=portc.rc4
+symbol led6=portc.rc5
+symbol led7=portd.rd0
+symbol led8=portd.rd1
+dim LCD_RS as sbit at RC6_bit
+    LCD_EN as sbit at RC7_bit
+    LCD_D4 as sbit at RD4_bit
+    LCD_D5 as sbit at RD5_bit
+    LCD_D6 as sbit at RD6_bit
+    LCD_D7 as sbit at RD7_bit
+
+    LCD_RS_Direction as sbit at TRISC6_bit
+    LCD_EN_Direction as sbit at TRISC7_bit
+    LCD_D4_Direction as sbit at TRISD4_bit
+    LCD_D5_Direction as sbit at TRISD5_bit
+    LCD_D6_Direction as sbit at TRISD6_bit
+    LCD_D7_Direction as sbit at TRISD7_bit
+    
+DIM CONT1,CONT2,CONT3,CONT4,CONT5,CONT6,CONT7,CONT8,CONT9,CONT10,CONT11,CONT12,CONT13,CONT14,CONT15,por,giro AS BYTE
+DIM ACUMULADOR AS BYTE
+DIM TEXTO AS STRING [5]
+
+sub procedure abrir()
+dim i as longword
+  i=0
+  while (i<10000)
+     inc(i)
+  if INTCON.TMR0IF=1 THEN
+    if por=1 then
+    giro=109
+    por=2
+    PORTD.RD3=0
+    GOTO final
+    end if
+    if por=2 then
+    giro=243
+    por=1
+    PORTD.RD3=1
+    GOTO final
+    end if
+    final:
+  TMR0 = giro
+  INTCON = 0x20
+  end if
+  wend
+end sub
+sub procedure cerrar()
+  dim i as longword
+  i=0
+  while (i<10000)
+     inc(i)
+     if INTCON.TMR0IF=1 THEN
+    if por=1 then
+    giro=114
+    por=2
+    PORTD.RD3=0
+    GOTO final
+    end if
+    if por=2 then
+    giro=238
+    por=1
+    PORTD.RD3=1
+    GOTO final
+    end if
+    final:
+    TMR0 = giro
+    INTCON = 0x20
+  end if
+  wend
+End sub
+
+main:
+OSCCON = 0X65
+OPTION_REG=0X06
+PORTA = %00000000
+TRISA = %11111111
+PORTB = %00000000
+TRISB = %11111111
+PORTC = %00000000
+TRISC = %00000000
+PORTD = %00000000
+TRISD = %00000000
+PORTE = %00000000
+TRISE = %00000000
+ANSEL = %00000000
+ANSELH = %00000000
+INTCON = 0XC0
+PIR1.RCIF=0
+PIE1.RCIE=1
+por=2
+TMR0=100
+
+CONT1 =0
+CONT2 =0
+CONT3 =0
+CONT4 =0
+CONT5 =0
+CONT6 =0
+CONT7 =0
+CONT8 =0
+CONT9 =0
+CONT10 =0
+CONT11 =0
+CONT12 =0
+CONT13 =0
+CONT14 =0
+CONT15 =0
+
+Lcd_Init()
+Lcd_Cmd(_LCD_CLEAR)
+Lcd_Cmd(_LCD_CURSOR_OFF)
+Lcd_Out(1,1,"ESPOL")
+Lcd_Out(2,1,"LAB. ELECTRO A")
+Delay_ms(1000)
+Lcd_Cmd(_LCD_CLEAR)
+''''''''''''''''''''''''''''''
+Lcd_Out(1,1,"CONTROL DE ")
+Lcd_Out(2,1,"PARQUEO")
+Delay_ms(1000)
+''''''''''''''''''''''''''''
+Lcd_Cmd(_LCD_CLEAR)
+Delay_ms(1000)
+
+
+while 1
+
+    ACUMULADOR=0
+    Lcd_Out(1,1,"LIBRES:         ")
+    Lcd_Out(2,1,"OCUPADOS:       ")
+    if PORTA.RA0 = 0 then CONT1 = 0 LED1=1 LED2=0 ELSE CONT1 = 1 LED1=0 LED2=1 end if
+    if PORTA.RA1 = 0 then CONT2 = 0 LED3=1 LED4=0 ELSE CONT2 = 1 LED3=0 LED4=1 end if
+    if PORTA.RA2 = 0 then CONT3 = 0 LED5=1 LED6=0 ELSE CONT3 = 1 LED5=0 LED6=1 end if
+    if PORTA.RA3 = 0 then CONT4 = 0 ELSE CONT4 = 1 end if
+    if PORTA.RA4 = 0 then CONT5 = 0 ELSE CONT5 = 1 end if
+    if PORTA.RA5 = 0 then CONT6 = 0 ELSE CONT6 = 1 end if
+    if PORTA.RA6 = 0 then CONT7 = 0 ELSE CONT7 = 1 end if
+    if PORTA.RA7 = 0 then CONT8 = 0 ELSE CONT8 = 1 end if
+
+    if PORTB.RB0 = 0 then CONT9 = 0 ELSE CONT9  = 1 end if
+    if PORTB.RB1 = 0 then CONT10 = 0 ELSE CONT10 = 1 end if
+    if PORTB.RB2 = 0 then CONT11 = 0 ELSE CONT11 = 1 end if
+    if PORTB.RB3 = 0 then CONT12 = 0 ELSE CONT12 = 1 end if
+    if PORTB.RB4 = 0 then CONT13 = 0 ELSE CONT13 = 1 end if
+    if PORTB.RB5 = 0 then CONT14 = 0 ELSE CONT14 = 1 end if
+    if PORTB.RB6 = 0 then CONT15 = 0 ELSE CONT15 = 1 end if
+
+    ACUMULADOR = CONT1 +CONT2 +CONT3 +CONT4 +CONT5 +CONT6 +CONT7 +CONT8 +CONT9 +CONT10 +CONT11 +CONT12 +CONT13 +CONT14 +CONT15
+    ByteToStr(ACUMULADOR, TEXTO)
+    Lcd_Out(1,10,TEXTO)
+    ByteToStr(15-ACUMULADOR, TEXTO)
+    Lcd_Out(2,10,TEXTO)
+    Delay_ms(1000)
+
+    if ACUMULADOR = 0 THEN
+       Lcd_Out(1,1,"PARQUEADERO     ")
+       Lcd_Out(2,1,"LLENO           ")
+       Delay_ms(1000)
+       Lcd_Cmd(_LCD_CLEAR)
+       Lcd_Out(1,1,"INGRESO         ")
+       Lcd_Out(2,1,"BLOQUEADO       ")
+       LED7=1
+       LED8=0
+       Delay_ms(1000)
+       Lcd_Cmd(_LCD_CLEAR)
+
+       CERRAR()
+
+    else
+        if PORTB.RB7=0 then
+           LED7=0
+           LED8=1
+           ABRIR()
+           Lcd_Out(1,1,"INGRESO         ")
+           Lcd_Out(2,1,"PERMITIDO       ")
+           Delay_ms(1000)
+           Delay_ms(1000)
+           CERRAR()
+           Delay_ms(1000)
+           Lcd_Cmd(_LCD_CLEAR)
+        end if
+    end if
+Delay_ms(1000)
+wend
+end.
