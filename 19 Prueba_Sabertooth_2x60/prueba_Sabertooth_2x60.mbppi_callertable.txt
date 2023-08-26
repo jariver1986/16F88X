@@ -1,0 +1,15 @@
+main
+	UART1_Init
+	adelante_m1
+	adelante_m2
+	atras_m1
+	atras_m2
+	izquierda
+		adelante_m1
+		atras_m2
+	derecha
+		adelante_m2
+		atras_m1
+	parar
+interrupt
+	UART1_Read

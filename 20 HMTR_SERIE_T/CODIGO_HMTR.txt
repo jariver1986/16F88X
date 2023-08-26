@@ -1,0 +1,234 @@
+'ENVIO DE DATOS
+'IXTHRF
+
+'I = IDENTIFICADOR DE INICIO DE TRAMA
+'X = IDENTIFICADOR DE BASES PUEDE SER A,B,C UNA LA VEZ
+'T= 	SI T=1 PETICION DE TEMPERATURA
+	SI T=0 NO PETICION DE TEMPERATURA
+'H= 	SI H=1 PETICION DE HUMEDAD
+	SI H=0 NO PETICION DE HUMEDAD
+'R=     ACTIVADOR DE RELAY ON/OFF CON UN MISMO ENVIO DE UN 1
+'F=  IDENTIFICADOR DE FIN DE TRAMA
+
+program HMTR_SERIE_T
+
+
+'AQUI DECLARO LAS VARIABLES A UTILIZAR EN LA PROGRAMACION
+dim text as string[14]
+dim text2 as string[9]
+dim adc_rd as word
+dim viajero as byte
+dim bandera,regresa,seguro,actuador as bit
+dim datos_set, dato_recep, opcion as byte
+dim temp1,temp2,temp3,luz1,luz2,luz3 as byte
+dim temperatura, luminosidad, temperatura1, temperatura2,temperatura3 as byte
+dim temporal1, temporal2  as byte
+' VARIABLES DE TEMPERATURA
+dim Raw_temp, TempC, comma as word
+dim i, j1, j2, minus       as byte
+
+'AQUI ESTAN LAS FUNCIONES ME PERMITE CONVERTIR LOS DATOS OBTENIDOS POR PUERTO SERIAL EN
+'VALORES DECIMALES
+sub procedure numeritos()
+temporal1=0x0F
+temporal2=temporal1 and temp1  'OBTENGO UNIDAD DE T°
+temperatura1=temporal2
+temporal2=temporal1 and temp2   'OBTENGO DECENA DE T°
+temperatura2=temporal2
+temporal2=temporal1 and temp3   'OBTENGO CENTENA DE T°
+temperatura3=temporal2
+'LUEGO SUMO TODOS LOS NUMEROS
+temperatura=(temperatura1*100)+(temperatura2*10)+temperatura3 'variables luminosidad y temperatura son convertidas a decimal por igual
+end sub
+sub procedure numeritos2()
+temporal1=0x0F
+temporal2=temporal1 and luz1    'OBTENGO UNIDAD DE LUZ
+temperatura1=temporal2
+temporal2=temporal1 and luz2    'OBTENGO DECENA DE LUZ
+temperatura2=temporal2
+temporal2=temporal1 and luz3     'OBTENGO CENTENA DE LUZ
+temperatura3=temporal2
+luminosidad=(temperatura1*100)+(temperatura2*10)+temperatura3 'variables luminosidad y temperatura son convertidas a decimal por igual
+end sub
+
+
+'EN ESTE PROCEDIMIENTO ME PERMITE OBTENER EL VALOR DE LA LUZ POR MEDIO DEL
+'LDR EN EL PIN NUMERO 2 DEL PIN
+sub procedure conversion_luz()
+
+
+adc_rd=Adc_Read(0)'>>2   'CONVERTIDOR ANALOGICO DIGITAL
+
+WordToStrWithZeros(adc_rd, text)
+  'UART1_Write(0x49) ' I
+  'UART1_Write(0x48) ' IDE HUMEDAD
+  UART1_Write_Text("  HUMEDAD ")
+  UART1_Write(text[1])
+  UART1_Write(text[2]) ' centenas
+  UART1_Write(text[3]) ' decenas
+  UART1_Write(text[4]) 'unidades
+  'UART1_Write(0x46) ' FIN DE CADENA
+  Delay_ms(250)
+  datos_set=0X00
+  end sub
+
+  'ESTA FUNCION ESPERA LOS DATOS ENVIADOS DESDE EL COMPUTADOR
+  'Y VERIFICA SI ES IGUAL A LOS QUE SE DEBE ENVIAR IL###F O IT###F
+  sub procedure interrupt
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' RECIVE POR PUERTO SERIAL
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+     if (PIR1.RCIF=1) then
+          PIR1.RCIF=0
+
+          dato_recep = UART1_Read()
+          select case viajero
+               case 0
+                     if dato_recep = "I" then ' I
+                          viajero = 1
+                     else
+                          viajero = 0
+                     end if
+               case 1
+                     if dato_recep = "D" then ' IDE BASE "A" "B" O "C"
+                          opcion = 1
+                          viajero = 2
+                     else
+                          viajero=0
+                     end if
+               case 2 ' display 1
+                     temp1 = dato_recep        '1 NUMERO
+                     viajero = 3
+               case 3 ' display 2
+                     temp2 = dato_recep         '2 NUMERO
+                     viajero = 4
+               case 4
+                     temp3 = dato_recep         '3 NUMERO
+                     viajero = 5
+                case 5
+                    if dato_recep = "F" then
+                      viajero= 0
+                      datos_set= 0xFF   'TEMPARATURA SETEADA
+                    else
+                      viajero=0
+                    end if
+          end select
+     end if
+     INTCON=0XE0
+     PIE1.RCIE=1
+     PIR1.RCIF=0
+     end sub
+
+
+'ESTA FUNCION MEPERMITE OBTENER LA TEMPERATURA
+sub procedure conversion_temperatura
+
+          ow_reset(PORTA, 5) ' senal de reset onewire
+          ow_write(PORTA, 5, 0xCC) ' pase rom
+          ow_write(PORTA, 5, 0x44) ' convertir a t
+
+          delay_us(120)
+
+          i = ow_reset(PORTA, 5) ' 0 = presente, 1= no presente
+          ow_write(PORTA, 5, 0xCC) ' pase rom
+          ow_write(PORTA, 5, 0xBE) ' leer a SCRATCHPAD
+
+          j1 = ow_Read(PORTA, 5) ' leer parte baja
+          j2 = ow_Read(PORTA, 5) ' leer parte alta
+
+          minus = j2
+          minus = minus >> 3
+
+          if minus = 0x1F then ' chequeamos la temperatura (+ o -)
+               j2 = not j2
+               j1 = not j1
+               j1 = j1 + 1
+          end if
+
+          Raw_temp = (j2 << 8) or j1 ' obteniendo la data raw
+
+
+
+          TempC = (Raw_temp and $0FF0) >> 4
+          comma = (j1 and $0F) * 625
+
+          WordToStrWithZeros(TempC, text2)
+
+
+
+
+          'UART1_Write(0x49) ' I
+          'UART1_Write(0x54) ' IDE TEMPERATURA
+          UART1_Write_Text("TEMPERATURA ")
+          UART1_Write(text2[2]) ' centenas
+          UART1_Write(text2[3]) ' decenas
+          UART1_Write(text2[4]) 'unidades
+          'UART1_Write(0x46) ' FIN DE CADENA
+          UART1_Write_Text(" °c")
+          Delay_ms(50)
+          datos_set=0X00
+
+          Delay_ms(250)
+end sub
+
+main:
+
+ OPTION_REG = 0x06
+' Registro Oscilador de control
+OSCCON = 0X75 ' Oscilador interno de 8mhz
+OPTION_REG = 0x86
+INTCON = 0XE0 ' Activado interrupciones globales
+                   ' Registro control de interrupciones
+                   ' Activado interrupciones perifericas
+PIR1.RCIF=0
+PIE1.RCIE=1
+TRISA =0X01
+TRISB= 0X00
+PORTB= 0X00
+
+TRISC = 0x80
+PORTC = 0x00
+ANSEL = 0X01
+ANSELH = 0X00
+UART1_Init(9600)
+datos_set=0x00
+opcion=0
+bandera=0
+regresa=0
+numeritos()
+viajero=0
+seguro=0
+actuador=0
+  while(1)
+  inicio:
+    while(1)
+       if(opcion=1) and (datos_set=0xFF)then            'PREGUNTA POR LA OPCION DE TEMPERATURA O LUZ
+        goto temperatura
+       end if
+    wend
+       temperatura:
+       'TEMPERATURA SERIAL ENVIADA **************************
+       datos_set=0x00
+       if(temp1=0x31)then
+        conversion_temperatura()
+       end if
+       if(temp2=0x31)then
+        conversion_luz()
+       end if
+       if temp3=0x31then
+        actuador=not actuador
+        if actuador=1 then
+           PORTC.RC0= 1
+           UART1_Write_Text("  RELAY ON")
+        end if
+        if actuador=0 then
+           PORTC.RC0= 0
+           UART1_Write_Text("  RELAY OFF")
+        end if
+       end if
+       Delay_ms(1000)
+       goto inicio
+       'LUZ SERIAL ENVIADA************************************
+
+  wend
+end.
