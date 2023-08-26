@@ -1,0 +1,11 @@
+main
+	UART1_Init
+	UART1_Data_Ready
+	UART1_Read
+	Adc_Read
+		Delay_22us
+	WordToStr
+		Div_16x16_U
+	UART1_Write_Text
+		UART1_Write
+	Delay_1sec

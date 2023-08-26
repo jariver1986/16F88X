@@ -1,0 +1,241 @@
+program sistema_interactivo
+
+DIM KP,numero, numero2  AS BYTE
+
+sub procedure TECLADOMEMBRANA()
+   kp = 255
+   portb=%11101111        'EXPLORO FILA 1
+   if(portb.0=0)then      'EXPLORO COLUMNA1
+     while(portb.0=0) wend
+      numero2 = 0x4f
+      KP=0
+   end if'1
+
+   if(portb.1=0)then      'EXPLORO COLUMNA2
+      while(portb.1=0) wend
+      numero2 = 0x55
+      KP=0
+   end if'2
+
+   if(portb.2=0)then      'EXPLORO COLUMNA3
+     while(portb.2=0) wend
+      numero2 = 0x30
+      KP=0
+   end if'3
+
+   if (portb.3=0)then    'EXPLORO COLUMNA4
+     while(portb.3=0) wend
+      numero2 = 0x4f
+      KP=0
+   end if'A
+
+  if(kp=255)then
+    portb=%11011111          'EXPLORO FILA 2
+   if(portb.0=0)then       'EXPLORO COLUMNA1
+     while(portb.0=0) wend
+      numero2 = 0x49 ' c
+      KP=0
+   end if'4
+
+
+   if(portb.1=0)then      'EXPLORO COLUMNA2
+     while(portb.1=0) wend
+      numero2 = 0x39 ' 9
+      KP=0
+      end if'5
+   if(portb.2=0)then     'EXPLORO COLUMNA3
+      while(portb.2=0) wend
+      numero2 = 0x38 ' c
+      KP=0
+      end if'6
+   if (portb.3=0)then    'EXPLORO COLUMNA4
+      while(portb.3=0) wend
+      numero2 = 0x37 ' c
+      KP=0
+   end if'B
+   else return
+   end if
+   
+  if(kp=255) then
+    portb=%10111111         'EXPLORO FILA 3
+   if(portb.0=0)then      'EXPLORO COLUMNA1
+     while(portb.0=0) wend
+      numero2 = 0x45 ' c
+      KP=0
+      end if'7
+
+   if(portb.1=0)then      'EXPLORO COLUMNA2
+      while(portb.1=0) wend
+      numero2 = 0x36 ' c
+      KP=0
+      end if'8
+   if(portb.2=0)then      'EXPLORO COLUMNA3
+      while(portb.2=0) wend
+      numero2 = 0x35 ' c
+      KP=0
+      end if'9
+      
+   if (portb.3=0)then     'EXPLORO COLUMNA4
+      while(portb.3=0) wend
+      numero2 = 0x34 ' c
+      KP=0
+   end if'C
+   else return
+  end if
+  if(kp=255)then
+     portb=%01111111  'EXPLORO FILA 4
+   if(portb.0=0)then      'EXPLORO COLUMNA1
+      while(portb.0=0) wend
+      numero2 = 0x2A ' c
+      KP=0
+      end if '*
+   if(portb.1=0)then      'EXPLORO COLUMNA2
+      while(portb.1=0) wend
+      numero2 = 0x33 ' c
+      KP=0
+      end if'0
+   if(portb.2=0)then      'EXPLORO COLUMNA3
+      while(portb.2=0) wend
+      numero2 = 0x32 ' c
+      KP=0
+      end if'#
+   if (portb.3=0)then     'EXPLORO COLUMNA4
+      while(portb.3=0) wend
+      numero2 = 0x31 ' c
+      KP=0
+      end if'D
+   else return
+  end if
+
+end sub
+sub procedure TECLADO4X4()
+   kp = 255
+   portb=%11101111        'EXPLORO FILA 1
+   if(portb.0=0)then      'EXPLORO COLUMNA1
+     while(portb.0=0) wend
+      numero2 = 0x44   'D
+      KP=0
+   end if'1
+
+   if(portb.1=0)then      'EXPLORO COLUMNA2
+      while(portb.1=0) wend
+      numero2 = 0x43   'C
+      KP=0
+   end if'2
+
+   if(portb.2=0)then      'EXPLORO COLUMNA3
+     while(portb.2=0) wend
+      numero2 = 0x42   'B
+      KP=0
+   end if'3
+
+   if (portb.3=0)then    'EXPLORO COLUMNA4
+     while(portb.3=0) wend
+      numero2 = 0x41    'A
+      KP=0
+   end if'A
+
+  if(kp=255)then
+    portb=%11011111          'EXPLORO FILA 2
+   if(portb.0=0)then       'EXPLORO COLUMNA1
+     while(portb.0=0) wend
+      numero2 = 0x23 ' #
+      KP=0
+   end if'4
+
+   if(portb.1=0)then      'EXPLORO COLUMNA2
+     while(portb.1=0) wend
+      numero2 = 0x39 ' 9
+      KP=0
+      end if'5
+   if(portb.2=0)then     'EXPLORO COLUMNA3
+      while(portb.2=0) wend
+      numero2 = 0x36 ' 6
+      KP=0
+      end if'6
+   if (portb.3=0)then    'EXPLORO COLUMNA4
+      while(portb.3=0) wend
+      numero2 = 0x33 ' 3
+      KP=0
+   end if'B
+   else return
+   end if
+
+  if(kp=255) then
+    portb=%10111111         'EXPLORO FILA 3
+   if(portb.0=0)then      'EXPLORO COLUMNA1
+     while(portb.0=0) wend
+      numero2 = 0x30 ' 0
+      KP=0
+      end if'7
+
+   if(portb.1=0)then      'EXPLORO COLUMNA2
+      while(portb.1=0) wend
+      numero2 = 0x38 ' 8
+      KP=0
+      end if'8
+   if(portb.2=0)then      'EXPLORO COLUMNA3
+      while(portb.2=0) wend
+      numero2 = 0x35 ' 5
+      KP=0
+      end if'9
+
+   if (portb.3=0)then     'EXPLORO COLUMNA4
+      while(portb.3=0) wend
+      numero2 = 0x32 ' 2
+      KP=0
+   end if'C
+   else return
+  end if
+  if(kp=255)then
+     portb=%01111111  'EXPLORO FILA 4
+   if(portb.0=0)then      'EXPLORO COLUMNA1
+      while(portb.0=0) wend
+      numero2 = 0x2A ' *
+      KP=0
+      end if '*
+   if(portb.1=0)then      'EXPLORO COLUMNA2
+      while(portb.1=0) wend
+      numero2 = 0x37 ' 7
+      KP=0
+      end if'0
+   if(portb.2=0)then      'EXPLORO COLUMNA3
+      while(portb.2=0) wend
+      numero2 = 0x34 ' 4
+      KP=0
+      end if'#
+   if (portb.3=0)then     'EXPLORO COLUMNA4
+      while(portb.3=0) wend
+      numero2 = 0x31 ' 1
+      KP=0
+      end if'D
+   else return
+  end if
+
+end sub
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+main:
+
+     OSCCON     = %01110101
+     OPTION_REG = %00000111
+     TRISB      = %00001111
+     PORTB      = %00000000
+     TRISC      = %10000000
+     PORTC      = %00000000
+     ANSEL      = %00000000
+     ANSELH     = %00000000
+     WPUB       = %00001111
+      UART1_Init(9600)
+      Delay_1sec
+
+while(1)
+        TECLADO4X4          'LEE TECLADO
+        'TECLADOMEMBRANA
+        if KP<>255 then
+           UART1_Write(numero2)       ' ENVIA NUMERO
+           Delay_ms(200)             ' TIEMPO DE ESPERA
+        end if
+        
+wend
+end.

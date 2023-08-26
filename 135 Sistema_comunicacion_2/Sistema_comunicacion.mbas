@@ -1,0 +1,123 @@
+program Sistema_comunicacion
+symbol BOTON1 = PORTC.RC0
+symbol BOTON2 = PORTC.RC1
+symbol BOTON3 = PORTC.RC2
+symbol BOTON4 = PORTC.RC3
+symbol BOTON5 = PORTD.RD0
+symbol BOTON6 = PORTD.RD1
+' ***************CONECXIONES PARA EL MODULO LCD*************************
+dim LCD_RS as sbit at RB2_bit
+    LCD_EN as sbit at RB3_bit
+    LCD_D4 as sbit at RB4_bit
+    LCD_D5 as sbit at RB5_bit
+    LCD_D6 as sbit at RB6_bit
+    LCD_D7 as sbit at RB7_bit
+
+    LCD_RS_Direction as sbit at TRISB2_bit
+    LCD_EN_Direction as sbit at TRISB3_bit
+    LCD_D4_Direction as sbit at TRISB4_bit
+    LCD_D5_Direction as sbit at TRISB5_bit
+    LCD_D6_Direction as sbit at TRISB6_bit
+    LCD_D7_Direction as sbit at TRISB7_bit
+' **********VARIABLES Y CADENAS DE CARACTERES A UTILIZAR**********
+
+dim txt2 as char[33]
+dim counter as byte
+
+' Declarations section
+
+main:
+' Registro Oscilador de control
+     OSCCON = 0X75 ' Oscilador interno de 8mhz
+ ' Registro PUERTO A
+     TRISA = 0X00 ' PORTA.0 Entrada
+     PORTA = 0X00
+' Registro PUERTO B
+     TRISB = 0X00 ' PORTB salidas
+     PORTB = 0X00
+' Registro PUERTO C
+     TRISC = 0X8F ' PORTC salidas
+     PORTC = 0X00
+' Registro PUERTO D
+     TRISD = 0X03 ' PORTE  como salidas digital
+     PORTD = 0X00
+' Seleccion de registro analogico. 1 analogico, 0 digitales
+     ANSEL = 0X00 ' AN<7:0>
+     ANSELH = 0X00 ' AN<13:8>
+     UART1_Init(9600)
+     Lcd_Init()                        ' Inicializacion Lcd
+     Lcd_Cmd(_LCD_CLEAR)               ' encera display
+     Lcd_Cmd(_LCD_CURSOR_OFF)          ' Cursor off
+     Lcd_Out(1,1,"SISTEMA XBEE ")                 ' escribe la cadena en la primera fila
+     Lcd_Out(2,1,"COMUNICACION ")                 ' escribe la cadena en la segunda fila
+     delay_ms(2000)
+     Lcd_Cmd(_LCD_CLEAR)               ' encera display
+     Lcd_Out(1,1,"POR:")                 ' escribe la cadena en la primera fila
+     Lcd_Out(2,1,"RAUL ESPINOZA")                 ' escribe la cadena en la segunda fila
+     delay_ms(2000)
+     Lcd_Cmd(_LCD_CLEAR)               ' encera display
+     delay_ms(250)
+     UART1_Init(9600)
+     portd.rd2=1
+     Delay_ms(200)
+     portd.rd2=0
+     Delay_ms(200)
+     portd.rd2=1
+     Delay_ms(200)
+     portd.rd2=0
+     Delay_ms(200)
+while(1)
+    if (UART1_Data_Ready() <> 0) then ' If data is received,
+     UART1_Read_Text(txt2,"-",32)     ' lee la cadena hasta que encuentre la letra K mayuscula
+     UART1_Write_Text(txt2)           ' envia un eco de la cadena
+     Lcd_Cmd(_LCD_CLEAR)              ' encera display
+     portd.rd2=1
+     Delay_ms(200)
+     portd.rd2=0
+     Delay_ms(200)
+     for counter = 0 to 15
+         Lcd_Chr(1,counter+1,txt2[counter])
+     next counter
+     for counter = 0 to 15
+         Lcd_Chr(2,counter+1,txt2[counter+16])
+     next counter
+     txt2 ="                             "
+     end if
+     if BOTON1=1 then
+        while BOTON1=1 wend
+        UART1_Write_Text("OK")
+        UART1_Write(0X0D)
+        UART1_Write(0X0A)
+     end if
+'     if BOTON2=1 then
+'        while BOTON2=1 wend
+'        UART1_Write_Text("RECIBIDO")
+'        UART1_Write(0X0D)
+'        UART1_Write(0X0A)
+'     end if
+'     if BOTON3=1 then
+'        while BOTON3=1 wend
+'        UART1_Write_Text("ESTOY EN CAMINO")
+'        UART1_Write(0X0D)
+'        UART1_Write(0X0A)
+'     end if
+'     if BOTON4=1 then
+'        while BOTON4=1 wend
+'        UART1_Write_Text("ESTOY OCUPADO ")
+'        UART1_Write(0X0D)
+'        UART1_Write(0X0A)
+'     end if
+'     if BOTON5=1 then
+'        while BOTON5=1 wend
+'        UART1_Write_Text("ESTOY LIBRE")
+'        UART1_Write(0X0D)
+'        UART1_Write(0X0A)
+'     end if
+'     if BOTON6=1 then
+'        while BOTON6=1 wend
+'        UART1_Write_Text("NECESITO AYUDA")
+'        UART1_Write(0X0D)
+'        UART1_Write(0X0A)
+'     end if
+  wend
+ end.
