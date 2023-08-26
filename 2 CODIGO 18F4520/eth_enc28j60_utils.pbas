@@ -1,0 +1,270 @@
+module eth_enc28j60_utils
+
+' ************************************************************
+' * ROM constant strings
+' *
+' ************************************************************
+
+include "eth_enc28j60_api"
+
+const httpHeader as string[31]         = "HTTP/1.1 200 OK"+chr(10)+"Content-type: "  ' HTTP header
+const httpMimeTypeHTML as string[13]   = "text/html"+chr(10)+chr(10)                 ' HTML MIME type
+const httpMimeTypeScript as string[14] = "text/plain"+chr(10)+chr(10)                ' TEXT MIME type
+const httpMethod as string[5]          = "GET /"
+'*
+' * web page, splited into 2 parts :
+' * when coming short of ROM, fragmented data is handled more efficiently by linker
+' *
+' * this HTML page calls the boards to get its status, and builds itself with javascript
+' *
+const indexPage as string[763] =
+                    "<meta http-equiv=" + Chr(34) + "refresh"  + Chr(34) + " content="  + Chr(34) + "3;url=http://192.232.6.50"  + Chr(34) + ">" +
+                    "<HTML><HEAD></HEAD><BODY>"+
+                    "<h1>PIC + ENC28J60 Mini Web Server</h1>"+
+                    "<a href=/>Reload</a>"+
+                    "<script src=/s></script>"+
+                    "<table><tr><td valign=top><table border=1 style="+chr(34)+"font-size:20px ;font-family: terminal ;"+chr(34)+"> "+
+                    "<tr><th colspan=2>ADC</th></tr>"+
+                    "<tr><td>AN2</td><td><script>document.write(AN2)</script></td></tr>"+
+                    "<tr><td>AN3</td><td><script>document.write(AN3)</script></td></tr>"+
+                    "</table></td><td><table border=1 style="+chr(34)+"font-size:20px ;font-family: terminal ;"+chr(34)+"> "+
+                    "<tr><th colspan=2>PORTB</th></tr>"+
+                    "<script>"+
+                    "var str,i;"+
+                    "str="+chr(34)+chr(34)+"; "+
+                    "for(i=0;i<8;i++)"+
+                    "{str+="+chr(34)+"<tr><td bgcolor=pink>BUTTON #"+chr(34)+"+i+"+chr(34)+"</td>"+chr(34)+"; "+
+                    "if(PORTB&(1<<i)){str+="+chr(34)+"<td bgcolor=red>ON"+chr(34)+";}"+
+                    "else {str+="+chr(34)+"<td bgcolor=#cccccc>OFF"+chr(34)+";}"+
+                    "str+="+chr(34)+"</td></tr>"+chr(34)+";}"+
+                    "document.write(str) ;"+
+                    "</script>"
+
+const indexPage2 as string[470] =
+                    "</table></td><td>"+
+                    "<table border=1 style="+chr(34)+"font-size:20px ;font-family: terminal ;"+chr(34)+"> "+
+                    "<tr><th colspan=3>PORTD</th></tr>"+
+                    "<script>"+
+                    "var str,i;"+
+                    "str="+chr(34)+chr(34)+"; "+
+                    "for(i=0;i<8;i++)"+
+                    "{str+="+chr(34)+"<tr><td bgcolor=yellow>LED #"+chr(34)+"+i+"+chr(34)+"</td>"+chr(34)+"; "+
+                    "if(PORTD&(1<<i)){str+="+chr(34)+"<td bgcolor=red>ON"+chr(34)+";}"+
+                    "else {str+="+chr(34)+"<td bgcolor=#cccccc>OFF"+chr(34)+";}"+
+                    "str+="+chr(34)+"</td><td><a href=/t"+chr(34)+"+i+"+chr(34)+">Toggle</a></td></tr>"+chr(34)+";}"+
+                    "document.write(str) ;"+
+                    "</script>"+
+                    "</table></td></tr></table>"+
+                    "This is HTTP request #<script>document.write(REQ)</script></BODY></HTML>"
+
+
+
+dim    getRequest  as byte[15]   ' HTTP request buffer
+       dyna        as byte[30]   ' buffer for dynamic response
+       httpCounter as word       ' counter of HTTP requests
+       txt         as string[11]
+'{*******************************************
+' * user defined functions
+' *}
+
+'//-------------- Returns true if the given character is a cipher (digit)
+sub function isdigit(dim character as byte) as byte
+  result = (character <= "9") and (character >= "0")
+end sub
+
+'{*
+' * this function is called by the library
+' * the user accesses to the HTTP request by successive calls to Spi_Ethernet_getByte()
+' * the user puts data in the transmit buffer by successive calls to Spi_Ethernet_putByte()
+' * the function must return the length in bytes of the HTTP reply, or 0 if nothing to transmit
+' *
+' * if you don't need to reply to HTTP requests,
+' * just define this function with a return(0) as single statement
+' *
+' *}
+
+sub function Spi_Ethernet_UserTCP(dim byref remoteHost as byte[4],
+                              dim remotePort, localPort, reqLength as word) as word
+  dim
+       i   as word                    ' general purpose integer
+       bitMask as byte                ' for bit mask
+
+
+
+    result = 0
+    if(localPort <> 80) then          ' I listen only to web request on port 80
+      result = 0
+      exit
+    end if
+
+    ' get 10 first bytes only of the request, the rest does not matter here
+    for i = 0 to 10
+      getRequest[i] = Spi_Ethernet_getByte()
+    next i
+
+    getRequest[i] = 0
+
+    i = 0
+
+    while (httpMethod[i] <> 0)
+      txt[i] = httpMethod[i]
+      i = i + 1
+    wend
+
+    if(memcmp(@getRequest, @txt, 5)<>0) then       ' only GET method is supported here
+      result = 0
+      exit
+    end if
+
+    httpCounter = httpCounter + 1                          ' one more request done
+
+    if(getRequest[5] = "s") then                           ' if request path name starts with s, store dynamic data in transmit buffer
+      ' the text string replied by this request can be interpreted as javascript statements
+      ' by browsers
+
+      result = Spi_Ethernet_putConstString(@httpHeader)                   ' HTTP header
+      result = result + Spi_Ethernet_putConstString(@httpMimeTypeScript)    ' with text MIME type
+
+      ' add AN2 value to reply
+      WordToStr(ADC_Read(2), dyna)
+      txt  = "var AN2="
+      result = result + Spi_Ethernet_putString(@txt)
+      result = result + Spi_Ethernet_putString(@dyna)
+      txt  = ";"
+      result = result + Spi_Ethernet_putString(@txt)
+
+      ' add AN3 value to reply
+      WordToStr(ADC_Read(3), dyna)
+      txt  = "var AN3="
+      result = result + Spi_Ethernet_putString(@txt)
+      result = result + Spi_Ethernet_putString(@dyna)
+      txt  = ";"
+      result = result + Spi_Ethernet_putString(@txt)
+
+      ' add PORTB value (buttons) to reply
+      txt  = "var PORTB="
+      result = result + Spi_Ethernet_putString(@txt)
+      WordToStr(PORTB, dyna)
+      result = result + Spi_Ethernet_putString(@dyna)
+      txt  = ";"
+      result = result + Spi_Ethernet_putString(@txt)
+
+      ' add PORTD value (LEDs) to reply
+      txt  = "var PORTD="
+      result = result + Spi_Ethernet_putString(@txt)
+      WordToStr(PORTD, dyna)
+      result = result + Spi_Ethernet_putString(@dyna)
+      txt  = ";"
+      result = result + Spi_Ethernet_putString(@txt)
+      
+      ' add HTTP requests counter to reply
+      WordToStr(httpCounter, dyna)
+      txt  = "var REQ="
+      result = result + Spi_Ethernet_putString(@txt)
+      result = result + Spi_Ethernet_putString(@dyna)
+      txt  = ";"
+      result = result + Spi_Ethernet_putString(@txt)
+    else
+      if(getRequest[5] = "t") then                         ' if request path name starts with t, toggle PORTD (LED) bit number that comes after
+        bitMask = 0
+        if(isdigit(getRequest[6]) <> 0) then               ' if 0 <= bit number <= 9, bits 8 & 9 does not exist but does not matter
+          bitMask = getRequest[6] - "0"                    ' convert ASCII to integer
+          bitMask = 1 << bitMask                           ' create bit mask
+          PORTD   = PORTD xor bitMask                      ' toggle PORTD with xor operator
+        end if
+      end if
+    end if
+
+    if(result = 0) then                                      ' what do to by default
+      result = Spi_Ethernet_putConstString(@httpHeader)                   ' HTTP header
+      result = result + Spi_Ethernet_putConstString(@httpMimeTypeHTML)    ' with HTML MIME type
+      result = result + Spi_Ethernet_putConstString(@indexPage)           ' HTML page first part
+      result = result + Spi_Ethernet_putConstString(@indexPage2)          ' HTML page second part
+    end if
+
+    ' return to the library with the number of bytes to transmit
+'     result = 0
+end sub
+
+'{*
+' * this function is called by the library
+' * the user accesses to the UDP request by successive calls to Spi_Ethernet_getByte()
+' * the user puts data in the transmit buffer by successive calls to Spi_Ethernet_putByte()
+' * the function must return the length in bytes of the UDP reply, or 0 if nothing to transmit
+' *
+' * if you don't need to reply to UDP requests,
+' * just define this function with a return(0) as single statement
+' *
+' *}
+
+sub function Spi_Ethernet_UserUDP(dim byref remoteHost as byte[4],
+                              dim remotePort, destPort, reqLength as word) as word
+     dim INICIO_UDP, ID_UDP as byte
+
+     INICIO_UDP = Spi_Ethernet_getByte()
+     ID_UDP = Spi_Ethernet_getByte()
+
+     if (INICIO_UDP="O") AND (ID_UDP="P" ) then
+          PORTD = 0X55
+
+     else
+          PORTD = 0XAA
+
+     end if
+
+     result = 0
+'    ' reply is made of the remote host IP address in human readable format
+'    byteToStr(remoteHost[0], dyna)            ' first IP address byte
+'    dyna[3] = "."
+'    byteToStr(remoteHost[1], txt)             ' second
+'    dyna[4] = txt[0]
+'    dyna[5] = txt[1]
+'    dyna[6] = txt[2]
+'    dyna[7] = "."
+'    byteToStr(remoteHost[2], txt)             ' second
+'    dyna[8]  = txt[0]
+'    dyna[9]  = txt[1]
+'    dyna[10] = txt[2]
+'
+'    dyna[11] = "."
+'    byteToStr(remoteHost[3], txt)             ' second
+'    dyna[12] = txt[0]
+'    dyna[13] = txt[1]
+'    dyna[14] = txt[2]
+'
+'
+'    dyna[15] = ":"                            ' add separator
+'
+'    ' then remote host port number
+'    WordToStr(remotePort, txt)
+'    dyna[16] = txt[0]
+'    dyna[17] = txt[1]
+'    dyna[18] = txt[2]
+'    dyna[19] = txt[3]
+'    dyna[20] = txt[4]
+'    dyna[21] = "["
+'    WordToStr(destPort, txt)
+'    dyna[22] = txt[0]
+'    dyna[23] = txt[1]
+'    dyna[24] = txt[2]
+'    dyna[25] = txt[3]
+'    dyna[26] = txt[4]
+'    dyna[27] = "]"
+'    dyna[28] = 0
+'
+'    ' the total length of the request is the length of the dynamic string plus the text of the request
+'    result = 28 + reqLength
+'
+'    ' puts the dynamic string into the transmit buffer
+'    Spi_Ethernet_putBytes(@dyna, 28)
+'
+'    ' then puts the request string converted into upper char into the transmit buffer
+'    while(reqLength <> 0)
+'      Spi_Ethernet_putByte(Spi_Ethernet_getByte())
+'      reqLength = reqLength - 1
+'    wend
+'
+'    ' back to the library with the length of the UDP reply
+  end sub
+
+end.

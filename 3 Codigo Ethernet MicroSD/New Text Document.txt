@@ -1,0 +1,3 @@
+   memcpy(@myIpAddr,Spi_Ethernet_getIpAddress(), 4)  ' fetch IP address
+   memcpy(@gwIpAddr, Spi_Ethernet_getGwIpAddress(), 4)
+   memcpy(@IpMask, Spi_Ethernet_getIpMask(), 4)  ' fetch IP subnet mask

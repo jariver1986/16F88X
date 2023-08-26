@@ -1,0 +1,260 @@
+'RECOMENDACIONES
+'BATERIAS CARGADAS
+'CAMBIO DE PROGRAMACION DEPENDIENDO DEL LABERINTO ESTRECHO
+'SENSOR INFRARROJO EN LOS PUNTOS CIEGOS
+program ROBOT_LABERINTO
+'*********************conexiones del L293********************************
+symbol DIR1 = PORTA.2
+symbol NDIR1 = PORTA.4
+symbol DIR2 = PORTA.3
+symbol NDIR2 = PORTA.5
+
+
+' ULTRASONICO 1               'SENSOR FRENTE
+SYMBOL DISPARO1 = PORTB.0 'PIN TRIGGER
+SYMBOL ECO1 = PORTB.1     'PIN ECHO
+' ULTRASONICO 2               'SENSOR DERECHA
+SYMBOL DISPARO2 = PORTB.2 'PIN TRIGGER
+SYMBOL ECO2 = PORTB.3     'PIN ECHO
+' ULTRASONICO 3               'SENSOR IZQUIERDA
+SYMBOL DISPARO3 = PORTB.4 'PIN TRIGGER
+SYMBOL ECO3 = PORTB.5     'PIN ECHO
+
+
+'***********************variables a utilizar*****************************
+dim revol, valor,velocidad as word
+dim veloc,receive,datos_set,viajero as byte
+dim txt as string[5]
+dim foco,ventilador,servo,sigue as bit
+dim distancia1, distancia2, distancia3,distancia4 as word
+dim delante as byte
+
+'***********************interrupcion***********************************
+
+sub function ultrasonico1( ) as word
+     dim flanco as byte
+     dim distan,tiempo as word
+     flanco = 0
+
+     disparo1 = 1
+     Delay_us(50)
+     disparo1 = 0
+
+     DO
+          IF( eco1 = 1 )THEN
+               TMR0 = 0
+               flanco = 1
+          END IF
+     LOOP UNTIL( flanco = 1 )
+
+     DO
+          IF( eco1 = 0 )THEN
+               tiempo = TMR0
+               flanco = 0
+          END IF
+          if(TMR0>254)THEN
+           FLANCO=0
+          END IF
+     LOOP UNTIL( FLANCO = 0 )
+
+     distan = (tiempo*128)/58
+     Delay_ms (5)
+     result = distan
+end sub
+sub function ultrasonico2( ) as word      'sensor izquierda
+     dim flanco as byte
+     dim distan,tiempo as word
+
+     flanco = 0
+
+     disparo2 = 1
+     Delay_us(50)
+     disparo2 = 0
+
+     DO
+          IF( eco2 = 1 )THEN
+               TMR0 = 0
+               flanco = 1
+          END IF
+     LOOP UNTIL( flanco = 1 )
+
+     DO
+          IF( eco2 = 0 )THEN
+               tiempo = TMR0
+               flanco = 0
+          END IF
+          if(TMR0>254)THEN
+           FLANCO=0
+          END IF
+     LOOP UNTIL( FLANCO = 0 )
+
+     distan = (tiempo*128)/58
+     Delay_ms (5)
+     result = distan
+end sub
+'*******************************************************************************
+'sub function ultrasonico3( ) as word     'sensor derecha
+'     dim flanco as byte
+'     dim distan,tiempo as word
+'
+'     flanco = 0
+'
+'     disparo3 = 1
+'     Delay_us(50)
+'     disparo3 = 0
+'
+'     DO
+'          IF( eco3 = 1 )THEN
+'               TMR0 = 0
+'               flanco = 1
+'          END IF
+'
+'     LOOP UNTIL( flanco = 1 )
+'
+'     DO
+'          IF( eco3 = 0 )THEN
+'               tiempo = TMR0
+'               flanco = 0
+'          END IF
+'          if(TMR0>254)THEN
+'           FLANCO=0
+'          END IF
+'     LOOP UNTIL( FLANCO = 0 )
+'
+'     distan = (tiempo*128)/58
+'     Delay_ms (5)
+'     result = distan
+'end sub
+sub procedure adelante()
+'ADELANTE
+
+     DIR1 =  1
+     NDIR1 = 0
+
+     DIR2 =  1
+     NDIR2 = 0
+
+end sub
+sub procedure atras()
+'ADELANTE
+     DIR1 =  0
+     NDIR1 = 1
+
+     DIR2 =  0
+     NDIR2 = 1
+
+     Delay_ms(100)
+end sub
+sub procedure parar()
+       'PARAR
+       DIR1 = 0
+       NDIR1 = 0
+
+       DIR2 = 0
+       NDIR2 = 0
+
+       Delay_ms(10)
+
+
+end sub
+sub procedure izquierda()
+     DIR1 =  1
+     NDIR1 = 0
+
+     DIR2 =  0
+     NDIR2 = 1
+
+     Delay_ms(10)
+     DIR1 =  1
+     NDIR1 = 0
+
+     DIR2 =  1
+     NDIR2 = 0
+     Delay_ms(5)
+end sub
+
+sub procedure derecha()
+     DIR1 =  0
+     NDIR1 = 1
+
+     DIR2 =  1
+     NDIR2 = 0
+end sub
+
+sub procedure repelederecha()
+
+     DIR1 =  1
+     NDIR1 = 0
+
+     DIR2 =  1
+     NDIR2 = 0
+
+end sub
+sub procedure repeleizquierda()
+
+     DIR2 =  1
+     NDIR2 = 0
+
+     DIR1 =  0
+     NDIR1 = 0
+
+end sub
+
+
+
+main:
+' Registro Oscilador de control
+     OSCCON = 0X65 ' Oscilador interno de 8mhz
+' Registro de Opciones
+     OPTION_REG = 0X86
+' Registro control de interrupciones
+     TRISA = 0X01
+     PORTA = 0x00
+     TRISB = %11101010
+     PORTB = 0X00
+     TRISC = 0X00
+     PORTC = 0X00
+     ANSEL = 0X01
+     ANSELH = 0X00
+     PWM1_Init(1000)
+     PWM2_Init(1000)
+     PWM1_Start()
+     PWM2_Start()
+     velocidad = ADC_Read(0)
+     PWM1_Set_Duty(velocidad)
+     PWM2_Set_Duty(velocidad)
+     Delay_1sec
+     distancia1 = ultrasonico1()
+     Delay_1sec
+     sigue=0
+     while (1)
+            velocidad = ADC_Read(0)
+            PWM1_Set_Duty(velocidad)
+            PWM2_Set_Duty(velocidad)
+            distancia1 = ultrasonico1()   'distancia frente
+            'distancia3 = ultrasonico3()   'distancia derecha
+            distancia2 = ultrasonico2()   'distancia izquierda
+             if (distancia1>10) then
+
+                 distancia2 = ultrasonico2()
+                 if (distancia2=5) OR (distancia2=6) OR (distancia2=7) then   'incrementa velocidad
+                    adelante()
+                 else
+                     if (distancia2<5) then   'antichoque izquierda
+                        repeleizquierda()
+                        Delay_ms(10)
+                     end if
+                     if (distancia2>=7) then   'antichoque derecha
+                         izquierda()
+                         repelederecha()
+                         Delay_ms(10)
+                     end if
+                     adelante()                'adelante
+                 end if
+             else
+                 derecha()                     'gira a la derecha
+                 Delay_ms(50)                  'si se pega mucho a la pared
+             end if
+
+     wend
+end.

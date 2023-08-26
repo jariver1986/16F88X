@@ -1,0 +1,89 @@
+program ethernet_mmc_18f4520
+
+include "eth_enc28j60_utils"
+include "eth_enc28j60"
+
+dim myMacAddr   as byte[6]
+    myIpAddr    as byte[4]
+    gwIpAddr    as byte[4]
+    ipMask      as byte[4]
+    dnsIpAddr   as byte[4]
+    IpAddr      as byte[4]
+    mensaje     as byte[6]
+    
+main:
+  OSCCON=0XF0 OR OSCCON
+  ADCON1 = 0x0B
+  CMCON  = 0x07
+
+  PORTA = 0
+  TRISA = 0xFF
+
+  PORTB = 0
+  TRISB = 0xFF
+
+  PORTC = 0x00
+  TRISC = 0x10
+
+  PORTD = 0
+  TRISD = 0
+
+'  httpCounter = 0
+
+  myMacAddr[0] = 0x00
+  myMacAddr[1] = 0x14
+  myMacAddr[2] = 0xA5
+  myMacAddr[3] = 0x76
+  myMacAddr[4] = 0x19
+  myMacAddr[5] = 0x3F
+
+  myIpAddr[0] = 192
+  myIpAddr[1] = 232
+  myIpAddr[2] = 6
+  myIpAddr[3] = 50
+
+  gwIpAddr[0]  = 192
+  gwIpAddr[1]  = 232
+  gwIpAddr[2]  = 6
+  gwIpAddr[3]  = 1
+
+  'dnsIpAddr[0] = 192
+'  dnsIpAddr[1] = 232
+'  dnsIpAddr[2] = 6
+'  dnsIpAddr[3] = 1
+
+dnsIpAddr[0] = 200
+  dnsIpAddr[1] = 124
+  dnsIpAddr[2] = 247
+  dnsIpAddr[3] = 202
+
+  ipMask[0]    = 255
+  ipMask[1]    = 255
+  ipMask[2]    = 255
+  ipMask[3]    = 0
+  
+  IpAddr[0] = 192
+  IpAddr[1] = 232
+  IpAddr[2] = 6
+  IpAddr[3] = 13  '6
+  
+  mensaje[0] = "H"
+  mensaje[1] = "O"
+  mensaje[2] = "L"
+  mensaje[3] = "A"
+
+  Spi_init
+  Spi_Ethernet_Init(PORTC, 0, PORTC, 1, myMacAddr, myIpAddr, Spi_Ethernet_FULLDUPLEX)
+
+  Spi_Ethernet_confNetwork(ipMask, gwIpAddr, dnsIpAddr)
+  PORTD=0XFF
+      Delay_ms(200)
+      PORTD=0X00
+      Delay_ms(200)
+  while true
+
+      Spi_Ethernet_doPacket()
+      Spi_Ethernet_sendUDP(IpAddr, 10001, 10001, @mensaje, 5) ' envia datos por UDP
+      Delay_ms(500)
+  wend
+end.

@@ -1,0 +1,144 @@
+program ID_20
+
+'AQUI DECLARO LAS VARIABLES A UTILIZAR EN LA PROGRAMACION
+dim viajero,dato_recep,datos_set as byte
+
+dim dato as byte[12]
+dim dato_rd as byte[12]
+dim dato_listo as byte
+dim i, veces, grabar as byte
+
+  sub procedure interrupt
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' RECIVE POR PUERTO SERIAL
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+     if (PIR1.RCIF=1) then
+          PIR1.RCIF=0
+          dato_recep = UART1_Read()
+          select case viajero
+               case 0
+                    if dato_recep = 0X02 then
+                         viajero = 1
+                    else
+                         viajero = 0
+                    end if
+               case 1,2,3,4,5,6,7,8,9,10,11,12
+                    dato_rd[12-viajero] = dato_recep
+                    inc(viajero)
+               case 13
+                    if dato_recep = 0X0D then
+                         viajero = 14
+                    else
+                         viajero = 0
+                    end if
+               case 14
+                    if dato_recep = 0X0A then
+                         viajero = 15
+                    else
+                         viajero = 0
+                    end if
+               case 15
+                    if dato_recep = 0X03 then
+                         dato_listo = 0xFF
+                    end if
+                    viajero = 0
+          end select
+     end if
+     INTCON = INTCON or 0xC0
+     end sub
+main:
+ OPTION_REG = 0x06
+' Registro Oscilador de control
+OSCCON = 0X75 ' Oscilador interno de 8mhz
+OPTION_REG = 0x86
+INTCON = 0XC0 ' Activado interrupciones globales
+              ' Activado interrupciones perifericas
+PIR1.RCIF=0
+PIE1.RCIE=1
+
+TRISA =0X00
+TRISB= 0X00
+
+PORTB= 0X00
+TRISC = 0x80
+PORTC = 0x00
+
+PORTE = 0x08
+
+ANSEL = 0X00
+ANSELH = 0X00
+
+UART1_Init(9600)
+
+viajero=0
+grabar = 0x00
+dato_listo = 0x00
+
+38
+39
+43
+44
+39
+45
+41
+38
+30
+30
+37
+32
+
+dato[11] = EEPROM_Read(11)
+delay_ms(10)
+dato[10] = EEPROM_Read(10)
+delay_ms(10)
+dato[9] = EEPROM_Read(9)
+delay_ms(10)
+dato[8] = EEPROM_Read(8)
+delay_ms(10)
+dato[7] = EEPROM_Read(7)
+delay_ms(10)
+dato[6] = EEPROM_Read(6)
+delay_ms(10)
+dato[5] = EEPROM_Read(5)
+delay_ms(10)
+dato[4] = EEPROM_Read(4)
+delay_ms(10)
+dato[3] = EEPROM_Read(3)
+delay_ms(10)
+dato[2] = EEPROM_Read(2)
+delay_ms(10)
+dato[1] = EEPROM_Read(1)
+delay_ms(10)
+dato[0] = EEPROM_Read(0)
+delay_ms(10)
+
+
+  while(1)
+       if dato_listo = 0xFF then
+            dato_listo = 0x00
+            if grabar then
+                 grabar = 0x00
+                 for i=0 to 11
+                      dato[i] = dato_rd[i]
+                      EEPROM_Write(i,dato_rd[i])
+                      delay_ms(10)
+                 next i
+            else
+                 veces = 0
+                 for i=0 to 11
+                      if dato_rd[i] = dato[i] then
+                           inc(veces)
+                      end if
+                 next i
+                 if veces = 12 then
+                      PORTB=0XFF
+                      Delay_ms(500)
+                      PORTB=0X00
+                 end if
+            end if
+       end if
+       if porte.3=0 then
+            grabar = 0xFF
+       end if
+  wend
+end.

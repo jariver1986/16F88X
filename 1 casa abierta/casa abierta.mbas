@@ -1,0 +1,182 @@
+program casa
+
+' Declarations section 
+
+dim LCD_RS as sbit at RB1_bit
+LCD_EN as sbit at RA3_bit
+LCD_D4 as sbit at RC2_bit
+LCD_D5 as sbit at RA4_bit
+LCD_D6 as sbit at RC1_bit
+LCD_D7 as sbit at RA2_bit
+LCD_RS_Direction as sbit at TRISB1_bit
+LCD_EN_Direction as sbit at TRISA3_bit
+LCD_D4_Direction as sbit at TRISC2_bit
+LCD_D5_Direction as sbit at TRISA4_bit
+LCD_D6_Direction as sbit at TRISC1_bit
+LCD_D7_Direction as sbit at TRISA2_bit
+
+dim Raw_temp, TempC, comma as word
+dim i, j1, j2, minus, seteo, bandera as byte
+dim text as string[14]
+
+main:
+OPTION_REG = 0X00
+' Registro Oscilador de control
+OSCCON = 0X75 ' Oscilador interno de 8mhz
+' Registro PUERTO A
+TRISA = 0X20 ' porta.5 como entrada digital
+PORTA = 0X00
+' Registro PUERTO B
+TRISB = 0X80 ' porta.5 como entrada digital
+PORTB = 0X00
+' Seleccion de registro analogico. 1 analogico, 0 digitales
+ANSEL = 0X00 ' AN<7:0>
+ANSELH = 0X00 ' AN<13:8>
+seteo= 30
+text = "000.0000" ' formato del texto a mostrar
+delay_ms(250)
+Lcd_Init() ' inicializamos la lcd
+Lcd_Cmd(_LCD_CLEAR)
+Lcd_Cmd(_LCD_CURSOR_OFF)
+Lcd_Out(1, 1, "TECNOLOGICO ") ' lo que se va a mostrar en la linea 1
+Lcd_Out(2, 1, " SUDAMERICANO ") ' lo que se va a mostrar en la linea 2
+delay_ms(1000)
+Lcd_Cmd(_LCD_CLEAR)
+Lcd_Cmd(_LCD_CURSOR_OFF)
+Lcd_Out(1, 1, " Temperatura: ") ' lo que se va a mostrar en la linea 1
+'--- main loop
+bandera=0
+PORTB.RB6=1
+delay_ms(1000)
+MEDIR:
+PORTB.RB6=1
+delay_ms(1000)
+while (TRUE)
+if ow_reset(PORTB, 7) = 0 then ' senal de reset onewire
+Lcd_Out(1, 1, " Temperatura: ") ' lo que se va a mostrar en la linea 1
+ow_write(PORTB, 7, 0xCC) ' pase rom
+ow_write(PORTB, 7, 0x44) ' convertir a temp
+delay_us(120)
+ow_reset(PORTB, 7) ' 0 = presente, 1= no presente
+ow_write(PORTB, 7, 0xCC) ' pase rom
+ow_write(PORTB, 7, 0xBE) ' leer a SCRATCHPAD
+j1 = ow_Read(PORTB, 7) ' leer parte baja
+j2 = ow_Read(PORTB, 7) ' leer parte alta
+minus = j2
+minus = minus >> 3
+if minus = 0x1F then ' chequeamos la temperatura (+ o -)
+j2 = not j2
+j1 = not j1
+j1 = j1 + 1
+end if
+Raw_temp = (j2 << 8) or j1 ' obteniendo la data raw
+if minus = $1F then
+Lcd_Chr(2, 3, "-") ' escribimos "-"
+else
+Lcd_Chr(2, 3, "+") ' escribimos "+"
+end if
+TempC = (Raw_temp and $0FF0) >> 4
+comma = (j1 and $0F) * 625
+      if( TempC > seteo ) then
+
+                  Lcd_Cmd(_LCD_CLEAR)
+                  Lcd_Cmd(_LCD_CURSOR_OFF)
+                  Lcd_Out(1, 1, " ALARMA ")
+                  Lcd_Out(2, 1, "  APAGANDO M ")
+                  Delay_ms(2000)
+                  PORTB.RB6= 0
+                  Lcd_Cmd(_LCD_CLEAR)
+                  Lcd_Cmd(_LCD_CURSOR_OFF)
+                  Lcd_Out(1, 1, " MOTOR ")
+                  Lcd_Out(2, 1, "  APAGADO ")
+                  Delay_ms(2000)
+                  while (TRUE)
+                  if ow_reset(PORTB, 7) = 0 then ' senal de reset onewire
+                  Lcd_Out(1, 1, " Temperatura: ") ' lo que se va a mostrar en la linea 1
+                  ow_write(PORTB, 7, 0xCC) ' pase rom
+                  ow_write(PORTB, 7, 0x44) ' convertir a temp
+                  delay_us(120)
+                  ow_reset(PORTB, 7) ' 0 = presente, 1= no presente
+                  ow_write(PORTB, 7, 0xCC) ' pase rom
+                  ow_write(PORTB, 7, 0xBE) ' leer a SCRATCHPAD
+                  j1 = ow_Read(PORTB, 7) ' leer parte baja
+                  j2 = ow_Read(PORTB, 7) ' leer parte alta
+                  minus = j2
+                  minus = minus >> 3
+                  if minus = 0x1F then ' chequeamos la temperatura (+ o -)
+                  j2 = not j2
+                  j1 = not j1
+                  j1 = j1 + 1
+                  end if
+                  Raw_temp = (j2 << 8) or j1 ' obteniendo la data raw
+                  if minus = $1F then
+                  Lcd_Chr(2, 3, "-") ' escribimos "-"
+                  else
+                  Lcd_Chr(2, 3, "+") ' escribimos "+"
+                  end if
+                  TempC = (Raw_temp and $0FF0) >> 4
+                  comma = (j1 and $0F) * 625
+                        IF( TempC < seteo ) then
+
+                        Lcd_Cmd(_LCD_CLEAR)
+                        Lcd_Cmd(_LCD_CURSOR_OFF)
+                        Lcd_Out(1, 1, " TEMPERATURA ")
+                        Lcd_Out(2, 1, "  ADECUADA ")
+                        Delay_ms(2000)
+                        Lcd_Cmd(_LCD_CLEAR)
+                        Lcd_Cmd(_LCD_CURSOR_OFF)
+                        Lcd_Out(1, 1, " PRENDIENDO ")
+                        Lcd_Out(2, 1, "  MOTOR ")
+                        Delay_ms(1000)
+                        PORTB.RB6=1
+                        Delay_ms(1000)
+                        GOTO MEDIR
+                         END IF
+
+                  WordToStrWithZeros(TempC, text)
+                  Lcd_Chr(2, 4, text[2])
+                  Lcd_Chr(2, 5, text[3])
+                  Lcd_Chr(2, 6, text[4])
+                  Lcd_Chr(2, 7, ".")
+                  WordToStrWithZeros(comma, text)
+                  Lcd_Chr(2, 8, text[1])
+                  Lcd_Chr(2, 9, text[2])
+                  Lcd_Chr(2, 10, text[3])
+                  Lcd_Chr(2, 11, text[4])
+                  Lcd_Chr(2, 12, 223)
+                  Lcd_Chr(2, 13, "C")
+                  else
+                  Lcd_Cmd(_LCD_CLEAR)
+                  Lcd_Cmd(_LCD_CURSOR_OFF)
+                  Lcd_Out(1, 1, " NO SIGNAL ")
+                  end if
+                  Delay_ms(250)
+                  wend
+      ELSE
+      PORTB.RB6=1
+      PORTB.RB6=1
+delay_ms(1000)
+      END IF
+WordToStrWithZeros(TempC, text)
+Lcd_Chr(2, 4, text[2])
+Lcd_Chr(2, 5, text[3])
+Lcd_Chr(2, 6, text[4])
+Lcd_Chr(2, 7, ".")
+PORTB.RB6=1
+delay_ms(1000)
+WordToStrWithZeros(comma, text)
+Lcd_Chr(2, 8, text[1])
+Lcd_Chr(2, 9, text[2])
+Lcd_Chr(2, 10, text[3])
+Lcd_Chr(2, 11, text[4])
+Lcd_Chr(2, 12, 223)
+Lcd_Chr(2, 13, "C")
+else
+Lcd_Cmd(_LCD_CLEAR)
+Lcd_Cmd(_LCD_CURSOR_OFF)
+Lcd_Out(1, 1, " NO SIGNAL ")
+end if
+Delay_ms(250)
+
+wend
+end.

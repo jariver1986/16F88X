@@ -1,0 +1,40 @@
+[DeviceName]
+Value=P18F4520
+[DeviceClock]
+Value=20
+[MainUnit]
+Value=ethernet_mmc_18f4520.pbas
+[DeviceFlags]
+Count=5
+Value0=_OSC_HS_1H = $00F2
+Value1=_WDT_OFF_2H = $00FE
+Value2=_MCLRE_ON_3H = $00FF
+Value3=_LVP_OFF_4L = $00FB
+Value4=_XINST_OFF_4L = $00BF
+Value5=_LPT1OSC_OFF_3H = $00FB
+Value6=_PBADEN_OFF_3H = $00FD
+Value7=_STVREN_OFF_4L = $00FE
+Value8=_LVP_OFF_4L = $00FB
+Value9=_XINST_OFF_4L = $00BF
+Value10=_DEBUG_OFF_4L = $00FF
+[BuildSimDebug]
+Build=0
+SimDebug=0
+[ProjectFiles]
+Count=0
+[OtherFiles]
+Count=2
+Value0=D:\Mu\Desarrollo\CODIGO 18F4520\ethernet_mmc_18f4520.pbas
+Value1=D:\Mu\Desarrollo\CODIGO 18F4520\eth_enc28j60_utils.pbas
+Value2=D:\Mu\Desarrollo\ethernet\CODIGO 18F4520\ethernet_mmc_18f4520.pbas
+[TabIndex]
+Value=0
+[SearchPath]
+Count=3
+Value0=C:\Program Files\Mikroelektronika\mikroBasic\Defs\
+Value1=C:\Program Files\Mikroelektronika\mikroBasic\Uses\p18\
+Value2=D:\Mu\Desarrollo\CODIGO 18F4520\
+Value3=C:\PROYECTOS GENARO\PLACA ENC28J60 + MMC\CODIGO 18F4520\
+Value4=C:\Program Files\Mikroelektronika\mikroBasic\Uses\p18\
+[EEPROMinfo]
+isused=0

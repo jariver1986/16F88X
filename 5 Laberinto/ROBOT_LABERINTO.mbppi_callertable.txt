@@ -1,0 +1,21 @@
+main
+	PWM1_Init
+	PWM2_Init
+	PWM1_Start
+	PWM2_Start
+	Adc_Read
+		Delay_22us
+	PWM1_Set_Duty
+		Mul_16x16_U
+	PWM2_Set_Duty
+		Mul_16x16_U
+	Delay_1sec
+	ultrasonico1
+		Div_16x16_U
+	ultrasonico2
+		Div_16x16_U
+	adelante
+	repeleizquierda
+	izquierda
+	repelederecha
+	derecha

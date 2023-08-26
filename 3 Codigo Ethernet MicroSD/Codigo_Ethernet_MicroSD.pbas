@@ -1,0 +1,260 @@
+program Codigo_Ethernet_MicroSD
+
+include "eth_enc28j60_utils"       ' this is where you should write implementation for UDP and HTTP
+include "eth_enc28j60"
+'*******************************************************************************
+' * RAM variables
+
+dim myMacAddr   as byte[6]    ' my MAC address
+    myIpAddr    as byte[4]    ' my IP address
+    gwIpAddr    as byte[4]    ' gateway (router) IP address
+    ipMask      as byte[4]    ' network mask (for example : 255.255.255.0)
+    dnsIpAddr   as byte[4]    ' DNS server IP address
+    IP_PC       as byte[4]
+
+dim fat_txt as STRING[20]                     ' "FAT16 not found",
+dim file_contents as STRING[50]               '"XX MMC/SD FAT16 library by Anton Rieckert\n"
+dim filename as STRING[14]                    '"MIKRO00xTXT"
+dim caracter,flag as byte
+dim i, size as dword
+dim Buffer as STRING[512]
+dim received_byte as char
+dim archivo_creado   as word
+'-------------- Creates new file and writes some data to it
+sub procedure M_Create_New_File()
+
+    Mmc_Fat_Assign(filename, 0xA0)
+    Mmc_Fat_Rewrite()                            ' To clear file and start with new data
+
+end sub
+'-------------- Write en el file despues de la ultima linea---------------
+sub procedure M_Write_File()
+      Mmc_Fat_Append()
+      Mmc_Fat_Write(dato, cant_datos)
+end sub
+'-------------- Creates many new files and writes data to them
+sub procedure M_Create_Multiple_Files()
+
+   if(archivo_creado > 65535)then
+      archivo_creado=0
+   else
+    filename[0] = (archivo_creado / 10000) + 48
+    filename[1] = ((archivo_creado / 1000) mod 10) +48
+    filename[2] = ((archivo_creado / 100) mod 10) +48
+    filename[3] = ((archivo_creado / 10) mod 10) +48
+    filename[4] = (archivo_creado mod 10) +48             ' set filename
+    
+    Mmc_Fat_Assign(filename, 0xA0)   ' find existing file or create a new one
+    Mmc_Fat_Rewrite()                 ' To clear file and start with new data
+    Mmc_Fat_Write(dato , cant_datos ) ' write data to the assigned file
+    inc(archivo_creado)
+  end if
+end sub
+
+'-------------- Opens an existing file and rewrites it
+sub procedure M_Open_File_Rewrite()
+
+   dim loop_ as byte
+
+    filename[7] = "C"
+    Mmc_Fat_Assign(filename, 0)
+    Mmc_Fat_Rewrite()
+    for loop_ = 1 to 55
+      file_contents[0] = loop_ div 10 + 64
+      file_contents[1] = loop_ mod 10 + 64
+      Mmc_Fat_Write(file_contents, 42) ' write data to the assigned file
+    next loop_
+end sub
+
+'-------------- Opens an existing file and appends data to it
+'               (and alters the date/time stamp)
+sub procedure M_Open_File_Append()
+
+     filename[7] = "B"
+     Mmc_Fat_Assign(filename, 0)
+     Mmc_Fat_Set_File_Date(2008,3,10,10,35,0)
+     Mmc_Fat_Append()                                    ' Prepare file for append
+     Mmc_Fat_Write(" for mikroElektronika 2005\n", 27)   ' Write data to assigned file
+end sub
+
+'-------------- Opens an existing file, reads data from it and puts it to USART
+sub procedure M_Open_File_Read()
+
+  filename[7] = "B"
+  Mmc_Fat_Assign(filename, 0)
+  Mmc_Fat_Reset(size)            ' To read file, sub procedure returns size of file
+  for i = 1 to size
+    Mmc_Fat_Read(caracter)
+  next i
+end sub
+
+'-------------- Deletes a file. If file esn't exist, it will first be created
+'               and then deleted.
+sub procedure M_Delete_File()
+
+  filename[7] = "F"
+  Mmc_Fat_Assign(filename, 0)
+  Mmc_Fat_Delete()
+end sub
+
+'******************************************************************************
+' * PROCEDURE
+
+sub procedure Configuacion_SPI_Ethernet()
+  PORTC.2 = 1
+  Spi_init
+  Spi_Ethernet_Init(PORTC, 0, PORTC, 1, myMacAddr, myIpAddr, Spi_Ethernet_FULLDUPLEX)
+  Spi_Ethernet_Enable(Spi_Ethernet_BROADCAST or Spi_Ethernet_MULTICAST or Spi_Ethernet_UNICAST ) ' enable CRC checking and Unicast traffic
+  Spi_Ethernet_Disable(Spi_Ethernet_CRC)' disable CRC checking and Unicast traffic
+  Spi_Ethernet_confNetwork(ipMask, gwIpAddr, dnsIpAddr)
+end sub
+'******************************************************************************
+' * PROCEDURE
+
+sub procedure Configuacion_SPI_MMC()
+     PORTC.1 = 1
+     '--- init the FAT library
+     Spi_Init_Advanced(MASTER_OSC_DIV64, DATA_SAMPLE_MIDDLE, CLK_IDLE_LOW, LOW_2_HIGH)
+     Delay_ms(500)
+
+     if Mmc_Fat_Init(PORTC, 2) = 0 then
+
+      Spi_Init_Advanced(MASTER_OSC_DIV4, DATA_SAMPLE_MIDDLE, CLK_IDLE_LOW, LOW_2_HIGH)
+      Delay_ms(500)
+      
+      ''M_Create_New_File()
+      M_Create_Multiple_Files()
+     end if
+end sub
+
+'******************************************************************************
+
+
+
+'-------------- Main. Uncomment the function(s) to test the desired operation(s)
+main:
+
+     fat_txt = "FAT16 not found"
+     file_contents = "XX MMC/SD FAT16 library by Anton Rieckert\n"
+     filename = "xxxxxTXT"
+     '--- prepare PORTB for signalling
+     ADCON1 = 0x0F  'set all as Digital
+     CMCON  = 0x07           ' turn off comparators
+     INTCON = %00000000
+     INTCON2 = %00000000
+     PIE1=0
+     PIR1=0
+     IPR1=0
+     
+     TRISA = 0
+     TRISB = 0
+     TRISC=%10010000
+     TRISD = 0
+
+     PORTA=0
+     PORTB = 0
+     PORTC=0
+     PORTD=0
+     archivo_creado=0
+     flag=0
+     dato_recibido=0
+     
+     httpCounter = 0
+
+  myMacAddr[0] = 0x00
+  myMacAddr[1] = 0x14
+  myMacAddr[2] = 0xA5
+  myMacAddr[3] = 0x76
+  myMacAddr[4] = 0x19
+  myMacAddr[5] = 0x3F
+
+  myIpAddr[0] = 192
+  myIpAddr[1] = 232
+  myIpAddr[2] = 6
+  myIpAddr[3] = 10
+
+  gwIpAddr[0]  = 192
+  gwIpAddr[1]  = 232
+  gwIpAddr[2]  = 6
+  gwIpAddr[3]  = 1
+
+  dnsIpAddr[0] = 200
+  dnsIpAddr[1] = 124
+  dnsIpAddr[2] = 224
+  dnsIpAddr[3] = 195
+
+  ipMask[0]    = 255
+  ipMask[1]    = 255
+  ipMask[2]    = 255
+  ipMask[3]    = 0
+
+
+  Configuacion_SPI_Ethernet()
+  
+  
+ '  memcpy(@myIpAddr,Spi_Ethernet_getIpAddress(), 4)  ' fetch IP address
+'   memcpy(@gwIpAddr, Spi_Ethernet_getGwIpAddress(), 4)
+'   memcpy(@IpMask, Spi_Ethernet_getIpMask(), 4)  ' fetch IP subnet mask
+  while(1)
+
+       if( Spi_Ethernet_doPacket()=2)then
+              cant_datos=0
+                  
+               Spi_Ethernet_getBytes(@dato_temp, 0x00, 255) ' read 16 bytes, starting from address 0x100
+               
+               if(dato_temp[20]=$45)then
+                 if(dato_temp[22]=$00) then
+
+                 for j = 0 to 20 + dato_temp[23]
+                   dato[cant_datos] = dato_temp[j]
+                   inc(cant_datos)
+                 next j
+                 
+                 else
+                   for j = 0 to 255
+                   dato[cant_datos] =dato_temp[j]
+                   inc(cant_datos)
+                 next j
+                 
+                 end if
+
+                 else
+                    for j = 0 to 63
+                   dato[cant_datos] =dato_temp[j]
+                   inc(cant_datos)
+                 next j
+               
+                end if
+                
+                 dato[cant_datos] = 0
+                 dato_recibido=1
+
+
+                  
+
+'                  cant_datos=255
+'                  dato[cant_datos] = 0
+'                 dato_recibido=1
+
+       end if
+       if  (dato_recibido =1) then
+            Configuacion_SPI_MMC()
+
+            if(flag=0)then
+               PORTD.0=1 flag=1
+            else
+               PORTD.0=0  flag=0
+            end if
+
+            Configuacion_SPI_Ethernet()
+            dato_recibido=0
+
+       end if
+       
+       Delay_ms(500)
+       Spi_Ethernet_doPacket()
+
+ wend
+end.
+
+

@@ -1,0 +1,48 @@
+[DeviceName]
+Value=P18F4520
+[DeviceClock]
+Value=40
+[MainUnit]
+Value=Codigo_Ethernet_MicroSD.pbas
+[DeviceFlags]
+Count=0
+Value0=_OSC_HS_1H = $00F2
+Value1=_FCMEN_OFF_1H = $00BF
+Value2=_IESO_OFF_1H = $007F
+Value3=_PWRT_ON_2L = $00FE
+Value4=_WDT_OFF_2H = $00FE
+Value5=_CONFIG3H = $300005
+Value6=_LPT1OSC_OFF_3H = $00FB
+Value7=_PBADEN_OFF_3H = $00FD
+Value8=_STVREN_OFF_4L = $00FE
+Value9=_LVP_OFF_4L = $00FB
+Value10=_XINST_OFF_4L = $00BF
+Value11=_DEBUG_OFF_4L = $00FF
+Value12=_CPB_OFF_5H = $00FF
+Value13=_CPD_OFF_5H = $00FF
+[BuildSimDebug]
+Build=0
+SimDebug=0
+[ProjectFiles]
+Count=0
+[OtherFiles]
+Count=1
+Value0=D:\Mu\Desarrollo\Codigo Ethernet MicroSD\Codigo_Ethernet_MicroSD.pbas
+Value1=D:\Store-JLuis-PC\Escritorio\Documentos\Proyecto Ethernet y Micro SD\Codigo Ethernet MicroSD\eth_enc28j60_utils.pbas
+Value2=C:\Program Files\Mikroelektronika\mikroBasic\Examples\EasyPIC5\P16F887\7segdisplay3\Display7seg_03.pbas
+[TabIndex]
+Value=0
+[SearchPath]
+Count=3
+Value0=C:\Program Files\Mikroelektronika\mikroBasic\Defs\
+Value1=C:\Program Files\Mikroelektronika\mikroBasic\Uses\p18\
+Value2=D:\Mu\Desarrollo\Codigo Ethernet MicroSD\
+Value3=C:\Archivos de programa\Mikroelektronika\mikroBasic\Defs\
+Value4=C:\Documents and Settings\Benavides D\Escritorio\Codigo Ethernet MicroSD\
+Value5=D:\Archivos de programa\Mikroelektronika\mikroBasic\Defs\
+Value6=C:\IDEAS&TECNOLOGIA\Proyecto Ethernet y Micro SD\Codigo Ethernet MicroSD\
+Value7=D:\Store-JLuis-PC\Escritorio\Documentos\Proyecto Ethernet y Micro SD\Codigo Ethernet MicroSD\
+Value8=C:\Users\Ideas\Desktop\Proyectos y Varios\Proyecto Ethernet y Micro SD\Codigo Ethernet MicroSD\
+Value9=C:\Users\Ideas\Desktop\Proyectos y Varios\Proyecto Ethernet y Micro SD\Codigo Ethernet MicroSD\
+[EEPROMinfo]
+isused=0
