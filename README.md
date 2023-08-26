@@ -47,7 +47,8 @@ Fixed 0.6 Vref
 Comparator inputs and outputs externally accessible
 SR Latch mode
 
-![WhatsApp Image 2023-07-20 at 21 34 34](https://github.com/vasanza/STM32/assets/12642226/403a2232-6ea6-4c9a-b0f1-54bdc53203a7)
+![image](https://github.com/jariver1986/16F88X/assets/62295761/0a66c13e-e2d2-4330-a0e5-2518c0e7dcfb)
+
 
 # Development Plan
 ## UART Comunication
