@@ -1,0 +1,8 @@
+main
+	ultrasonico1
+		Div_16x16_U
+	avanza
+		Delay_500us
+	giro_izquierda
+		Delay_500us
+interrupt

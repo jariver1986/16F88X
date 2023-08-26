@@ -1,0 +1,214 @@
+program robot_limpieza
+
+' ULTRASONICO 1               'SENSOR FRENTE
+SYMBOL DISPARO1 = PORTB.0 'PIN TRIGGER
+SYMBOL ECO1 = PORTB.1     'PIN ECHO
+
+DIM giro,giro1,giro2,por,centinela AS BYTE
+DIM receive,dato AS BYTE
+dim distancia1 as word
+
+sub procedure interrupt
+if INTCON.TMR0IF=1 THEN
+  if centinela=1 then
+    if por=1 then
+    giro=giro1 '109
+    por=2
+    'PORTC.RC0=0
+    PORTC.RC1=0
+    GOTO final
+    end if
+    if por=2 then
+    giro=giro2 '243
+    por=1
+    'PORTC.RC0=1
+    PORTC.RC1=1
+    GOTO final
+    end if
+  end if
+  if centinela=2 then
+    if por=1 then
+    giro=giro1 '109
+    por=2
+    PORTC.RC0=0
+    GOTO final
+    end if
+    if por=2 then
+    giro=giro2 '243
+    por=1
+    PORTC.RC0=1
+    GOTO final
+    end if
+  end if
+  if centinela=3 then
+    if por=1 then
+    giro=giro1 '109
+    por=2
+    PORTC.RC1=0
+    GOTO final
+    end if
+    if por=2 then
+    giro=giro2 '243
+    por=1
+    PORTC.RC1=1
+    GOTO final
+    end if
+  end if
+end if
+final:
+TMR0 = giro
+INTCON = 0x20
+end sub
+sub procedure ver(dim numero as byte)
+  if numero = 1 then
+      giro1=103
+      giro2=249
+  else
+     if numero = 2 then
+       giro1=109
+       giro2=243
+     else
+         if numero = 3 then
+         giro1=114
+         giro2=238
+         else
+             giro1=98
+             giro2=251
+         end if
+     end if
+  end if
+  end sub
+  sub procedure adelante()
+  centinela=1
+  ver(2)
+end sub
+sub procedure atras()
+  centinela=1
+  ver(1)
+end sub
+sub procedure izquierda()
+centinela=2
+ver(1)
+end sub
+sub procedure derecha()
+centinela=3
+ver(1)
+end sub
+sub procedure parar()
+centinela=4
+end sub
+sub function ultrasonico1( ) as word
+     dim flanco as byte
+     dim distan,tiempo as word
+     flanco = 0
+
+     disparo1 = 1
+     Delay_us(50)
+     disparo1 = 0
+
+     DO
+          IF( eco1 = 1 )THEN
+               TMR0 = 0
+               flanco = 1
+          END IF
+     LOOP UNTIL( flanco = 1 )
+
+     DO
+          IF( eco1 = 0 )THEN
+               tiempo = TMR0
+               flanco = 0
+          END IF
+          if(TMR0>254)THEN
+           FLANCO=0
+          END IF
+     LOOP UNTIL( FLANCO = 0 )
+
+     distan = (tiempo*128)/58
+     Delay_ms (50)
+     result = distan
+end sub
+sub procedure avanza()
+PORTC.RC2=1
+PORTC.RC3=1
+PORTC.RC4=1
+Delay_500us
+Delay_500us
+PORTC.RC2=0
+Delay_500us
+Delay_500us
+PORTC.RC3=0
+PORTC.RC4=0
+Delay_500us
+Delay_500us
+end sub
+sub procedure retrocede()
+PORTC.RC2=1
+PORTC.RC3=1
+Delay_500us
+Delay_500us
+PORTC.RC3=0
+Delay_500us
+Delay_500us
+PORTC.RC2=0
+Delay_500us
+Delay_500us
+end sub
+sub procedure giro_derecha()
+PORTC.RC2=1
+PORTC.RC3=1
+Delay_500us
+Delay_500us
+PORTC.RC2=0
+PORTC.RC3=0
+Delay_500us
+Delay_500us
+
+end sub
+sub procedure giro_izquierda()
+PORTC.RC2=1
+PORTC.RC3=1
+Delay_500us
+Delay_500us
+Delay_500us
+Delay_500us
+PORTC.RC2=0
+PORTC.RC3=0
+Delay_500us
+Delay_500us
+
+end sub
+
+main:
+     OSCCON=0X65   'oscilador interno de 4 MHZ
+     ' Registro Oscilador de control
+     OPTION_REG = 0x06
+     ' Registro PUERTO A
+     TRISA = 0X0F ' PORTA.0 Entrada
+     PORTA = 0X00
+     ' Registro PUERTO B
+     TRISB = 0X02 ' PORTB
+     PORTB = 0X00
+     ' Registro PUERTO C
+     TRISC = 0X80 ' PORTC salidas
+     PORTC = 0X00
+
+     TRISE = 0X00 ' PORTE  como salidas digital
+     PORTE = 0X00
+
+     ANSEL = 0X0F ' AN<7:0>
+     ANSELH = 0X00 ' AN<13:8>
+
+     INTCON = 0xA0            '// Enable interrupt TMR0
+     TMR0= 100
+
+     por=2
+
+while(1)
+       distancia1=ultrasonico1()
+       if distancia1>40 then
+          avanza()
+       else
+          giro_izquierda()
+       end if
+ wend
+end.

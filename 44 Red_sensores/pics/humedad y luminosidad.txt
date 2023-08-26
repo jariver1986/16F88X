@@ -1,0 +1,71 @@
+program ADC
+' declaracion de variables
+dim text as string[1]
+dim VALOR,TEMP_VALOR AS WORD
+DIM PORCENTAJE AS FLOAT
+DIM viajero,dato as byte
+main:
+     OPTION_REG = 0X00
+' Registro Oscilador de control
+     OSCCON = 0X75 ' Oscilador interno de 8mhz
+' Registro PUERTO A
+     TRISA = 0X01 ' porta.5 como entrada digital
+     PORTA = 0X00
+' Registro PUERTO B
+     TRISB = 0X00 ' porta.5 como entrada digital
+     PORTB = 0X00
+' Registro PUERTO C
+     TRISB = 0X80
+     PORTB = 0X00
+     
+     PORTD=0
+     TRISD=0
+' Selección de registro analógico. 1 analógico, 0 digitales
+     ANSEL = 0X01 ' AN<7:0>
+     ANSELH = 0X00 ' AN<13:8>
+     TRISC=0X80
+     PORTC=0X00
+     delay_ms(250)
+    UART1_Init(9600)
+    viajero=0
+    dato=0
+    while (TRUE)
+        VALOR=Adc_Read(0)
+        TEMP_VALOR=1023-VALOR
+        PORCENTAJE =(TEMP_VALOR /1023)*100
+        'FLOATToStr(PORCENTAJE ,text)
+        WordToStr(PORCENTAJE ,text)
+        UART1_Write_Text("A") '  MAC
+        UART1_Write_Text(text)
+        UART1_Write_Text("%")
+        Delay_ms(1000)
+        
+         if UART1_Data_Ready=1 THEN
+             DATO=UART1_Read()
+         END IF
+
+           select case viajero
+            case 0
+                if dato="H" then
+                   viajero=1
+                end if
+            case 1
+                 if dato="1" then
+                   viajero=2
+                 else
+                   if dato="0" then
+                    viajero=3
+                    end if
+                end if
+            end select
+
+          if viajero=2 then
+             viajero=0
+             Portd.rd1=1
+          end if
+          if viajero=3 then
+             viajero=0
+             Portd.rd1=0
+         end if
+    wend
+end.

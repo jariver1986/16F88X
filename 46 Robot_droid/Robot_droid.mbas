@@ -1,0 +1,176 @@
+program Robot_droid
+
+'++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+'IDETEC SE COMPLACE EN MOSTRARLES  UN ROBOT RADICONTROLADO PARA COMPETENCIAS
+'CATEGORIA SOCCER
+'++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+'ROBOT SOCCER
+'++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+'Este desarrollo esta orientado a la teleoperacion de un robot
+'para los juegos de soccer posee un motor que permite patear la
+'pelota, por medio del pin RC0, los datos a enviar para controlar el robot
+'son los siguientes
+
+'          I&T100000  =    ADELANTE
+'          I&T010000  =    ATRAS
+'          I&T001000  =    DERECHA
+'          I&T000100  =    IZQUIERDA
+'          I&T000010  =    PARAR
+'          I&T000001  =    PATEAR
+'++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+SYMBOL DIR1= PORTA.2  'CONTROL DIRECCION MOTOR1
+SYMBOL NDIR1=PORTA.4  'CONTROL DIRECCION MOTOR1
+
+SYMBOL DIR2= PORTA.3  'CONTROL DIRECCION MOTOR2
+SYMBOL NDIR2=PORTA.5  'CONTROL DIRECCION MOTOR2
+
+dim adc_rd as word
+dim datos_set, dato_recep,viajero,vel,contador as byte
+dim comando as byte [10]
+
+
+  sub procedure interrupt
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' RECIVE POR PUERTO SERIAL
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+     if (PIR1.RCIF=1) then
+          PIR1.RCIF=0
+'          Recepcion SERIAL
+'          I&T100000=ADELANTE
+'          I&T010000=ATRAS
+'          I&T001000=DERECHA
+'          I&T000100=IZQUIERDA
+'          I&T000010=PARAR
+'          I&T000001=PATEAR
+          dato_recep = UART1_Read()
+     end if
+     INTCON=0XE0
+     PIE1.RCIE=1
+     PIR1.RCIF=0
+     end sub
+sub procedure adelante()
+     DIR1  = 1
+     NDIR1 = 0
+     DIR2  = 0
+     NDIR2 = 0
+end sub
+sub procedure atras()
+     DIR1  = 0
+     NDIR1 = 1
+end sub
+sub procedure parar()
+     DIR1  = 0
+     NDIR1 = 0
+     DIR2  = 0
+     NDIR2 = 0
+end sub
+
+sub procedure derecha()
+     DIR2  = 0
+     NDIR2 = 1
+     DIR1  = 1
+     NDIR1 = 0
+end sub
+sub procedure izquierda()
+     DIR2  = 1
+     NDIR2 = 0
+     DIR1  = 1
+     NDIR1 = 0
+end sub
+
+main:
+
+OSCCON = 0X75 ' Oscilador interno de 8mhz
+OPTION_REG = 0x86
+INTCON = 0XE0      ' Activado interrupciones globales
+                   ' Registro control de interrupciones
+                   ' Activado interrupciones perifericas
+PIR1.RCIF=0
+PIE1.RCIE=1
+TRISA =0X01
+TRISB= 0X00
+PORTB= 0X00
+
+TRISC = 0x80
+PORTC = 0x00
+ANSEL = 0X01
+ANSELH = 0X00
+PWM1_Init(1000)'FRECUENCIA (HZ)
+PWM2_Init(1000)'FRECUENCIA (HZ)
+PWM1_Set_Duty(0)' VEL0CIDAD 255-> 100%  MAXIMA
+               ' VELOCIDAD 0->0%   MINIMA
+PWM2_Set_Duty(0)
+PWM1_Start()
+PWM2_Start()
+
+UART1_Init(9600)
+datos_set=0x00
+viajero=0
+'Observamos en el banco de led's el valor
+'la velocidad del robot
+vel=Adc_Read(0)>>2
+PORTB=vel
+Delay_ms(1000)
+portb=0
+'Señal de aviso que el robot esta programado
+delay_ms(200)
+portb=255
+delay_ms(200)
+portb=0
+delay_ms(200)
+portb=255
+delay_ms(200)
+portb=0
+
+  while(1)
+       vel=Adc_Read(0)>>2
+       if dato_recep="W" then    'ADELANTE
+          adelante()
+          PWM1_Set_Duty(0)
+          PWM2_Set_Duty(vel)
+          PORTB=1
+       end if
+       if dato_recep="X" then     'ATRAS
+          atras()
+          PWM1_Set_Duty(0)
+          PWM2_Set_Duty(vel)
+          PORTB=2
+       end if
+       if dato_recep="A" then     'IZQUIERDA
+          izquierda()
+          PWM1_Set_Duty(vel)
+          PWM2_Set_Duty(vel)
+          PORTB=4
+       end if
+       if dato_recep="D" then     'DERECHA
+          derecha()
+          PWM1_Set_Duty(vel)
+          PWM2_Set_Duty(vel)
+          PORTB=8
+       end if
+       if dato_recep="S" then     'PARAR
+          parar()
+          PWM2_Set_Duty(0)
+          PWM1_Set_Duty(0)
+          PORTB=16
+       end if
+      if dato_recep="Z" then     'PARAR
+            izquierda()
+            atras()
+            PWM1_Set_Duty(vel)
+          PWM2_Set_Duty(vel)
+            PORTB=32
+      end if
+       if dato_recep="C" then     'PARAR
+          derecha()
+          atras()
+          PWM1_Set_Duty(vel)
+          PWM2_Set_Duty(vel)
+          PORTB=64
+       end if
+
+
+  wend
+end.
