@@ -1,0 +1,6 @@
+main
+	UART1_Init
+	UART1_Write
+	Delay_1sec
+interrupt
+	UART1_Read
