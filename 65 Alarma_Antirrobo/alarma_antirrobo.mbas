@@ -1,0 +1,62 @@
+program alarma_antirrobo
+
+dim sensor1,sensor2,sensor3,sensor4,sensor5,sensor6,sensor7,sensor8,sensor9,sensor10,promedio as word
+dim texto as string[5]
+main:
+
+ANSEL  = 0x01
+ANSELH = 0x00
+TRISA  = 0X01
+PORTA  = 0X00
+
+TRISB  = 0X00
+PORTB  = 0X00
+
+TRISC  = 0X80
+PORTC  = 0X00
+
+OSCCON = 0X75
+
+UART1_Init(9600)
+
+
+while (1)
+   sensor1 = Adc_Read(0)>>2
+   Delay_ms(100)
+   sensor2 = Adc_Read(0)>>2
+   Delay_ms(100)
+   sensor3 = Adc_Read(0)>>2
+   Delay_ms(100)
+   sensor4 = Adc_Read(0)>>2
+   Delay_ms(100)
+   sensor5 = Adc_Read(0)>>2
+   Delay_ms(100)
+   sensor6 = Adc_Read(0)>>2
+   Delay_ms(100)
+   sensor7 = Adc_Read(0)>>2
+   Delay_ms(100)
+   sensor8 = Adc_Read(0)>>2
+   Delay_ms(100)
+   sensor9 = Adc_Read(0)>>2
+   Delay_ms(100)
+   sensor10 = Adc_Read(0)>>2
+   Delay_ms(100)
+   promedio=(sensor1+sensor2+sensor3+sensor4+sensor5+sensor6+sensor7+sensor8+sensor9+sensor10)/10
+   WordToStr(promedio,texto)
+   UART1_Write_Text(texto)
+   IF promedio>100 THEN
+      PORTB=0X00
+      Delay_ms(200)
+      PORTB=0XFF
+      Delay_ms(200)
+      PORTB=0X00
+      Delay_ms(200)
+      PORTB=0XFF
+      Delay_ms(800)
+   ELSE
+      PORTB=0XFF
+   END IF
+wend
+
+         
+end.

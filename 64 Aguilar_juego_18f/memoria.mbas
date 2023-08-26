@@ -1,0 +1,217 @@
+program memoria
+'dim
+'  LCD_RS as sbit at RA0_bit
+'  LCD_EN as sbit at RA1_bit
+'  LCD_D7 as sbit at RA2_bit
+'  LCD_D6 as sbit at RA3_bit
+'  LCD_D5 as sbit at RA4_bit
+'  LCD_D4 as sbit at RA5_bit
+'
+'dim
+'  LCD_RS_Direction as sbit at TRISA0_bit
+'  LCD_EN_Direction as sbit at TRISA1_bit
+'  LCD_D7_Direction as sbit at TRISA2_bit
+'  LCD_D6_Direction as sbit at TRISA3_bit
+'  LCD_D5_Direction as sbit at TRISA4_bit
+'  LCD_D4_Direction as sbit at TRISA5_bit
+dim
+  LCD_RS as sbit at RB2_bit
+  LCD_EN as sbit at RB3_bit
+  LCD_D7 as sbit at RB7_bit
+  LCD_D6 as sbit at RB6_bit
+  LCD_D5 as sbit at RB5_bit
+  LCD_D4 as sbit at RB4_bit
+
+dim
+  LCD_RS_Direction as sbit at TRISB2_bit
+  LCD_EN_Direction as sbit at TRISB3_bit
+  LCD_D7_Direction as sbit at TRISB7_bit
+  LCD_D6_Direction as sbit at TRISB6_bit
+  LCD_D5_Direction as sbit at TRISB5_bit
+  LCD_D4_Direction as sbit at TRISB4_bit
+  DIM ALEATORIO,ALEATORIO2,TURNO,CONTADOR,HISTORIAL,TURNO2,VALIDA AS BYTE
+  DIM PORTADOR AS WORD
+  DIM TEXTO AS STRING[10]
+  DIM ARREGLO,USUARIO AS BYTE[11]
+
+
+
+main:
+  OSCCON=0X75
+  TRISA = 0x00
+  TRISB = 0
+  TRISC = 0xFF
+  TRISD = 0
+  TRISE = 0x01
+  PORTA = 0
+  PORTB = 0
+  PORTC = 0
+  PORTD = 0
+  PORTE = 0
+  ANSEL = 0
+  ANSELH= 0
+Lcd_Init()
+Lcd_Cmd(_LCD_CLEAR)
+Lcd_Out(1,1,"RETENCION")
+Lcd_Out(2,1,"DE MEMORIA")
+'Delay_1sec
+Delay_1sec
+Lcd_Cmd(_LCD_CLEAR)
+Lcd_Out(1,1,"PRESIONE BOTON")
+Lcd_Out(2,1,"INICIO")
+'Delay_1sec
+Delay_1sec
+Lcd_Cmd(_LCD_CLEAR)
+ALEATORIO =1
+TURNO=0
+CONTADOR=0
+HISTORIAL=0
+TURNO2=0
+VALIDA=1
+ARREGLO[0]=0
+ARREGLO[1]=0
+ARREGLO[2]=0
+ARREGLO[3]=0
+ARREGLO[4]=0
+ARREGLO[5]=0
+ARREGLO[6]=0
+ARREGLO[7]=0
+ARREGLO[8]=0
+ARREGLO[9]=0
+USUARIO[0] = 0
+USUARIO[1] = 0
+USUARIO[2] = 0
+USUARIO[3] = 0
+USUARIO[4] = 0
+USUARIO[5] = 0
+USUARIO[6] = 0
+USUARIO[7] = 0
+USUARIO[8] = 0
+USUARIO[9] = 0
+while 1
+  if PORTE.RE0=1 then
+     INC(TURNO)
+     while(PORTE.RE0=1)
+       ALEATORIO = ALEATORIO*2
+       if ALEATORIO=16 then
+          ALEATORIO=1
+       end if
+     wend
+     Lcd_Cmd(_LCD_CLEAR)
+     Lcd_Out(1,1,"SECUENCIA")
+     ARREGLO[HISTORIAL]=ALEATORIO
+     PORTD= ARREGLO[0]
+     Delay_ms(200)
+     PORTD=0
+     Delay_ms(200)
+     PORTD= ARREGLO[1]
+     Delay_ms(200)
+     PORTD=0
+     Delay_ms(200)
+     PORTD= ARREGLO[2]
+     Delay_ms(200)
+     PORTD=0
+     Delay_ms(200)
+     PORTD= ARREGLO[3]
+     Delay_ms(200)
+     PORTD=0
+     Delay_ms(200)
+     PORTD= ARREGLO[4]
+     Delay_ms(200)
+     PORTD=0
+     Delay_ms(200)
+     PORTD= ARREGLO[5]
+     Delay_ms(200)
+     PORTD=0
+     Delay_ms(200)
+     PORTD= ARREGLO[6]
+     Delay_ms(200)
+     PORTD=0
+     Delay_ms(200)
+     PORTD= ARREGLO[7]
+     Delay_ms(200)
+     PORTD=0
+     Delay_ms(200)
+     PORTD= ARREGLO[8]
+     Delay_ms(200)
+     PORTD=0
+     Delay_ms(200)
+     PORTD= ARREGLO[9]
+     Delay_ms(200)
+     PORTD=0
+     Delay_ms(200)
+     INC(HISTORIAL)
+     Lcd_Cmd(_LCD_CLEAR)
+     Lcd_Out(1,1,"PRESIONE")
+     Lcd_Out(2,1,"SECUENCIA")
+     Delay_1sec
+     Lcd_Cmd(_LCD_CLEAR)
+  end if
+ 'BOTON DE USUARIO 1 2 3 4
+ if (PORTC.RC0=1)OR(PORTC.RC1=1)OR(PORTC.RC2=1)OR(PORTC.RC3=1) then
+
+    while((PORTC.RC0=1)OR(PORTC.RC1=1)OR(PORTC.RC2=1)OR(PORTC.RC3=1))
+         ALEATORIO2=PORTB
+         PORTD= ALEATORIO2
+         Delay_100ms
+    wend
+    USUARIO[TURNO2]=ALEATORIO2
+    PORTD=0
+    INC(TURNO2)
+    
+     Lcd_Out(1,1,"TURNO")
+     PORTADOR=TURNO
+     WordToStr(PORTADOR,TEXTO)
+     Lcd_Out(2,1,TEXTO)
+ end if
+
+
+
+
+       'SI SE ACIERTAN LOS LEDS
+     if VALIDA=TURNO2 then
+        INC(VALIDA)
+        TURNO2=0
+       if ARREGLO[0]=USUARIO[0]THEN
+       if ARREGLO[1]=USUARIO[1]THEN
+          if ARREGLO[2]=USUARIO[2]THEN
+             if ARREGLO[3]=USUARIO[3]THEN
+                if ARREGLO[4]=USUARIO[4]THEN
+                   if ARREGLO[5]=USUARIO[5]THEN
+                      if ARREGLO[6]=USUARIO[6]THEN
+                         if ARREGLO[7]=USUARIO[7]THEN
+                            if ARREGLO[8]=USUARIO[8]THEN
+                               if ARREGLO[9]=USUARIO[9]THEN
+                                   INC(CONTADOR)
+                                   ALEATORIO2=0
+                                   Lcd_Out(1,1,"CORRECTO =)")
+                                   Delay_1sec
+                                   Lcd_Cmd(_LCD_CLEAR)
+      end if
+      end if
+      end if
+      end if
+      end if
+      end if
+      end if
+      end if
+      end if
+      end if
+    end if
+
+ 'SI SE ACABAN LOS TURNOS
+ if TURNO=11 then
+       TURNO=0
+       Lcd_Out(1,1,"FIN DE JUEGO")
+       Delay_1sec
+       Lcd_Cmd(_LCD_CLEAR)
+       Lcd_Out(1,1,"ACIERTOS")
+       PORTADOR=CONTADOR
+       WordToStr(PORTADOR,TEXTO)
+       Lcd_Out(2,1,TEXTO)
+       Delay_1sec
+       Lcd_Cmd(_LCD_CLEAR)
+       GOTO main
+    end if
+wend
+end.

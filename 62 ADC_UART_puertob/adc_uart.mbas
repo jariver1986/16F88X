@@ -1,0 +1,72 @@
+program adc_uart
+DIM DATO,valor1,valor2,valor3 AS WORD
+DIM TEXTO1,texto2,texto3 AS STRING[10]
+
+sub procedure retardo2
+dim contador as word
+contador = 0
+while ((contador<10))
+     inc(contador)
+     Delay_1sec
+     'Delay_100ms
+wend
+end sub
+main:
+OSCCON  = %01110101
+PORTA   = %00000000
+TRISA   = %00000111
+PORTB   = %00000000
+TRISB   = %00000000
+PORTC   = %00000000
+TRISC   = %10000000
+ANSEL   = %00000111
+ANSELH  = %00000000
+UART1_Init(9600)
+
+DATO=0
+
+while 1
+if  UART1_Data_Ready=1 then
+ DATO = UART1_Read()
+end if
+valor1=Adc_Read(0)*5
+valor2=Adc_Read(1)>>2
+valor3=Adc_Read(2)>>2
+WordToStr(valor1,texto1)
+WordToStr(valor2,texto2)
+WordToStr(valor3,texto3)
+if DATO="X" then
+   UART1_Write("A")
+  'UART1_Write(texto1[1])
+  UART1_Write("1")
+  UART1_Write("5")
+  UART1_Write("3")
+  UART1_Write(":")
+  UART1_Write("2")
+  UART1_Write("0")
+  UART1_Write("1")
+  UART1_Write(":")
+  UART1_Write("2")
+  UART1_Write("3")
+  UART1_Write("8")
+  UART1_Write("B")
+  'UART1_Write("A")
+'  'UART1_Write(texto1[1])
+'  UART1_Write(texto1[2])
+'  UART1_Write(texto1[3])
+'  UART1_Write(texto1[4])
+'  UART1_Write(":")
+'  UART1_Write(texto2[2])
+'  UART1_Write(texto2[3])
+'  UART1_Write(texto2[4])
+'  UART1_Write(":")
+'  UART1_Write(texto3[2])
+'  UART1_Write(texto3[3])
+'  UART1_Write(texto3[4])
+'  UART1_Write("B")
+  DATO=0
+end if
+Delay_ms(200)
+
+wend
+end.

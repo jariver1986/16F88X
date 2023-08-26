@@ -1,0 +1,50 @@
+program afonia_funcional
+dim LCD_RS as sbit at RB0_bit
+    LCD_EN as sbit at RB2_bit
+    LCD_D4 as sbit at RA0_bit
+    LCD_D5 as sbit at RA1_bit
+    LCD_D6 as sbit at RA2_bit
+    LCD_D7 as sbit at RA3_bit
+    LCD_RS_Direction as sbit at TRISB0_bit
+    LCD_EN_Direction as sbit at TRISB2_bit
+    LCD_D4_Direction as sbit at TRISA0_bit
+    LCD_D5_Direction as sbit at TRISA1_bit
+    LCD_D6_Direction as sbit at TRISA2_bit
+    LCD_D7_Direction as sbit at TRISA3_bit
+dim TEXTO as char[33]
+main:
+PORTA = %00000000
+PORTB = %00000000
+PORTC = %00000000
+TRISA = %00000000
+TRISB = %00000000
+TRISC = %10000000
+ANSEL = %00000000
+ANSELH= %00000000
+UART1_Init(9600)
+Lcd_Init()
+Lcd_Cmd(_LCD_CLEAR)
+Lcd_Cmd(_LCD_CLEAR)
+Lcd_Out(1,1,"UNIVERSIDAD ")        ' escribe el mensaje en la primera fila
+Lcd_Out(2,1,"CATOLICA")                        ' escribe el mensaje en la segunda fila
+delay_ms(2000)
+Lcd_Cmd(_LCD_CLEAR)
+Lcd_Out(2,1,"AFONIA FUNCIONAL")        ' escribe el mensaje en la primera fila
+Lcd_Out(1,1,"PROYECTO")                        ' escribe el mensaje en la segunda fila
+delay_ms(2000)                         ' tiempo de espera
+Lcd_Cmd(_LCD_CLEAR)
+Lcd_Out(1,1,"J. C. HOLGUIN")        ' escribe el mensaje en la primera fila
+Lcd_Out(2,1,"J. O. CHICHANDE")                        ' escribe el mensaje en la segunda fila
+delay_ms(2000)
+Lcd_Cmd(_LCD_CLEAR)                    ' encera lcd
+Lcd_Cmd(_LCD_CURSOR_OFF)               ' apaga cursor
+while 1
+    if (UART1_Data_Ready() <> 0) then  ' Si el dato es recibido
+     UART1_Read_Text(TEXTO,":",32)     ' lee la cadena hasta que encuentre la letra K mayuscula
+     UART1_Write_Text(TEXTO)           ' envia un eco de la cadena
+     Lcd_Cmd(_LCD_CLEAR)               ' encera lcd
+     Lcd_Out(1,1,TEXTO)                ' me muestra la cadena que escribiste via serial en el lcd
+     Delay_ms(1000)
+    end if
+wend
+end.
