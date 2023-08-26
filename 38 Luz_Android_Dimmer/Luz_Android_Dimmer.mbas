@@ -1,0 +1,110 @@
+program Luz_Android_Dimmer
+
+DIM TEMP,LUZ, adc, contador AS WORD
+DIM OLDSTATE,CONT, CONTEO,CONTEO2, BOTON, viajero, receive,datos_set  AS BYTE
+
+' Declarations section
+
+sub procedure interrupt()
+
+     if INTCON.TMR0IF=1 then
+          INTCON.TMR0IF=0
+          PORTC.RC0 = 1
+          INTCON.TMR0IE = 0
+          INTCON.INTE = 1
+     end if
+     if INTCON.INTF=1 then
+          INTCON.INTF=0
+          TMR0 = LUZ
+          PORTC.RC0 = 0
+          INTCON.TMR0IE = 1
+          INTCON.INTE = 0
+     end if
+end sub
+
+
+main:
+ANSEL  = 0x00                          ' Configure AN pins as digital I/O
+ANSELH = 0
+TRISA=0X00
+PORTA=0X00
+
+TRISB=0X01
+PORTB=0X00
+
+TRISC=0X80
+PORTC=0X00
+
+OSCCON = 0X65
+OPTION_REG=%1000100
+INTCON=%11110000
+UART1_Init(9600)
+TMR0=0
+LUZ=0
+viajero=0
+datos_set=0
+contador=0
+Delay_1sec
+Delay_1sec
+Delay_1sec
+Delay_1sec
+Delay_1sec
+UART1_Write_Text("A")
+
+
+PRINCIPIO:
+WHILE(1)
+
+           if (UART1_Data_Ready() = 1) then
+              receive = UART1_Read()
+           end if
+           
+           IF receive= "4" then
+              viajero=0
+              inc(contador)
+              receive=0
+              LUZ= (contador*255)/80
+              Delay_5ms
+           end if
+           IF receive= "3" then
+              viajero=0
+              dec(contador)
+              receive=0
+              LUZ= (contador*255)/80
+              Delay_5ms
+           end if
+           if contador>=80 THEN
+              contador = 79
+           end if
+           if contador <= 0 THEN
+              contador = 1
+           end if
+           if receive = "A" then
+              PORTA.RA2=NOT(PORTA.RA2)
+           end if
+           if receive = "B" then
+              PORTA.RA3=NOT(PORTA.RA3)
+           end if
+           if receive = "C" then
+              PORTA.RA4=NOT(PORTA.RA4)
+           end if
+           if receive = "D" then
+              PORTA.RA5=NOT(PORTA.RA5)
+           end if
+           if receive = "E" then
+              PORTB.RB1=NOT(PORTB.RB1)
+           end if
+           if receive = "F" then
+              PORTB.RB2=NOT(PORTB.RB2)
+           end if
+           if receive = "G" then
+              PORTC.RC1=NOT(PORTC.RC1)
+           end if
+           if receive = "H" then
+              PORTA.RC2=NOT(PORTC.RC2)
+           end if
+           Delay_ms(50)
+           RECEIVE=0
+
+WEND
+end.
