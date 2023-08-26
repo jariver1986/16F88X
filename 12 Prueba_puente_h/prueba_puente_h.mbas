@@ -1,0 +1,105 @@
+program prueba_puente_h
+
+SYMBOL DIR1= PORTA.2  'CONTROL DIRECCION MOTOR1
+SYMBOL NDIR1=PORTA.4  'CONTROL DIRECCION MOTOR1
+
+SYMBOL DIR2= PORTA.3  'CONTROL DIRECCION MOTOR2
+SYMBOL NDIR2=PORTA.5  'CONTROL DIRECCION MOTOR2
+
+' Declarations section 
+DIM vel,sensores AS BYTE
+sub procedure adelante()
+     DIR1  = 1
+     NDIR1 = 0
+
+     DIR2  = 1
+     NDIR2 = 0
+
+     PWM1_Set_Duty(vel)
+     PWM2_Set_Duty(vel)
+     PORTB=1
+end sub
+sub procedure parar()
+     DIR1  = 0
+     NDIR1 = 0
+
+     DIR2  = 0
+     NDIR2 = 0
+end sub
+sub procedure izquierda()
+     DIR1  = 1
+     NDIR1 = 0
+
+     DIR2  = 0
+     NDIR2 = 1
+
+     PORTB=4
+end sub
+sub procedure derecha()
+     DIR1  = 0
+     NDIR1 = 1
+
+     DIR2  = 1
+     NDIR2 = 0
+
+     PORTB=8
+end sub
+sub procedure atras()
+     DIR1  = 0
+     NDIR1 = 1
+
+     DIR2  = 0
+     NDIR2 = 1
+
+     PWM1_Set_Duty(vel)
+     PWM2_Set_Duty(vel)
+     PORTB=2
+end sub
+main:
+'   Main program
+OPTION_REG=%10000000
+TRISA=%00000001
+TRISB=%00000000  '
+TRISC=%01111000  'RC3,RC4,RC5,RC6 ENTRADAS   (C1 Y C2 PWM)
+ANSEL=1
+ANSELH=0
+PWM1_Init(1000)'FRECUENCIA (HZ)
+PWM2_Init(1000)'FRECUENCIA (HZ)
+PWM1_Set_Duty(0)' VEL0CIDAD 255-> 100%  MAXIMA
+               ' VELOCIDAD 0->0%   MINIMA
+PWM2_Set_Duty(0)
+PWM1_Start()
+PWM2_Start()
+
+portb=255
+delay_ms(200)
+portb=0
+delay_ms(200)
+portb=255
+delay_ms(200)
+portb=0
+
+'****CODIGO SEGUIDOR DE DESTREZA****
+' CONTORNO POR IZQUIERDA
+WHILE(1)
+        vel=Adc_Read(0)>>2
+        adelante()
+        Delay_1sec
+        parar()
+        Delay_1sec
+        atras()
+        Delay_1sec
+         parar()
+        Delay_1sec
+        izquierda()
+        Delay_1sec
+        parar()
+        Delay_1sec
+        derecha()
+        Delay_1sec
+        parar()
+        Delay_1sec
+
+
+WEND
+end.

@@ -1,0 +1,125 @@
+program sensor
+
+' Declarations section 
+
+'*******************************************************************************
+'*******************       Ideas & Tecnologia         **************************
+'******************* Módulo Desarrollo PIC16F887 I&T  **************************
+'*******************     www.ideastechnology.com      **************************
+'
+' * Nombre proyecto:
+'     DS18B20_LCD
+' * Descripcion:
+'     Uso del sensor de temperatura ds18b20 que opera en el rango de -55°C a +125°C
+'     usando la comunicacion onewire, la temperatura es mostrada en una lcd 16x2
+' * Configuraciones:
+'     Microcontrolador:    PIC16F887
+'     Oscillator:          INT_RC_OSC_NOCLKOUT, 8MHz
+'     Compilador:          mikrobasic 3.2
+'*******************************************************************************
+' declaracion de variables
+dim Raw_temp, TempC, comma as word
+dim i, j1, j2, minus       as byte
+dim text                   as string[14]
+
+main:
+
+     OPTION_REG = 0X00
+' Registro Oscilador de control
+     OSCCON = 0X75 ' Oscilador interno de 8mhz
+' Registro PUERTO A
+     TRISA = 0X00 ' porta.5 como entrada digital
+     PORTA = 0X00
+' Registro PUERTO B
+     TRISB = 0X02 ' porta.5 como entrada digital
+     PORTB = 0X00
+' Seleccion de registro analogico. 1 analogico, 0 digitales
+     ANSEL = 0X00 ' AN<7:0>
+     ANSELH = 0X00 ' AN<13:8>
+
+     text = "000.0000" ' formato del texto a mostrar
+     TRISC=0X00
+     PORTC=0X00
+     delay_ms(250)
+
+  '--- main loop
+  UART1_Init(9600)
+  UART1_Write_Text(" ideastechnology ")
+  UART1_Write(0X0D)
+  UART1_Write_Text(" DS18B20 ")
+  UART1_Write(0X0D)
+  delay_ms(1000)
+  UART1_Write_Text(" Temperatura:   ")
+  UART1_Write(0X0D)
+       
+     while (TRUE)
+
+          if ow_reset(PORTB, 1) = 0 then ' senal de reset onewire
+          ow_write(PORTB, 1, 0xCC) ' pase rom
+          ow_write(PORTB, 1, 0x44) ' convertir a t
+
+          delay_us(120)
+
+           ow_reset(PORTB, 1)  ' 0 = presente, 1= no presente
+
+
+          UART1_Write_Text(" Temperatura:   ")
+          UART1_Write(0X0D)
+          ow_write(PORTB, 1, 0xCC) ' pase rom
+          ow_write(PORTB, 1, 0xBE) ' leer a SCRATCHPAD
+
+          j1 = ow_Read(PORTB, 1) ' leer parte baja
+          j2 = ow_Read(PORTB, 1) ' leer parte alta
+
+          minus = j2
+          minus = minus >> 3
+
+          if minus = 0x1F then ' chequeamos la temperatura (+ o -)
+               j2 = not j2
+               j1 = not j1
+               j1 = j1 + 1
+          end if
+
+          Raw_temp = (j2 << 8) or j1 ' obteniendo la data raw
+
+          if minus = $1F then
+                ' escribimos "-"
+               UART1_Write("-")
+          else
+                ' escribimos "+"
+               UART1_Write("+")
+          end if
+
+          TempC = (Raw_temp and $0FF0) >> 4
+          comma = (j1 and $0F) * 625
+
+          WordToStrWithZeros(TempC, text)
+          UART1_Write(text[2])
+          UART1_Write(text[3])
+          UART1_Write(text[4])
+          UART1_Write(".")
+          
+
+
+          WordToStrWithZeros(comma, text)
+          UART1_Write(text[1])
+          UART1_Write(text[2])
+          UART1_Write(text[3])
+          UART1_Write(text[4])
+          UART1_Write(" ")
+          UART1_Write("C")
+          UART1_Write(0X0D)
+
+          else
+          UART1_Write_Text(" no signal  ")
+          UART1_Write(0X0D)
+          end if
+          Delay_ms(250)
+     wend
+end.
+'*******************************************************************************
+'*******************       Ideas & Tecnologia         **************************
+'******************* Módulo Desarrollo PIC16F887 I&T  **************************
+'*******************     www.ideastechnology.com      **************************
+'*******************************************************************************
+' Declarations section                                                  d
