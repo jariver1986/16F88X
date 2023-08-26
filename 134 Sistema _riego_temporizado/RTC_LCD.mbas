@@ -1,0 +1,418 @@
+
+program RTC_LCD
+
+' declaracion de variables
+dim Hora, Min, Seg, Dia, Mes, Year, I,TURNO,J as byte
+dim texto_hora as string[17]
+dim texto_fecha as string[17]
+dim v_dato as byte
+DIM KP,numero2,cont  AS BYTE
+DIM NUMERICO AS CHAR [11]
+DIM ACUMULADO,ACUMULADO2 AS BYTE [9]
+DIM TEXTO AS STRING [17]
+DIM TIEMPO,TIEMPO2 AS WORD
+
+
+' Asignamos los pins del pic a usar al lcd
+dim LCD_RS as sbit at RA2_bit ' PORTB.2 asignado al PIN RS de la LCD
+    LCD_EN as sbit at RA3_bit ' PORTB.3 asignado al PIN EN de la LCD
+    LCD_D4 as sbit at RA4_bit ' PORTB.4 asignado al PIN D4 de la LCD
+    LCD_D5 as sbit at RA5_bit ' PORTB.5 asignado al PIN D5 de la LCD
+    LCD_D6 as sbit at RA6_bit ' PORTB.6 asignado al PIN D6 de la LCD
+    LCD_D7 as sbit at RA7_bit ' PORTB.7 asignado al PIN D7 de la LCD
+
+    LCD_RS_Direction as sbit at TRISA2_bit
+    LCD_EN_Direction as sbit at TRISA3_bit
+    LCD_D4_Direction as sbit at TRISA4_bit
+    LCD_D5_Direction as sbit at TRISA5_bit
+    LCD_D6_Direction as sbit at TRISA6_bit
+    LCD_D7_Direction as sbit at TRISA7_bit
+
+' leemos la direccion en memoria del rtc
+sub function read_ds1307(dim address as byte) as byte
+     I2C1_Start() ' iniciamos la comunicacion i2c
+     I2C1_Wr(0xd0) ' Control de formato de byte
+     I2C1_Wr(address) ' direccion que se va a leer en ds1307
+     I2C1_Repeated_Start()
+     I2C1_Wr(0xd1) ' Control de formato de byte + 1bit de lectura
+     v_dato=I2C1_Rd(0) ' devuelve el valor buscado en ds1307
+     I2C1_Stop() ' finalizamos la comunicacion i2c
+     result = v_dato
+end sub
+
+' tomamos el valor alto del byte y lo pasamos a valor ascci
+ sub function BCD2_H(dim bcd as byte) as byte
+     dim temp as byte       ' bcd = 0x17 
+     temp = bcd >> 4        ' temp = 0x01
+     result = temp or 0x30  ' result = 0x31
+' valor que va a retornar es 0x31 equivalente 1 en ascci
+end sub
+
+sub function BCD2_L(dim bcd as byte) as byte
+     dim temp as byte       ' bcd = 0x17 
+     temp = bcd and 0x0F    ' temp = 0x07
+     result = temp or 0x30  ' result = 0x37
+' valor que va a retornar es 0x37 equivalente 7 en ascci
+end sub
+
+' escribimos en el ds1307 recive como parametro direccion y el dato a cargar
+sub procedure DS1307_Write(dim Addr, Dato as byte)
+     I2C1_Start()  ' iniciamos la comunicacion i2c
+     I2C1_Wr(0xd0) ' Control de formato de byte
+     I2C1_Wr(Addr) ' direccion que se va a leer
+     I2C1_Wr(Dato) ' dato que se va a escribir en el ds1307
+     I2C1_Stop()   ' finalizamos la comunicacion i2c
+end sub
+
+' Seteamos la hora
+sub procedure set_rtc()
+     DS1307_Write(0, $00) ' asignamos los segundos
+     DS1307_Write(1, $16) ' asignamos los minutos
+     DS1307_Write(2, $11) ' asignamos los horas
+     DS1307_Write(4, $12) ' asignamos los dia
+     DS1307_Write(5, $09) ' asignamos los mes
+     DS1307_Write(6, $15) ' asignamos los ano
+end sub
+sub procedure TECLADO4X4()
+   kp = 255
+   portb=%11101111        'EXPLORO FILA 1
+   if(portb.0=0)then      'EXPLORO COLUMNA1
+     while(portb.0=0) wend
+      numero2 = 0x44   'D
+      KP=0
+   end if'1
+
+   if(portb.1=0)then      'EXPLORO COLUMNA2
+      while(portb.1=0) wend
+      numero2 = 0x43   'C
+      'KP=0
+   end if'2
+
+   if(portb.2=0)then      'EXPLORO COLUMNA3
+     while(portb.2=0) wend
+      numero2 = 0x42   'B
+      KP=0
+   end if'3
+
+   if (portb.3=0)then    'EXPLORO COLUMNA4
+     while(portb.3=0) wend
+      numero2 = 0x41    'A
+      KP=0
+   end if'A
+
+  if(kp=255)then
+    portb=%11011111          'EXPLORO FILA 2
+   if(portb.0=0)then       'EXPLORO COLUMNA1
+     while(portb.0=0) wend
+      numero2 = 0x23 ' #
+      KP=0
+   end if'4
+
+   if(portb.1=0)then      'EXPLORO COLUMNA2
+     while(portb.1=0) wend
+      numero2 = 0x39 ' 9
+      KP=9
+      end if'5
+   if(portb.2=0)then     'EXPLORO COLUMNA3
+      while(portb.2=0) wend
+      numero2 = 0x36 ' 6
+      KP=6
+      end if'6
+   if (portb.3=0)then    'EXPLORO COLUMNA4
+      while(portb.3=0) wend
+      numero2 = 0x33 ' 3
+      KP=3
+   end if'B
+   else return
+   end if
+
+  if(kp=255) then
+    portb=%10111111         'EXPLORO FILA 3
+   if(portb.0=0)then      'EXPLORO COLUMNA1
+     while(portb.0=0) wend
+      numero2 = 0x30 ' 0
+      KP=0
+      end if'7
+
+   if(portb.1=0)then      'EXPLORO COLUMNA2
+      while(portb.1=0) wend
+      numero2 = 0x38 ' 8
+      KP=8
+      end if'8
+   if(portb.2=0)then      'EXPLORO COLUMNA3
+      while(portb.2=0) wend
+      numero2 = 0x35 ' 5
+      KP=5
+      end if'9
+
+   if (portb.3=0)then     'EXPLORO COLUMNA4
+      while(portb.3=0) wend
+      numero2 = 0x32 ' 2
+      KP=2
+   end if'C
+   else return
+  end if
+  if(kp=255)then
+     portb=%01111111  'EXPLORO FILA 4
+   if(portb.0=0)then      'EXPLORO COLUMNA1
+      while(portb.0=0) wend
+      numero2 = 0x2A ' *
+      KP=0
+      end if '*
+   if(portb.1=0)then      'EXPLORO COLUMNA2
+      while(portb.1=0) wend
+      numero2 = 0x37 ' 7
+      KP=7
+      end if'0
+   if(portb.2=0)then      'EXPLORO COLUMNA3
+      while(portb.2=0) wend
+      numero2 = 0x34 ' 4
+      KP=4
+      end if'#
+   if (portb.3=0)then     'EXPLORO COLUMNA4
+      while(portb.3=0) wend
+      numero2 = 0x31 ' 1
+      KP=1
+      end if'D
+   else return
+  end if
+
+end sub
+
+sub procedure INGRESA_NUMERO_HORA()
+  TECLADO4x4()
+   if ((kp=0)or(kp=1)or(kp=2)or(kp=3)or(kp=4)or(kp=5)or(kp=6)or(kp=7)or(kp=8)or(kp=9)) then
+      Lcd_Chr(1,I+12,NUMERICO[KP])
+      Lcd_Cmd(_LCD_MOVE_CURSOR_LEFT)
+      ACUMULADO[I]=KP
+   END IF
+    IF (KP =  0X41) then'AND (K=I)THEN
+       I=1
+       Lcd_Cmd(_LCD_CLEAR)
+       TURNO=2
+    END IF
+    IF (numero2 =  0X43) then'AND (K=I)THEN
+       TURNO=2
+    END IF
+  ' IF (KP =  0X41) AND (K<>I)THEN
+  '      Lcd_Out(1,1,"ERROR")
+  '      I=1
+  '      Delay_1sec
+  '      Lcd_Cmd(_LCD_CLEAR)
+  '  END IF
+    IF KP =  0X42 THEN
+       DEC(I)
+       Lcd_Chr(1,I,0x20)
+       DEC(I)
+       Lcd_Chr(1,I,0x20)
+       Lcd_Cmd(_LCD_MOVE_CURSOR_LEFT)
+    END IF
+
+end sub
+sub procedure INGRESA_NUMERO_MINUTO()
+    numero2=0
+  TECLADO4x4()
+   if ((kp=0)or(kp=1)or(kp=2)or(kp=3)or(kp=4)or(kp=5)or(kp=6)or(kp=7)or(kp=8)or(kp=9)) then
+      Lcd_Chr(2,J+12,NUMERICO[KP])
+      Lcd_Cmd(_LCD_MOVE_CURSOR_LEFT)
+      ACUMULADO2[J]=KP
+   END IF
+    IF (KP =  0X41) then'AND (K=I)THEN
+       J=1
+       Lcd_Cmd(_LCD_CLEAR)
+    END IF
+    IF (numero2 =  0X43) then'AND (K=I)THEN
+       TURNO=3
+    END IF
+  ' IF (KP =  0X41) AND (K<>I)THEN
+  '      Lcd_Out(1,1,"ERROR")
+  '      I=1
+  '      Delay_1sec
+  '      Lcd_Cmd(_LCD_CLEAR)
+  '  END IF
+    IF KP =  0X42 THEN
+       DEC(J)
+       Lcd_Chr(1,J,0x20)
+       DEC(J)
+       Lcd_Chr(1,J,0x20)
+       Lcd_Cmd(_LCD_MOVE_CURSOR_LEFT)
+    END IF
+
+end sub
+sub procedure MUEVE_CURSOR
+'if PORTA.RA7=0 then
+if PORTE.RE0=0 then
+   while(PORTE.RE0=0)wend
+   Lcd_Cmd(_LCD_MOVE_CURSOR_LEFT)
+   DEC(I)
+end if
+if PORTE.RE1=0 then
+   while(PORTE.RE1=0)wend
+   Lcd_Cmd(_LCD_MOVE_CURSOR_RIGHT)
+   INC(I)
+end if
+
+end sub
+sub procedure MUEVE_CURSOR2
+'if PORTA.RA7=0 then
+if PORTE.RE0=0 then
+   while(PORTE.RE0=0)wend
+   Lcd_Cmd(_LCD_MOVE_CURSOR_LEFT)
+   DEC(J)
+end if
+if PORTE.RE1=0 then
+   while(PORTE.RE1=0)wend
+   Lcd_Cmd(_LCD_MOVE_CURSOR_RIGHT)
+   INC(J)
+end if
+
+end sub
+sub procedure ACUMULA_HORA()
+
+        TIEMPO = ACUMULADO[1]*10+ACUMULADO[2]
+        'WordToStr(TIEMPO,TEXTO)
+        'Lcd_Out(2,12,TEXTO)
+end sub
+sub procedure ACUMULA_MINUTO()
+
+        TIEMPO2 = ACUMULADO2[1]*10+ACUMULADO2[2]
+        'WordToStr(TIEMPO,TEXTO)
+        'Lcd_Out(2,12,TEXTO)
+end sub
+
+main:
+' Registro Oscilador de control
+     OPTION_REG = %00000111
+     OSCCON = 0X75 ' Oscilador interno de 8mhz
+     PORTA=0
+     TRISA=1
+' Registro PUERTO B
+     TRISB      = %00001111 ' PORTB.0 entrada digital
+     PORTB = 0X00
+     PORTD=0
+     TRISD=0
+     PORTe=0
+     TRISe=3
+' Seleccion de registro analogico. 1 analogico, 0 digitales
+     ANSEL = 0X00 ' AN<7:0>
+     ANSELH = 0X00 ' AN<13:8>
+     WPUB       = %00001111
+     delay_ms(250)
+     I2C1_Init(100000) ' Fijamos la velocidad i2c a 100khz
+     Lcd_Init() ' inicializamos la pantalla lcd                       
+     Lcd_Cmd(_LCD_CLEAR)               
+     Lcd_Cmd(_LCD_BLINK_CURSOR_ON)
+     Lcd_Out(1,6,"RIEGO") ' Escribimos en la linea 1
+     'Lcd_Out(2,1," ") ' Escribimos en la linea 2
+     Delay_ms(1000)
+     Lcd_Out(1,1,"PROGRAMA H:") ' Escribimos en la linea 1
+     Lcd_Out(2,1,"PROGRAMA M:") ' Escribimos en la linea 1
+     texto_fecha = "Fecha 00/00/00 " ' formato que se va a representar en la lcd
+     texto_hora = "Hora  00:00:00 " ' formato que se va a representar en la lcd
+     
+     DS1307_Write(0x07,0x90) ' SQW seteada a una frecuencia de 1hz
+     
+     if EEPROM_Read(0xff) then
+          set_rtc() ' escribimos la hora a setear
+          EEPROM_Write(0xff,0x00) ' debido a se le cambia el valor de la memoria 0xff
+     end if
+     
+     I=1
+     J=1
+     TURNO=1
+     NUMERICO="0123456789"
+     ACUMULADO=""
+     ACUMULADO2=""
+     cont = 0
+     
+     while 1
+            while TURNO=1
+            INGRESA_NUMERO_HORA()
+            MUEVE_CURSOR()
+            ACUMULA_HORA
+            wend
+            while TURNO=2
+            INGRESA_NUMERO_MINUTO()
+            MUEVE_CURSOR2()
+            ACUMULA_MINUTO
+            wend
+            Delay_ms(2000)
+            Lcd_Cmd(_LCD_CLEAR)
+            Lcd_Cmd(_LCD_CURSOR_OFF)
+            while TURNO=3
+            Lcd_Out(1,1,"Hora        :00")
+            Lcd_Out(2,1,"Minutos")
+            WordToStr(TIEMPO,TEXTO)
+            Lcd_Out(1,8,TEXTO)
+            WordToStr(TIEMPO2,TEXTO)
+            Lcd_Out(2,8,TEXTO)
+            Delay_ms(1000)
+            Lcd_Cmd(_LCD_CLEAR)
+            Lcd_Out(1,1,"SISTEMA")
+            Lcd_Out(2,1,"PROGRAMADO")
+            Delay_ms(1000)
+            Lcd_Cmd(_LCD_CLEAR)
+            inc(cont)
+            if cont=2 then
+                Lcd_Out(1,6,"RELOJ") ' Escribimos en la linea 1
+               TURNO=4
+               cont=0
+            end if
+            wend
+            while TURNO = 4
+            if porta.0 = 1 then
+               Seg  = read_ds1307(0) ' leemos los segundos
+               Min  = read_ds1307(1) ' leemos los minutos
+               Hora = read_ds1307(2) ' leemos los horas
+               Dia  = read_ds1307(4) ' leemos los dias
+               Mes  = read_ds1307(5) ' leemos los mes
+               Year = read_ds1307(6) ' leemos los ano
+            end if
+
+                texto_fecha[6]  = BCD2_H(dia) ' tomamos la parte alta del valor dia
+                texto_fecha[7]  = BCD2_L(dia) ' tomamos la parte baja del valor dia
+                texto_fecha[8]  = "/"
+                texto_fecha[9]  = BCD2_H(mes) ' tomamos la parte alta del valor mes
+                texto_fecha[10] = BCD2_L(mes) ' tomamos la parte baja del valor mes
+                texto_fecha[11] = "/"
+                texto_fecha[12] = BCD2_H(year) ' tomamos la parte alta del valor ano
+                texto_fecha[13] = BCD2_L(year) ' tomamos la parte baja del valor ano
+
+                texto_hora[6] = BCD2_H(hora) ' tomamos la parte alta del valor hora
+                texto_hora[7] = BCD2_L(hora) ' tomamos la parte baja del valor hora
+                texto_hora[8] = ":"
+                texto_hora[9] = BCD2_H(min) ' tomamos la parte alta del valor min
+                texto_hora[10] = BCD2_L(min) ' tomamos la parte baja del valor min
+                texto_hora[11] = ":"
+                texto_hora[12] = BCD2_H(seg) ' tomamos la parte alta del valor seg
+                texto_hora[13] = BCD2_L(seg) ' tomamos la parte baja del valor seg
+
+                Lcd_Out(1,1,texto_hora) ' Escribimos en la linea 1
+                Lcd_Out(2,1,texto_fecha) ' Escribimos en la linea 2
+                Delay_ms(100)
+                if (((BCD2_H(hora))=(ACUMULADO[1]or 0x30)) and ((BCD2_L(hora))=(ACUMULADO[2]or 0x30)))AND (CONT=0)then
+                     PORTD.RD0=1
+                     Lcd_Cmd(_LCD_CLEAR)
+                     Lcd_Out(1,1,"RIEGO")
+                     Lcd_Out(2,1,"ACTIVADO")
+                     Delay_1sec
+                     Delay_1sec
+                     Lcd_Cmd(_LCD_CLEAR)
+                     CONT=1
+                end if
+                if (((BCD2_H(min))=(ACUMULADO2[1]or 0x30)) and ((BCD2_L(min))=(ACUMULADO2[2]or 0x30))) AND (CONT=1)then
+                     PORTD.RD0=0
+                     Lcd_Cmd(_LCD_CLEAR)
+                     Lcd_Out(1,1,"RIEGO")
+                     Lcd_Out(2,1,"DESACTIVADO")
+                     Delay_1sec
+                     Delay_1sec
+                     Lcd_Cmd(_LCD_CLEAR)
+                     CONT=2
+                end iF
+                
+            wend
+            
+
+     wend
+end.

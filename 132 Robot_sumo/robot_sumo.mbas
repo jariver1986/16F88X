@@ -1,0 +1,299 @@
+program robot_sumo
+
+SYMBOL MOTOR1_A = PORTA.2  'CONTROL DIRECCION MOTOR1
+SYMBOL MOTOR1_B = PORTA.4  'CONTROL DIRECCION MOTOR1
+
+SYMBOL MOTOR2_A = PORTA.3  'CONTROL DIRECCION MOTOR2
+SYMBOL MOTOR2_B = PORTA.5  'CONTROL DIRECCION MOTOR2
+
+symbol SENSOR1=PORTA.7   'SENSOR INFRARROJO DELANTE
+symbol SENSOR2=PORTB.3   'SENSOR INFRARROJO DELANTE
+symbol SENSOR3=PORTA.0   'SENSOR INFRARROJO ATRAS
+symbol SENSOR4=PORTB.0   'SENSOR INFRARROJO ATRAS
+
+' ULTRASONICO 1          'SENSOR FRENTE
+SYMBOL TRIG1 = PORTC.5   'PIN TRIGGER
+SYMBOL ECO1 = PORTC.4    'PIN ECHO
+
+' ULTRASONICO 2          'SENSOR ATRAS
+SYMBOL TRIG2 = PORTA.6   'PIN TRIGGER
+SYMBOL ECO2 = PORTA.1    'PIN ECHO
+
+' ULTRASONICO 3          'SENSOR IZQUIERDA
+SYMBOL TRIG3 = PORTB.4   'PIN TRIGGER
+SYMBOL ECO3 = PORTB.5    'PIN ECHO
+
+' ULTRASONICO 4          'SENSOR DERECHA
+SYMBOL TRIG4 = PORTC.3   'PIN TRIGGER
+SYMBOL ECO4 = PORTC.0    'PIN ECHO
+
+dim distancia1, distancia2, distancia3,distancia4 as word
+dim delante,dato_recep as byte
+
+SUB PROCEDURE CONTROL_MOTOR(DIM MOTOR2,MOTOR1 AS INT
+ '******************** MOTOR 1***************
+   IF(MOTOR1<0)THEN
+     MOTOR1=-MOTOR1
+     MOTOR1_A=0
+     MOTOR1_B=1
+   ELSE
+     MOTOR1_A=1
+     MOTOR1_B=0
+   END IF
+   '******************** MOTOR 2***************
+     IF(MOTOR2<0)THEN
+     MOTOR2=-MOTOR2
+     MOTOR2_A=0
+     MOTOR2_B=1
+   ELSE
+     MOTOR2_A=1
+     MOTOR2_B=0
+   END IF
+   '+++++++++++++++POTENCIA DE MOTORES+++++++++++
+   PWM1_Set_Duty(MOTOR1)
+   PWM2_Set_Duty(MOTOR2)
+   Delay_5ms
+END SUB
+
+sub function LECTURA_DISTANCIA1( ) as
+     dim flanco as byte
+     dim distan,tiempo as word
+     flanco = 0
+
+     TRIG1 = 1
+     Delay_us(50)
+     TRIG1 = 0
+
+     DO
+          IF( eco1 = 1 )THEN
+               TMR0 = 0
+               flanco = 1
+          END IF
+     LOOP UNTIL( flanco = 1 )
+
+     DO
+          IF( eco1 = 0 )THEN
+               tiempo = TMR0
+               flanco = 0
+          END IF
+          if(TMR0>254)THEN
+           FLANCO=0
+          END IF
+     LOOP UNTIL( FLANCO = 0 )
+
+     distan = (tiempo*128)/58
+     Delay_ms (50)
+     result = distan
+end sub
+'*******************************************************************************
+sub function LECTURA_DISTANCIA2( ) as
+     dim flanco as byte
+     dim distan,tiempo as word
+
+     flanco = 0
+
+     TRIG2 = 1
+     Delay_us(50)
+     TRIG2 = 0
+
+     DO
+          IF( eco2 = 1 )THEN
+               TMR0 = 0
+               flanco = 1
+          END IF
+     LOOP UNTIL( flanco = 1 )
+
+     DO
+          IF( eco2 = 0 )THEN
+               tiempo = TMR0
+               flanco = 0
+          END IF
+          if(TMR0>254)THEN
+           FLANCO=0
+          END IF
+     LOOP UNTIL( FLANCO = 0 )
+
+     distan = (tiempo*128)/58
+     Delay_ms (50)
+     result = distan
+end sub
+'*******************************************************************************
+sub function LECTURA_DISTANCIA3( ) as
+     dim flanco as byte
+     dim distan,tiempo as word
+
+     flanco = 0
+
+     TRIG3 = 1
+     Delay_us(50)
+     TRIG3 = 0
+
+     DO
+          IF( eco3 = 1 )THEN
+               TMR0 = 0
+               flanco = 1
+          END IF
+
+     LOOP UNTIL( flanco = 1 )
+
+     DO
+          IF( eco3 = 0 )THEN
+               tiempo = TMR0
+               flanco = 0
+          END IF
+          if(TMR0>254)THEN
+           FLANCO=0
+          END IF
+     LOOP UNTIL( FLANCO = 0 )
+
+     distan = (tiempo*128)/58
+     Delay_ms (50)
+     result = distan
+end sub
+'*******************************************************************************
+sub function LECTURA_DISTANCIA4( ) as
+     dim flanco as byte
+     dim distan,tiempo as word
+
+     flanco = 0
+
+     TRIG4 = 1
+     Delay_us(50)
+     TRIG4 = 0
+
+     DO
+          IF( eco4 = 1 )THEN
+               TMR0 = 0
+               flanco = 1
+          END IF
+
+     LOOP UNTIL( flanco = 1 )
+
+     DO
+          IF( eco4 = 0 )THEN
+               tiempo = TMR0
+               flanco = 0
+          END IF
+          if(TMR0>254)THEN
+            FLANCO=0
+          END IF
+     LOOP UNTIL( FLANCO = 0 )
+
+     distan = (tiempo*128)/58
+     Delay_ms (50)
+     result = distan
+end sub
+'*******************************************************************************
+main:
+' REGISTRO OPTION_REG
+     OPTION_REG = %10000110 ' pull up desactivado
+     OSCCON = 0X65
+
+' REGISTRO PORTA
+     TRISA = %10000011
+     PORTA = %00000000
+
+' REGISTRO PORTB
+     TRISB = %01101111  'PIN RB1,RB2  ENTRADAS PARA SENSAR CORRIENTE DE MOTORES
+     PORTB = %00000000
+
+' REGISTRO PORTC
+     TRISC = %10010001
+     PORTC = %00000000
+' REGISTRO ANSEL
+     ANSEL =  %00000000 ' RE1-RE2 ANALOGICO, RESTO DIGITALES
+     ANSELH = %00000000
+     delante=0
+     delay_ms(100)
+
+' CONFIGURO EL PWM PARA MOVER LOE MOTORES A UNA FRECUENCIA DE 1000HZ
+     PWM1_Init(1000)
+     PWM2_Init (1000)
+     PWM1_Start ()
+     PWM2_Start ()
+     PWM1_Set_Duty (0)
+     PWM2_Set_Duty (0)
+
+     delay_ms(100)
+WHILE(1)
+       CONTINUAR:
+
+           distancia1 = LECTURA_DISTANCIA1()  'SENSOR FRENTE
+           distancia2 = LECTURA_DISTANCIA2()  'SENSOR ATRAS
+           distancia3 = LECTURA_DISTANCIA4()  'SENSOR IZQUIERDA
+           distancia4 = LECTURA_DISTANCIA3()  'SENSOR DERECHA
+
+        IF((SENSOR1=1) AND (SENSOR2=1) AND (SENSOR3=1) AND (SENSOR4=1))THEN
+         IF(distancia1<35)THEN 'SENSOR FRENTE
+                delante=1
+                CONTROL_MOTOR(255,255)   'ADELANTE
+         ELSE
+                IF(distancia2<35)THEN  'SENSOR ATRAS
+                  delante=0
+                  CONTROL_MOTOR(-255,-255)   'Atras
+                ELSE
+                  IF((distancia3<35) AND (DELANTE=1))THEN   'SENSOR IZQUIERDA
+                      CONTROL_MOTOR(-255,255)  'IZQUIERDA
+                  ELSE
+                    IF((distancia4<35) AND (DELANTE=1))THEN   'SENSOR DERECHA
+                         CONTROL_MOTOR(255,-255) 'DERECHA
+                    ELSE
+                      IF((distancia3<35) AND (DELANTE=0))THEN   'SENSOR IZQUIERDA
+                          CONTROL_MOTOR(255,-255)  'IZQUIERDA
+                      ELSE
+                        IF((distancia4<35) AND (DELANTE=0))THEN   'SENSOR DERECHA
+                             CONTROL_MOTOR(-255,255) 'DERECHA
+                        END IF
+                      END IF
+                    END IF
+                  END IF
+                END IF
+         END IF
+        ELSE
+           IF (SENSOR1=0)AND (SENSOR2=0) THEN
+           CONTROL_MOTOR(-255,-255)
+           Delay_ms(1000)
+           ELSE
+               IF (SENSOR3=0)AND (SENSOR4=0) THEN
+               CONTROL_MOTOR(255,255)
+               Delay_ms(1000)
+               ELSE
+                   IF (SENSOR1=0)AND (SENSOR3=0) THEN
+                   CONTROL_MOTOR(-200,200)
+                   Delay_ms(1000)
+                   CONTROL_MOTOR(255,255)
+                   Delay_ms(1000)
+                   ELSE
+                        IF (SENSOR2=0)AND (SENSOR4=0) THEN
+                        CONTROL_MOTOR(200,-200) 'DERECHA
+                        Delay_ms(1000)
+                        CONTROL_MOTOR(255,255)
+                        Delay_ms(1000)
+                        ELSE
+                             IF (SENSOR1=0)THEN
+                             GOTO CONTINUAR
+                             ELSE
+                                  IF (SENSOR2=0)THEN
+                                  GOTO CONTINUAR
+                                  ELSE
+                                      IF (SENSOR3=0)THEN
+                                      GOTO CONTINUAR
+                                      ELSE
+                                          IF (SENSOR4=0)THEN
+                                          GOTO CONTINUAR
+                                          ELSE
+                                          MOTOR2_A=0
+                                          MOTOR2_B=0
+                                          MOTOR1_A=0
+                                          MOTOR1_B=0
+                                          END IF
+                                      END IF
+                                  END IF
+                             END IF
+                        END IF
+                   END IF
+               END IF
+           END IF
+       END IF
+WEND
+end.

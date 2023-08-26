@@ -1,0 +1,90 @@
+program sensor_velocidad
+'PROGRAMACION  DEL LCD
+dim LCD_RS as sbit at RB1_bit
+    LCD_EN as sbit at RA3_bit
+    LCD_D4 as sbit at RC2_bit
+    LCD_D5 as sbit at RA4_bit
+    LCD_D6 as sbit at RC1_bit
+    LCD_D7 as sbit at RA2_bit
+
+    LCD_RS_Direction as sbit at TRISB1_bit
+    LCD_EN_Direction as sbit at TRISA3_bit
+    LCD_D4_Direction as sbit at TRISC2_bit
+    LCD_D5_Direction as sbit at TRISA4_bit
+    LCD_D6_Direction as sbit at TRISC1_bit
+    LCD_D7_Direction as sbit at TRISA2_bit
+'VARIABLES DECLARADAS
+dim cuenta,CUENTA1,CUENTA2 as byte
+dim dato, tiempo,tiempo2,mostrar,SENSOR1,SENSOR2 as word
+dim texto as string [5]
+'PROGRAMACION DE RELOJ
+sub procedure interrupt
+'N = 255-(FOSCXTIEMPO)/4PREESCALADOR
+     'FOSC= 8MHZ
+     'PREESCALADOR = 256
+if INTCON.TMR0IF=1 THEN
+inc(tiempo)
+inc(tiempo2)
+TMR0 = 247
+INTCON = 0x20
+end if
+end sub
+main:
+OSCCON     =  0X75
+OPTION_REG =  0x07
+TRISA  = %00000011
+TRISB  = %00000000
+TRISC  = %00001001
+PORTA  = %00000011
+PORTB  = %00000000
+PORTC  = %00000000
+ANSEL  = %00000011
+ANSELH = %00000000
+UART1_Init(9600)
+Lcd_Init()                        ' inicio de lcd
+Lcd_Cmd(_LCD_CLEAR)               ' borrara lcd
+Lcd_Cmd(_LCD_CURSOR_OFF)          ' Cursor off
+TMR0 = 247
+tiempo=0
+tiempo2=0
+INTCON = 0XA0
+inicio:
+Lcd_Out(1,1,"ESPOL")                 ' mensaje linea 1
+Lcd_Out(2,1,"FIMCBOR")                 ' mensaje linea 2
+Delay_1sec
+Delay_1sec
+Lcd_Cmd(_LCD_CLEAR)
+CUENTA1=1
+CUENTA2=1
+Delay_1sec
+while 1
+      SENSOR1 = Adc_Read(0)
+      SENSOR2 = Adc_Read(1)
+      
+  if (SENSOR1>250) AND (CUENTA1=1) then
+      tiempo=0
+      cuenta1=0                       'EMPIEZA CONTEO
+      Lcd_Out(1,1,"S1")               'DETECTA SENSOR INICIO
+      cuenta=1                        'VER TIEMPO INCREMENTANDO
+  end iF
+  if (cuenta=1) then
+     Lcd_Out(2,1,"T[s]: ")       'MUESTRA LA PALABRA TIEMPO EN PANTALLA
+     WordToStr(tiempo,texto)
+     Lcd_Out(2,10,texto)              'MUESTRA EL TIEMPO
+     mostrar=tiempo
+  end if
+  if (SENSOR2>250) AND (CUENTA2=1)AND (CUENTA1=0) then
+     Lcd_Out(1,8,"S2")                'DETECTA SENSRO FINAL
+      cuenta=0                        'PARAR CONTEO
+      WordToStr(mostrar,texto)        'MUESTRA EL TIEMPO FINAL
+      Lcd_Out(2,10,texto)
+      UART1_Write_Text("TIEMPO=")
+      UART1_Write_Text(TEXTO)
+      UART1_Write(0X0D)
+      UART1_Write(0X0A)
+      Delay_ms(10000)
+      Lcd_Cmd(_LCD_CLEAR)
+      goto inicio
+  end iF
+wend
+end.

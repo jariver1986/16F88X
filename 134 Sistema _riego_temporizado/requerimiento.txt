@@ -1,0 +1,7 @@
+usar teclado
+lcd
+relay
+reloj
+Programar a la hora de riego de cada dia
+tiempo de duracion en minutos
+

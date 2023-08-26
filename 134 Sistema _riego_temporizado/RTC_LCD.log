@@ -1,0 +1,33 @@
+Line	MessageNo	File Name
+0	1	mBPic.exe -DBG -pP16F887 -MSF -Y -DL -O11111114 -fo8 -N"C:\Users\johnanibal\Documents\Desarrollo_Mikrobasic\Proyectos 2015\Sistema _riego_temporizado\RTC_LCD.mbppi" -SP"C:\Program Files (x86)\Mikroelektronika\mikroBasic PRO for PIC\defs\" -SP"C:\Program Files (x86)\Mikroelektronika\mikroBasic PRO for PIC\Uses\P16\" -SP"C:\Users\johnanibal\Documents\Desarrollo_Mikrobasic\Proyectos 2015\Sistema _riego_temporizado\" -SP"C:\Users\johnanibal\Documents\Desarrollo_Mikrobasic\Proyectos 2015\Sistema _iego_temporizado\" -SP"C:\Users\johnanibal\Documents\Desarrollo_Mikrobasic\Proyectos 2015\Reloj_ds1307_lcd\" -SP"C:\Program Files\Mikroelektronika\mikroBasic PRO for PIC\defs\" -SP"C:\Program Files\Mikroelektronika\mikroBasic PRO for PIC\Uses\P16\" -SP"C:\Users\User\Desktop\ORGANZAR\DS1307_LCD\" -SP"C:\Users\User\Desktop\DS1307_LCD\" -SP"C:\Archivos de programa\Mikroelektronika\mikroBasic PRO for PIC\defs\" -SP"C:\Archivos de programa\Mikroelektronika\mikroBasic PRO for PIC\Uses\P16\" -SP"C:\PROYECTOS GENARO\CODIGO_16F887_EJEMPLO\DS1307_LCD\" -SP"C:\GENARO\CODIGO_16F887_EJEMPLO\DS1307_LCD\" -SP"C:\Documents and Settings\BENAVIDES DURAN\Escritorio\CODIGO_16F887_EJEMPLO\DS1307_LCD\" -SP"C:\Documents and Settings\BENAVIDES DURAN\Escritorio\16F887\DS1307_LCD\" "__Lib_Math.mcl" "__Lib_MathDouble.mcl" "__Lib_System.mcl" "__Lib_Delays.mcl" "__Lib_CType.mcl" "__Lib_String.mcl" "__Lib_Conversions.mcl" "__Lib_Time.mcl" "__Lib_Trigon.mcl" "__Lib_Trigonometry.mcl" "__Lib_Button.mcl" "__Lib_Keypad4x4.mcl" "__Lib_Manchester.mcl" "__Lib_OneWire.mcl" "__Lib_PS2.mcl" "__Lib_Sound.mcl" "__Lib_SoftI2C.mcl" "__Lib_SoftSPI.mcl" "__Lib_SoftUART.mcl" "__Lib_ADC_88X.mcl" "__Lib_EEPROM.mcl" "__Lib_FLASH_RW.mcl" "__Lib_I2C_c34.mcl" "__Lib_PWM_c21.mcl" "__Lib_SPI_c345.mcl" "__Lib_UART_c67.mcl" "__Lib_PortExpander.mcl" "__Lib_CANSPI.mcl" "__Lib_CF.mcl" "__Lib_GlcdFonts.mcl" "__Lib_Glcd.mcl" "__Lib_LcdConsts.mcl" "__Lib_Lcd.mcl" "__Lib_RS485.mcl" "__Lib_T6963C.mcl" "__Lib_SPIGlcd.mcl" "__Lib_SPILcd.mcl" "__Lib_SPILcd8.mcl" "__Lib_SPIT6963C.mcl" "__Lib_EthEnc28j60.mcl" "RTC_LCD.mbas"	 
+warning: 0	1501	Specified search path do not exist: 'C:\Users\johnanibal\Documents\Desarrollo_Mikrobasic\Proyectos 2015\Sistema _iego_temporizado'	 
+warning: 0	1501	Specified search path do not exist: 'C:\Program Files\Mikroelektronika\mikroBasic PRO for PIC\defs'	 
+warning: 0	1501	Specified search path do not exist: 'C:\Program Files\Mikroelektronika\mikroBasic PRO for PIC\Uses\P16'	 
+warning: 0	1501	Specified search path do not exist: 'C:\Users\User\Desktop\ORGANZAR\DS1307_LCD'	 
+warning: 0	1501	Specified search path do not exist: 'C:\Users\User\Desktop\DS1307_LCD'	 
+warning: 0	1501	Specified search path do not exist: 'C:\Archivos de programa\Mikroelektronika\mikroBasic PRO for PIC\defs'	 
+warning: 0	1501	Specified search path do not exist: 'C:\Archivos de programa\Mikroelektronika\mikroBasic PRO for PIC\Uses\P16'	 
+warning: 0	1501	Specified search path do not exist: 'C:\PROYECTOS GENARO\CODIGO_16F887_EJEMPLO\DS1307_LCD'	 
+warning: 0	1501	Specified search path do not exist: 'C:\GENARO\CODIGO_16F887_EJEMPLO\DS1307_LCD'	 
+warning: 0	1501	Specified search path do not exist: 'C:\Documents and Settings\BENAVIDES DURAN\Escritorio\CODIGO_16F887_EJEMPLO\DS1307_LCD'	 
+warning: 0	1501	Specified search path do not exist: 'C:\Documents and Settings\BENAVIDES DURAN\Escritorio\16F887\DS1307_LCD'	 
+diagnostics: 0	154	Available RAM: 352 [bytes], Available ROM: 8192 [bytes]	 
+diagnostics: 0	132	Compilation Started	C:\Users\johnanibal\Documents\Desarrollo_Mikrobasic\Proyectos 2015\Sistema _riego_temporizado\RTC_LCD.mbas
+hint: 1	1015	Hint: Compiling unit "C:\Users\johnanibal\Documents\Desarrollo_Mikrobasic\Proyectos 2015\Sistema _riego_temporizado\RTC_LCD.mbas"	RTC_LCD.mbas
+hint: 324	1016	Warning: Source size (1) does not match destination size (9)	RTC_LCD.mbas
+hint: 324	1020	Warning: 1 elements copied	RTC_LCD.mbas
+hint: 325	1016	Warning: Source size (1) does not match destination size (9)	RTC_LCD.mbas
+hint: 325	1020	Warning: 1 elements copied	RTC_LCD.mbas
+hint: 345	1016	Warning: Source size (17) does not match destination size (5)	RTC_LCD.mbas
+hint: 347	1016	Warning: Source size (17) does not match destination size (5)	RTC_LCD.mbas
+hint: 45	1011	Hint: Variable "temp" has been eliminated by optimizer	RTC_LCD.mbas
+hint: 52	1011	Hint: Variable "temp" has been eliminated by optimizer	RTC_LCD.mbas
+hint: 418	1010	Hint: Unit "RTC_LCD.mbas" has been recompiled	RTC_LCD.mbas
+diagnostics: 0	133	Compiled Successfully	C:\Users\johnanibal\Documents\Desarrollo_Mikrobasic\Proyectos 2015\Sistema _riego_temporizado\RTC_LCD.mbas
+diagnostics: 0	138	All files Compiled in 328 ms	 
+hint: 0	1143	Used RAM (bytes): 130 (37%)  Free RAM (bytes): 222 (63%)	Used RAM (bytes): 130 (37%)  Free RAM (bytes): 222 (63%)
+hint: 0	1143	Used ROM (program words): 2520 (31%)  Free ROM (program words): 5672 (69%)	Used ROM (program words): 2520 (31%)  Free ROM (program words): 5672 (69%)
+diagnostics: 0	144	Project Linked Successfully	RTC_LCD.mbppi
+diagnostics: 0	139	Linked in 1500 ms	 
+diagnostics: 0	140	Project 'RTC_LCD.mbppi' completed: 2828 ms	 
+diagnostics: 0	103	Finished successfully: 12 sep 2015, 11:29:19	RTC_LCD.mbppi
