@@ -1,0 +1,110 @@
+program acondicionador
+
+SYMBOL BOTON=PORTE.3
+SYMBOL BOTON1=PORTC.0
+SYMBOL BOTON2=PORTC.1
+SYMBOL BOTON3=PORTC.2
+SYMBOL BOTON4=PORTC.3
+SYMBOL BOTON5=PORTC.4
+DIM VALOR,FLAG,CONTADOR1,CONTADOR2 AS BYTE
+
+'************* Funcion para convertir un valor BCD (0-9) ***********************
+'*************        a Codigo 7 Seg catodo comun        ***********************
+'
+SUB FUNCTION BCD_7SEG(DIM num AS BYTE) AS BYTE
+ select case num
+     CASE 0  result = %00000000
+     CASE 1  result = %00000001
+     CASE 2  result = %00000010
+     CASE 3  result = %00000011
+     CASE 4  result = %00000100
+     CASE 5  result = %10110110
+     CASE 6  result = %10111110
+     CASE 7  result = %11100000
+     CASE 8  result = %11111110
+     CASE 9  result = %11110110
+   END SELECT       'case end
+END SUB
+
+
+MAIN:
+' Registro Oscilador de control
+     OSCCON = 0X75 ' Oscilador interno de 8mhz
+' Registro PUERTO A
+     TRISA = 0X00 ' PORTA.0 Entrada
+     PORTA = 0X00
+' Registro PUERTO B
+     TRISB = 0X00 ' PORTB salidas
+     PORTB = 0X00
+' Registro PUERTO C
+     TRISC = 0X1F ' PORTC salidas
+     PORTC = 0X00
+' Registro PUERTO E
+     TRISE = 0X08 ' PORTE.3 entrada digital
+     PORTE = 0X00
+' Seleccion de registro analogico. 1 analogico, 0 digitales
+     ANSEL = 0X00 ' AN<7:0>
+     ANSELH = 0X00 ' AN<13:8>
+     VALOR=0
+     FLAG=0
+     CONTADOR1=0
+     CONTADOR2=0
+
+WHILE(1)
+     iF(BOTON=0)THEN  'SI PRESIONO EL BOTON
+       WHILE(BOTON=0) WEND  'PREGUNTO SI SOLTO EL PULSADOR
+       INC(VALOR)      'INCREMENTO VALOR = VALOR + 1
+     END IF
+     
+     IF(VALOR=1)THEN 'SI VALOR ES > 99 ENTOCES VALO=0
+       iF(BOTON1=0)THEN  'SI PRESIONO EL BOTON
+         WHILE(BOTON1=0) WEND  'PREGUNTO SI SOLTO EL PULSADOR
+       INC(CONTADOR1)      'INCREMENTO VALOR = VALOR + 1
+       END IF
+       iF(BOTON2=0)THEN  'SI PRESIONO EL BOTON
+         WHILE(BOTON2=0) WEND  'PREGUNTO SI SOLTO EL PULSADOR
+         DEC(CONTADOR1)      'INCREMENTO VALOR = VALOR + 1
+       END IF
+       
+       iF(BOTON3=0)THEN  'SI PRESIONO EL BOTON
+         WHILE(BOTON3=0) WEND  'PREGUNTO SI SOLTO EL PULSADOR
+       INC(CONTADOR2)      'INCREMENTO VALOR = VALOR + 1
+       END IF
+       iF(BOTON4=0)THEN  'SI PRESIONO EL BOTON
+         WHILE(BOTON4=0) WEND  'PREGUNTO SI SOLTO EL PULSADOR
+         DEC(CONTADOR2)      'INCREMENTO VALOR = VALOR + 1
+       END IF
+        PORTA=(CONTADOR1 mod 10) or (CONTADOR1 / 10)<<4
+        PORTB=(CONTADOR2 mod 10) or (CONTADOR2 / 10)<<4
+       iF(BOTON5=0)THEN  'SI PRESIONO EL BOTON
+          PORTC.RC6=1
+         if CONTADOR1<CONTADOR2 then
+            PORTC.RC5=1
+            INC(CONTADOR1)
+            Delay_1sec
+         end if
+         if CONTADOR1>CONTADOR2 then
+            PORTC.RC5=0
+            DEC(CONTADOR1)
+            Delay_1sec
+            Delay_1sec
+         end if
+         if CONTADOR1=CONTADOR2 then
+            PORTC.RC5=0
+         end if
+         ELSE
+         PORTC.RC6=0
+
+       END IF
+     END IF
+     
+    IF(VALOR=2)THEN 'SI VALOR ES > 99 ENTOCES VALO=0
+       PORTA=0
+       PORTB=0
+       VALOR=0
+    END IF
+    Delay_ms(200)
+     
+     
+WEND
+END.

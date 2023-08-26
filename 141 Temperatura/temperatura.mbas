@@ -1,0 +1,92 @@
+program temperatura
+
+dim LCD_RS as sbit at RD2_bit
+    LCD_EN as sbit at RD3_bit
+    LCD_D4 as sbit at RD4_bit
+    LCD_D5 as sbit at RD5_bit
+    LCD_D6 as sbit at RD6_bit
+    LCD_D7 as sbit at RD7_bit
+
+    LCD_RS_Direction as sbit at TRISD2_bit
+    LCD_EN_Direction as sbit at TRISD3_bit
+    LCD_D4_Direction as sbit at TRISD4_bit
+    LCD_D5_Direction as sbit at TRISD5_bit
+    LCD_D6_Direction as sbit at TRISD6_bit
+    LCD_D7_Direction as sbit at TRISD7_bit
+
+
+DIM DESEADA, TEMP AS FLOAT
+DIM TEXTO,TEXTO2 AS STRING [5]
+DIM VALOR1, VALOR2 AS WORD
+
+main:
+OSCCON = 0X75
+PORTA = %00000000
+TRISA = %11111111
+PORTB = %00000000
+TRISB = %00000000
+PORTC = %00000000
+TRISC = %00000000
+PORTD = %00000000
+TRISD = %00000000
+PORTE = %00000000
+TRISE = %00000000
+ANSEL = %00000011
+ANSELH = %00000000
+
+Lcd_Init()
+Lcd_Cmd(_LCD_CLEAR)
+Lcd_Cmd(_LCD_CURSOR_OFF)
+Lcd_Out(1,1,"SENSOR DE")
+Lcd_Out(2,1,"TEMPERATURA")
+Delay_ms(1000)
+Lcd_Cmd(_LCD_CLEAR)
+''''''''''''''''''''''''''''''
+Lcd_Out(1,1,"ANDRES C.")
+Lcd_Out(2,1,"OSCAR Z.")
+Delay_ms(1000)
+Lcd_Cmd(_LCD_CLEAR)
+Lcd_Out(1,1,"ITALO O.")
+Delay_ms(1000)
+''''''''''''''''''''''''''''
+Lcd_Cmd(_LCD_CLEAR)
+Delay_ms(1000)
+
+DESEADA=0
+TEMP =0
+
+
+while 1
+    temp = Adc_Read(0)*0.48875
+    valor1=Adc_Read(0)
+    deseada = Adc_Read(1)*0.48875
+    valor2=Adc_Read(1)
+    if valor1>valor2 then
+       Lcd_Cmd(_LCD_CLEAR)
+       Lcd_Out(1,1,"SISTEMA EN")
+       Lcd_Out(2,1,"ALERTA")
+       Delay_ms(1000)
+       PORTB.RB7=1
+       Delay_ms(200)
+       PORTB.RB7=0
+       Delay_ms(200)
+       Lcd_Cmd(_LCD_CLEAR)
+    ELSE
+       PORTB.RB7=0
+       Lcd_Cmd(_LCD_CLEAR)
+    end if
+    
+    floatToStr(temp,texto)
+    Lcd_Out(1,1,"TEMP :")
+    Lcd_Out(1,14,texto)
+    
+
+    floatToStr(deseada,texto2)
+    Lcd_Out(2,1,"SETEADO:")
+    Lcd_Out(2,14,texto2)
+    Delay_1sec
+
+
+    Delay_1sec
+wend
+end.
