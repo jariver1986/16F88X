@@ -1,0 +1,18 @@
+main
+	UART1_Init
+	UART1_Write
+	UART1_Write_Text
+		UART1_Write
+	LLAMADA
+		UART1_Write
+		Delay_1sec
+		UART1_Write_Text
+			UART1_Write
+	pila_mensaje
+		UART1_Write_Text
+			UART1_Write
+		UART1_Write
+		Delay_1sec
+	cola_mensaje
+		UART1_Write
+		Delay_1sec

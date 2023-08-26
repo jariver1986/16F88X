@@ -1,0 +1,121 @@
+program prueba_modulo_gsm
+
+'AQUI DECLARO LAS VARIABLES A UTILIZAR EN LA PROGRAMACION
+dim viajero,dato_recep,datos_set as byte
+
+dim dato,dato1,dato2,dato3 as byte[12]
+dim dato_rd as byte[12]
+dim dato_listo as byte
+dim i, veces1,veces2,veces3, grabar as byte
+
+
+SUB PROCEDURE pila_mensaje()
+     UART1_Write_Text("AT")
+     UART1_Write(0X0D)
+     UART1_Write(0X0A)
+     Delay_1sec
+     UART1_Write_Text("AT+CMGS")
+     UART1_Write(0X3D)
+     UART1_Write(0X22)
+     UART1_Write_Text("0992409136")
+     UART1_Write(0X22)
+     UART1_Write(0X0D)
+     UART1_Write(0X0A)
+     Delay_1sec
+end sub
+
+sub procedure cola_mensaje
+     UART1_Write(0X1A)
+     Delay_1sec
+     UART1_Write(0X41)
+     UART1_Write(0X54)
+     UART1_Write(0X0D)
+     UART1_Write(0X0A)
+     Delay_1sec
+     Delay_1sec
+     Delay_1sec
+     Delay_1sec
+END SUB
+
+SUB PROCEDURE LLAMADA()
+ UART1_Write(0X41)   'A
+      UART1_Write(0X54)   'T
+      UART1_Write(0X0D)    'enter
+      UART1_Write(0X0A)
+      Delay_1sec
+      UART1_Write_Text("ATD0992409136")
+      UART1_Write(0X3B)
+      UART1_Write(0X0D)
+      UART1_Write(0X0A)
+      Delay_1sec
+      Delay_1sec
+      Delay_1sec
+      Delay_1sec
+      Delay_1sec
+      Delay_1sec
+      Delay_1sec
+      Delay_1sec
+      Delay_1sec
+      Delay_1sec
+      UART1_Write_Text("ATH")
+      UART1_Write(0X0D)
+      UART1_Write(0X0A)
+      UART1_Write(0X0D)
+      UART1_Write(0X0A)
+      Delay_1sec
+      Delay_1sec
+      Delay_1sec
+      Delay_1sec
+      Delay_1sec
+      Delay_1sec
+      Delay_1sec
+      Delay_1sec
+      Delay_1sec
+      Delay_1sec
+END SUB
+
+main:
+ OPTION_REG = 0x06
+' Registro Oscilador de control
+OSCCON = 0X75 ' Oscilador interno de 8mhz
+OPTION_REG = 0x86
+
+TRISA =0X00
+TRISB= 0X00
+
+PORTB= 0X00
+TRISC = 0x80
+PORTC = 0x00
+
+PORTE = 0x08
+
+ANSEL = 0X00
+ANSELH = 0X00
+
+UART1_Init(9600)
+
+viajero=0
+grabar = 0x00
+dato_listo = 0x00
+
+UART1_Write(0X41)   'A
+UART1_Write(0X54)   'T
+UART1_Write(0X0D)    'enter
+UART1_Write(0X0A)
+Delay_ms(100)
+
+
+ UART1_Write_Text("AT")
+ UART1_Write(0x0D)
+ UART1_Write(0x0A)
+
+  while(1)
+       if PORTE.RE3=0 THEN
+          LLAMADA()
+          pila_mensaje()
+          UART1_Write_Text("MODULO GSM OK")
+          cola_mensaje()
+       END IF
+
+  wend
+end.
