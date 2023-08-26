@@ -55,3 +55,4 @@ SR Latch mode
 ## GPIO
 ## ADC
 ## Timer
+## I2C
