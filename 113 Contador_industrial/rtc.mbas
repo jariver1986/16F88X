@@ -1,0 +1,102 @@
+program rtc
+
+symbol sensor1 = portb.rb0     'pin33
+symbol sensor2 = portb.rb1     'pin34
+symbol NORMAL = portb.rb4      'pin37
+symbol EMERGENCIA = portb.rb5  'pin38
+symbol CIERRE = portb.rb6  'pin38
+symbol compuerta = porta.ra0   ' pin2
+
+dim LCD_RS as sbit at RD1_bit
+    LCD_EN as sbit at RD0_bit
+    LCD_D4 as sbit at RD4_bit
+    LCD_D5 as sbit at RD5_bit
+    LCD_D6 as sbit at RD6_bit
+    LCD_D7 as sbit at RD7_bit
+
+    LCD_RS_Direction as sbit at TRISD1_bit
+    LCD_EN_Direction as sbit at TRISD0_bit
+    LCD_D4_Direction as sbit at TRISD4_bit
+    LCD_D5_Direction as sbit at TRISD5_bit
+    LCD_D6_Direction as sbit at TRISD6_bit
+    LCD_D7_Direction as sbit at TRISD7_bit
+DIM ENTRADAS,SALIDAS AS LONGINT
+DIM TEXTO1,TEXTO2 AS CHAR[11]
+DIM COUNTER AS BYTE
+DIM ADDRESS AS BYTE
+DIM TEMP AS WORD
+
+sub procedure read_ds1307( dim  ADDRESS as byte)
+   dim temp as byte
+   I2C1_Start()
+   I2C1_Wr(0xD0)
+   I2C1_Wr(address)
+   I2C1_Repeated_Start()
+   I2C1_Wr(0xD1)
+   temp = I2C1_Rd(0)
+   I2C1_Stop()
+   'result temp
+ end sub
+ sub procedure LECTURA
+   I2C1_Start()
+   I2C1_Wr(0xD0)
+   I2C1_Wr(0)
+   I2C1_Repeated_Start()
+   I2C1_Wr(0xD1)
+   temp = I2C1_Rd(0)
+   I2C1_Stop()
+   'result temp
+ end sub
+ 
+ sub procedure write_ds1307(dim  ADDRESS as byte, dim w_data as byte)
+
+   I2C1_Start()
+   I2C1_Wr(0xD0)
+   I2C1_Wr(address)
+   I2C1_Wr(w_data)
+   I2C1_Stop()
+   PORTA=TEMP
+ end sub
+
+main:
+OSCCON = 0X75
+OPTION_REG=0X06
+PORTA = %00000000
+TRISA = %00000000
+PORTB = %00000000
+TRISB = %01110011  ' BOTONERAS RB4 RB5 RB6 Y SENSORES RB0 RB1
+PORTC = %00000000
+TRISC = %00000000
+PORTD = %00000000
+TRISD = %00000000
+PORTE = %00000000
+TRISE = %00000000
+ANSEL = %00000000
+ANSELH = %00000000
+UART1_Init(9600)
+i2c1_init(100000)
+Lcd_Init()
+Lcd_Cmd(_LCD_CLEAR)
+Lcd_Cmd(_LCD_CURSOR_OFF)
+Lcd_Out(1,1,"ESPOL")
+Lcd_Out(2,1,"TESIS")
+Delay_ms(100)
+''''''''''''''''''''''''''''
+Lcd_Out(1,1,"PROYECTO")
+Lcd_Out(2,1,"CONTADOR")
+Delay_ms(100)
+Lcd_Cmd(_LCD_CLEAR)
+''''''''''''''''''''''''''''''
+
+Lcd_Cmd(_LCD_CLEAR)
+Delay_ms(1000)
+Lcd_Out(1,1,"ENTRADA:")
+Lcd_Out(2,1,"SALIDA:")
+ENTRADAS =0
+SALIDAS=0
+while 1
+LECTURA
+'porta = read
+'Delay_ms(10)
+wend
+end.

@@ -1,0 +1,116 @@
+program comtador
+symbol sensor1 = portb.rb0     'pin33
+symbol sensor2 = portb.rb1     'pin34
+symbol NORMAL = portb.rb4      'pin37
+symbol EMERGENCIA = portb.rb5  'pin38
+symbol CIERRE = portb.rb6  'pin38
+symbol compuerta = porta.ra0   ' pin2
+
+dim LCD_RS as sbit at RD1_bit
+    LCD_EN as sbit at RD0_bit
+    LCD_D4 as sbit at RD4_bit
+    LCD_D5 as sbit at RD5_bit
+    LCD_D6 as sbit at RD6_bit
+    LCD_D7 as sbit at RD7_bit
+
+    LCD_RS_Direction as sbit at TRISD1_bit
+    LCD_EN_Direction as sbit at TRISD0_bit
+    LCD_D4_Direction as sbit at TRISD4_bit
+    LCD_D5_Direction as sbit at TRISD5_bit
+    LCD_D6_Direction as sbit at TRISD6_bit
+    LCD_D7_Direction as sbit at TRISD7_bit
+DIM ENTRADAS,SALIDAS AS LONGINT
+DIM TEXTO1,TEXTO2 AS CHAR[11]
+DIM COUNTER AS BYTE
+main:
+OSCCON = 0X75
+OPTION_REG=0X06
+PORTA = %00000000
+TRISA = %00000000
+PORTB = %00000000
+TRISB = %01110011  ' BOTONERAS RB4 RB5 RB6 Y SENSORES RB0 RB1
+PORTC = %00000000
+TRISC = %00000000
+PORTD = %00000000
+TRISD = %00000000
+PORTE = %00000000
+TRISE = %00000000
+ANSEL = %00000000
+ANSELH = %00000000
+UART1_Init(9600)
+Lcd_Init()
+Lcd_Cmd(_LCD_CLEAR)
+Lcd_Cmd(_LCD_CURSOR_OFF)
+Lcd_Out(1,1,"ESPOL")
+Lcd_Out(2,1,"TESIS")
+Delay_ms(2000)
+''''''''''''''''''''''''''''
+Lcd_Out(1,1,"PROYECTO")
+Lcd_Out(2,1,"CONTADOR")
+Delay_ms(2000)
+Lcd_Cmd(_LCD_CLEAR)
+''''''''''''''''''''''''''''''
+
+Lcd_Cmd(_LCD_CLEAR)
+Delay_ms(1000)
+Lcd_Out(1,1,"ENTRADA:")
+Lcd_Out(2,1,"SALIDA:")
+ENTRADAS =0
+SALIDAS=0
+while 1
+      IF NORMAL =0 THEN
+         compuerta=1
+      END IF
+      IF EMERGENCIA =0 THEN
+         compuerta=1
+      END IF
+      IF CIERRE =0 THEN
+         compuerta=0
+          while (CIERRE =0)  wend
+         UART1_Write_Text("C1:")
+         UART1_Write_Text(TEXTO1)
+         UART1_Write_Text(":")
+         UART1_Write_Text(TEXTO2)
+         UART1_Write_Text(":")
+         UART1_Write_Text("HORA")
+         UART1_Write(0x0d)
+         UART1_Write(0x0a)
+      END IF
+      if (sensor1 = 0) and (compuerta=1) then
+         inc(ENTRADAS)
+         LongIntToStr(ENTRADAS,TEXTO1)
+         for counter = 3 to  11
+             Lcd_Chr(1,counter+6,TEXTO1[counter])
+         next COUNTER
+         Delay_ms(1500)
+         if sensor1 = 0 then
+            while (sensor1 = 0)
+                  INC(ENTRADAS)
+                  LongIntToStr(ENTRADAS,TEXTO1)
+                  for counter = 3 to  11
+                      Lcd_Chr(1,counter+6,TEXTO1[counter])
+                  next COUNTER
+                  Delay_ms(1500)
+            wend
+         END IF
+      end if
+      if (sensor2 = 0)and (compuerta=1) then
+         inc(SALIDAS)
+         LongIntToStr(SALIDAS,TEXTO2)
+         for counter = 3 to  11
+             Lcd_Chr(2,counter+6,TEXTO2[counter])
+         next COUNTER
+         Delay_ms(1500)
+         if sensor2 = 0 then
+            while (sensor2 = 0)
+                  INC(SALIDAS)
+                  LongIntToStr(SALIDAS,TEXTO2)
+                  for counter = 3 to  11
+                      Lcd_Chr(2,counter+6,TEXTO2[counter])
+                  next COUNTER
+                  Delay_ms(1500)
+            wend
+         END IF
+      end if
+wend
+end.
