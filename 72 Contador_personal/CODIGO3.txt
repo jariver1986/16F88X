@@ -1,0 +1,206 @@
+program contador_personal
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' ULTRASONICO 1               'SENSOR FRENTE
+SYMBOL DISPARO1 = PORTC.3 'PIN TRIGGER
+SYMBOL ECO1 = PORTC.0     'PIN ECHO
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' ULTRASONICO 2                'SENSOR ATRAS
+SYMBOL DISPARO2 = PORTA.0  'PIN TRIGGER
+SYMBOL ECO2 = PORTA.1      'PIN ECHO
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+dim text,text2 as string[5]
+
+dim LCD_RS as sbit at RB1_bit
+LCD_EN as sbit at RA3_bit
+LCD_D4 as sbit at RC2_bit
+LCD_D5 as sbit at RA4_bit
+LCD_D6 as sbit at RC1_bit
+LCD_D7 as sbit at RA2_bit
+LCD_RS_Direction as sbit at TRISB1_bit
+LCD_EN_Direction as sbit at TRISA3_bit
+LCD_D4_Direction as sbit at TRISC2_bit
+LCD_D5_Direction as sbit at TRISA4_bit
+LCD_D6_Direction as sbit at TRISC1_bit
+LCD_D7_Direction as sbit at TRISA2_bit
+
+' declaracion de variables
+dim distancia1, distancia2,CONTADOR,CONTADOR2,CONTADOR3,CONTADOR4 as word
+dim delante,modo,dato_recep,dato,centinela1,centinela2 as byte
+dim personal as byte
+dim turno as bit
+
+sub function ultrasonico1( ) as word
+     dim flanco as byte
+     dim distan,tiempo as word
+     flanco = 0
+
+     disparo1 = 1
+     Delay_us(50)
+     disparo1 = 0
+
+     DO
+          IF( eco1 = 1 )THEN
+               TMR0 = 0
+               flanco = 1
+          END IF
+     LOOP UNTIL( flanco = 1 )
+
+     DO
+          IF( eco1 = 0 )THEN
+               tiempo = TMR0
+               flanco = 0
+          END IF
+          if(TMR0>254)THEN
+           FLANCO=0
+          END IF
+     LOOP UNTIL( FLANCO = 0 )
+
+     distan = (tiempo*128)/58
+     Delay_ms (50)
+     result = distan
+end sub
+'*******************************************************************************
+sub function ultrasonico2( ) as word
+     dim flanco as byte
+     dim distan,tiempo as word
+
+     flanco = 0
+
+     disparo2 = 1
+     Delay_us(50)
+     disparo2 = 0
+
+     DO
+          IF( eco2 = 1 )THEN
+               TMR0 = 0
+               flanco = 1
+          END IF
+     LOOP UNTIL( flanco = 1 )
+
+     DO
+          IF( eco2 = 0 )THEN
+               tiempo = TMR0
+               flanco = 0
+          END IF
+          if(TMR0>254)THEN
+           FLANCO=0
+          END IF
+     LOOP UNTIL( FLANCO = 0 )
+
+     distan = (tiempo*128)/58
+     Delay_ms (50)
+     result = distan
+end sub
+
+main:
+     OSCCON = 0X65
+
+     OPTION_REG = %10000110
+' REGISTRO PORTA
+     TRISA = %10000010
+     PORTA = %00000000
+
+' REGISTRO PORTB
+     TRISB = %10000000  'PIN RB1,RB2  ENTRADAS PARA SENSAR CORRIENTE DE MOTORES
+     PORTB = %00000000
+
+' REGISTRO PORTC
+     TRISC = %10010001
+     PORTC = %00000000
+     
+' REGISTRO PORTE
+     TRISE = %00001000
+     PORTE = %00000000
+
+' REGISTRO ANSEL
+     ANSEL =  %00000000 ' RE1-RE2 ANALOGICO, RESTO DIGITALES
+     ANSELH = %00000000
+' CONFIGURO EL PWM A UNA FRECUENCIA DE 1000HZ
+
+     WPUB=0X80
+     dato=0
+     dato_recep=0
+     centinela1=0
+     centinela2=0
+     CONTADOR=0
+     CONTADOR2=0
+     personal= EEPROM_Read($30)
+     CONTADOR2=EEPROM_Read($10)
+     CONTADOR3=EEPROM_Read($20)
+     Delay_ms(25)
+     Lcd_Init() ' inicializamos la lcd
+    Lcd_Cmd(_LCD_CLEAR)
+    Lcd_Cmd(_LCD_CURSOR_OFF)
+    Lcd_Out(1, 1, "IDEAS&TECNOLOGIA") ' lo que se va a mostrar en la linea 1
+    Lcd_Out(2, 1, "SALUDOS") ' lo que se va a mostrar en la linea 2
+    delay_ms(1000)
+    Lcd_Cmd(_LCD_CLEAR)
+    Lcd_Cmd(_LCD_CURSOR_OFF)
+    Lcd_Out(1, 1, "NUMERO PERSONAL:") ' lo que se va a mostrar en la linea 1
+    distancia1= ultrasonico1()
+    turno=0
+
+WHILE(1)
+
+         distancia1= ultrasonico1()
+
+         if distancia1<50 then
+            'while(distancia1<50)
+'               distancia1= ultrasonico1()
+'               PORTB.RB0=1
+'            wend
+            Delay_ms(50)
+            PORTB.RB0=0
+            INC(CONTADOR)
+            INC(personal)
+         end if
+
+         if (CONTADOR>0)AND(CONTADOR<=255) then
+              EEPROM_Write(0X10,personal+CONTADOR2)
+             Delay_ms(25)
+         end if
+
+         if (CONTADOR>255)AND(CONTADOR<=510) then
+             EEPROM_Write(0X20,personal+CONTADOR3)
+             Delay_ms(25)
+         end if
+
+         EEPROM_Write(0X30,personal)
+       
+         if personal=255 then
+            personal=0
+         end if
+         'LEE EEPROM
+
+         CONTADOR=EEPROM_Read($10)+EEPROM_Read($20)
+         Delay_ms(25)
+         WordToStr(CONTADOR,text2)
+         Lcd_Out(2,2,"N")
+         Lcd_Out(2,3,"=")
+         Lcd_Out(2,4,text2)
+
+       'ENCERAR EEPROM
+       if PORTE.RE3=0 then
+          Lcd_Cmd(_LCD_CLEAR)
+          CONTADOR=0
+          CONTADOR2=0
+          CONTADOR3=0
+          PERSONAL=0
+          EEPROM_write($10,0x00)
+          EEPROM_write($20,0x00)
+          Lcd_Out(1, 1, "NUMERO PERSONAL:") ' lo que se va a mostrar en la linea 1
+          WordToStr(CONTADOR,text2)
+          Lcd_Out(2,2,"N")
+          Lcd_Out(2,3,"=")
+          Lcd_Out(2,4,text2)
+       end if
+
+
+
+
+
+
+WEND
+end.

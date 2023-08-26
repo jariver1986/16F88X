@@ -1,0 +1,207 @@
+program control_parqueo
+
+' ULTRASONICO 1               'SENSOR FRENTE
+SYMBOL DISPARO1 = PORTA.0     'PIN TRIGGER
+SYMBOL ECO1 = PORTA.1     'PIN ECHO
+' ULTRASONICO 2                'SENSOR ATRAS
+SYMBOL DISPARO2 = PORTA.2  'PIN TRIGGER
+SYMBOL ECO2 = PORTA.3      'PIN ECHO
+
+DIM LCD_RS AS SBIT AT RB2_BIT
+     LCD_EN AS SBIT AT RB3_BIT
+     LCD_D4 AS SBIT AT RB4_BIT
+     LCD_D5 AS SBIT AT RB5_BIT
+     LCD_D6 AS SBIT AT RB6_BIT
+     LCD_D7 AS SBIT AT RB7_BIT
+
+     LCD_RS_Direction as sbit at TRISB2_BIT
+     LCD_EN_Direction as sbit at TRISB3_BIT
+     LCD_D4_Direction as sbit at TRISB4_BIT
+     LCD_D5_Direction as sbit at TRISB5_BIT
+     LCD_D6_Direction as sbit at TRISB6_BIT
+     LCD_D7_Direction as sbit at TRISB7_BIT
+
+dim distancia1, distancia2,contador as word
+DIM S1,S2 AS BIT
+DIM TEXTO AS STRING [5]
+sub function ultrasonico1( ) as word
+     dim flanco as byte
+     dim distan,tiempo as word
+     flanco = 0
+
+     disparo1 = 1
+     Delay_us(50)
+     disparo1 = 0
+
+     DO
+          IF( eco1 = 1 )THEN
+               TMR0 = 0
+               flanco = 1
+          END IF
+     LOOP UNTIL( flanco = 1 )
+
+     DO
+          IF( eco1 = 0 )THEN
+               tiempo = TMR0
+               flanco = 0
+          END IF
+          if(TMR0>254)THEN
+           FLANCO=0
+          END IF
+     LOOP UNTIL( FLANCO = 0 )
+
+     distan = (tiempo*128)/58
+     Delay_ms (50)
+     result = distan
+end sub
+'*******************************************************************************
+sub function ultrasonico2( ) as word
+     dim flanco as byte
+     dim distan,tiempo as word
+
+     flanco = 0
+
+     disparo2 = 1
+     Delay_us(50)
+     disparo2 = 0
+
+     DO
+          IF( eco2 = 1 )THEN
+               TMR0 = 0
+               flanco = 1
+          END IF
+     LOOP UNTIL( flanco = 1 )
+
+     DO
+          IF( eco2 = 0 )THEN
+               tiempo = TMR0
+               flanco = 0
+          END IF
+          if(TMR0>254)THEN
+           FLANCO=0
+          END IF
+     LOOP UNTIL( FLANCO = 0 )
+
+     distan = (tiempo*128)/58
+     Delay_ms (50)
+     result = distan
+end sub
+
+sub procedure servomotor_arriba()
+contador=0
+while (contador<255)
+PORTB.RB0=1
+Delay_us(1400)
+PORTB.RB0=0
+Delay_us(600)
+inc(contador)
+wend
+end sub
+
+sub procedure servomotor_abajo()
+contador=0
+while (contador<255)
+PORTB.RB0=1
+Delay_us(1600)
+PORTB.RB0=0
+Delay_us(400)
+inc(contador)
+wend
+end sub
+
+main:
+OSCCON = 0X65
+OPTION_REG = %10000110
+PORTA   =%00000000
+TRISA   =%11001010
+PORTB   =%00000000
+TRISB   =%00000000
+PORTC   =%00000000
+TRISC   =%10000000
+PORTD   =%00000000
+TRISD   =%00000000
+ANSEL   =%00000000
+ANSELH  =%00000000
+UART1_Init(9600)
+WPUB= 0XFF
+Lcd_Init()
+Lcd_Cmd(_LCD_CLEAR)
+Lcd_Cmd(_LCD_CURSOR_OFF)
+Lcd_Out(1,1,"    ESPOL")
+Lcd_Out(2,1,"    2014")
+Delay_1sec
+Delay_1sec
+Lcd_Cmd(_LCD_CLEAR)
+
+while (1)
+   '   distancia1= ultrasonico1()
+'      distancia2= ultrasonico2()
+'      if distancia1<10 then
+'          S1 = 1
+'      else
+'          S1 = 0
+'      end if
+'      if distancia2<10 then
+'          S2 = 1
+'      ELSE
+'          S2 = 0
+'      end if
+      
+ '     if ((S1 = 1) AND (S2 = 1)) or ((PORTA.RA6=1) AND (PORTA.RA7=1)) then
+'         UART1_Write_Text("O")  'OCUPADO
+'         Lcd_Out(1,1,"ESTACIONAMIENTO")
+'         Lcd_Out(2,1,"OCUPADO")
+'
+'      end if
+'      if( (S1 = 0) AND (S2 = 0))OR ((PORTA.RA6=0) AND (PORTA.RA7=0)) then
+'         UART1_Write_Text("D")  'DESOCUPADO
+'         Lcd_Out(1,1,"ESTACIONAMIENTO")
+'         Lcd_Out(2,1,"DESOCUPADO")
+'
+'      end if
+'      if (S1 = 1) or (PORTA.RA6=1) then
+'         if (S2 = 0)or ( PORTA.RA7=1) then
+'         UART1_Write_Text("E")  'ESPACIO
+'         Lcd_Out(1,1,"ESTACIONAMIENTO")
+'         Lcd_Out(2,1,"DESOCUPADO")
+'         end if
+'      end if
+'       if (S2 = 1)or (PORTA.RA7=1) then
+'          if (S1 = 0)or (PORTA.RA6=1) then
+'              UART1_Write_Text("F")  'ESPACIO
+'              Lcd_Out(1,1,"ESTACIONAMIENTO")
+'              Lcd_Out(2,1,"DESOCUPADO")
+'          end if
+'      end if
+'      Delay_1sec
+'      Lcd_Cmd(_LCD_CLEAR)
+     if ((PORTA.RA6=1) AND (PORTA.RA7=1)) then
+         UART1_Write_Text("O")  'OCUPADO
+         Lcd_Out(1,1,"ESTACIONAMIENTO")
+         Lcd_Out(2,1,"OCUPADO")
+
+      end if
+      if ((PORTA.RA6=0) AND (PORTA.RA7=0)) then
+         UART1_Write_Text("D")  'DESOCUPADO
+         Lcd_Out(1,1,"ESTACIONAMIENTO")
+         Lcd_Out(2,1,"DESOCUPADO")
+
+      end if
+      if (PORTA.RA6=1) then
+         if ( PORTA.RA7=0) then
+         UART1_Write_Text("E")  'ESPACIO
+         Lcd_Out(1,1,"ESTACIONAMIENTO")
+         Lcd_Out(2,1,"DESOCUPADO")
+         end if
+      end if
+       if (PORTA.RA7=1) then
+          if (PORTA.RA6=0) then
+              UART1_Write_Text("F")  'ESPACIO
+              Lcd_Out(1,1,"ESTACIONAMIENTO")
+              Lcd_Out(2,1,"DESOCUPADO")
+          end if
+      end if
+      Delay_1sec
+      Lcd_Cmd(_LCD_CLEAR)
+wend
+end.

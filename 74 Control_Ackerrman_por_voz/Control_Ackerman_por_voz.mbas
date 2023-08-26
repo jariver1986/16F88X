@@ -1,0 +1,196 @@
+program Control_Ackerman_por_voz
+SYMBOL DISPARO1 = PORTD.7 'PIN TRIGGER
+SYMBOL ECO1 = PORTD.6     'PIN ECHO
+DIM velocidad_motor1,velocidad_motor2,instruccion as byte
+DIM distancia as word
+
+sub procedure robot_adelante()
+  'MOTOR DELANTERO
+  PORTB.RB0 = 0
+  PORTB.RB1 = 0
+  'MOTOR ATRAS
+  PORTB.RB2 = 1
+  PORTB.RB3 = 0
+  PWM1_Set_Duty(velocidad_motor1)
+  PWM2_Set_Duty(velocidad_motor2)
+end sub
+sub procedure robot_atras()
+  'MOTOR DELANTERO
+  PORTB.RB0 = 0
+  PORTB.RB1 = 0
+  'MOTOR ATRAS
+  PORTB.RB2 = 0
+  PORTB.RB3 = 1
+  PWM1_Set_Duty(velocidad_motor1)
+  PWM2_Set_Duty(velocidad_motor2)
+end sub
+sub procedure robot_izquierda_adelante()
+  'MOTOR DELANTERO
+  PORTB.RB0 = 1
+  PORTB.RB1 = 0
+  'MOTOR ATRAS
+  PORTB.RB2 = 1
+  PORTB.RB3 = 0
+  PWM1_Set_Duty(velocidad_motor1)
+  PWM2_Set_Duty(velocidad_motor2)
+end sub
+sub procedure robot_derecha_adelante()
+  'MOTOR DELANTERO
+  PORTB.RB0 = 0
+  PORTB.RB1 = 1
+  'MOTOR ATRAS
+  PORTB.RB2 = 1
+  PORTB.RB3 = 0
+  PWM1_Set_Duty(velocidad_motor1)
+  PWM2_Set_Duty(velocidad_motor2)end sub
+sub procedure robot_parar()
+  'MOTOR DELANTERO
+  PORTB.RB0 = 0
+  PORTB.RB1 = 0
+  'MOTOR ATRAS
+  PORTB.RB2 = 0
+  PORTB.RB3 = 0
+  PWM1_Set_Duty(0)
+  PWM2_Set_Duty(0)
+end sub
+sub procedure robot_izquierda_atras()
+  'MOTOR DELANTERO
+  PORTB.RB0 = 1
+  PORTB.RB1 = 0
+  'MOTOR ATRAS
+  PORTB.RB2 = 0
+  PORTB.RB3 = 1
+  PWM1_Set_Duty(velocidad_motor1)
+  PWM2_Set_Duty(velocidad_motor2)
+end sub
+sub procedure robot_derecha_atras()
+  'MOTOR DELANTERO
+  PORTB.RB0 = 0
+  PORTB.RB1 = 1
+  'MOTOR ATRAS
+  PORTB.RB2 = 0
+  PORTB.RB3 = 1
+  PWM1_Set_Duty(velocidad_motor1)
+  PWM2_Set_Duty(velocidad_motor2)
+end sub
+sub function ultrasonico1( ) as word
+     dim flanco as byte
+     dim distan,tiempo as word
+     flanco = 0
+
+     disparo1 = 1
+     Delay_us(50)
+     disparo1 = 0
+
+     DO
+          IF( eco1 = 1 )THEN
+               TMR0 = 0
+               flanco = 1
+          END IF
+     LOOP UNTIL( flanco = 1 )
+
+     DO
+          IF( eco1 = 0 )THEN
+               tiempo = TMR0
+               flanco = 0
+          END IF
+          if(TMR0>254)THEN
+           FLANCO=0
+          END IF
+     LOOP UNTIL( FLANCO = 0 )
+
+     distan = (tiempo*128)/58
+     Delay_ms (50)
+     result = distan
+end sub
+
+main:
+OPTION_REG = %10000110
+OSCCON = 0X65
+PORTA  = %00000000
+TRISA  = %00000001
+PORTB  = %00000000
+TRISB  = %00000000
+PORTC  = %00000000
+TRISC  = %10010000
+PORTD  = %00000000
+TRISD  = %01000000
+ANSEL  = %00000001
+ANSELH = %00000000
+UART1_Init(9600)
+PWM1_Init(1000)
+PWM2_Init(1000)
+PWM1_Start
+PWM2_Start
+velocidad_motor1=150
+velocidad_motor2=250
+
+while (1)
+distancia = ultrasonico1()
+if UART1_Data_Ready = 1 then
+   instruccion = UART1_Read
+end if
+'panel de mando
+ '|R||T||Y|
+ '| ||G|| |
+ '|V||B||N|
+
+if instruccion = "T" then
+   if distancia < 50 then
+
+   else
+      robot_adelante()
+      Delay_1sec()
+      robot_parar()
+   end if
+end if
+if instruccion = "B" then
+   robot_atras()
+   Delay_1sec()
+   robot_parar()
+end if
+if instruccion = "R" then
+    if distancia < 50 then
+
+   else
+       robot_izquierda_adelante()
+       Delay_1sec()
+       robot_parar()
+   end if
+end if
+if instruccion = "Y" then
+   if distancia < 50 then
+
+   else
+       robot_derecha_adelante()
+       Delay_1sec()
+       robot_parar()
+   end if
+end if
+if instruccion = "G" then
+   robot_parar()
+end if
+if instruccion = "V" then
+   robot_izquierda_atras()
+   Delay_1sec()
+   robot_parar()
+end if
+if instruccion = "N" then
+   robot_derecha_atras()
+   Delay_1sec()
+   robot_parar()
+end if
+if instruccion = "1" then
+velocidad_motor1=150
+end if
+if instruccion = "2" then
+velocidad_motor1=200
+end if
+if instruccion = "3" then
+velocidad_motor1=250
+end if
+instruccion = 0
+wend
+
+
+end.
