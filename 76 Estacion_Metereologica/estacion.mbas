@@ -1,0 +1,115 @@
+program estacion
+
+'DECLARACION DE VARIABLES
+dim revol, valor as word
+dim veloc,selector as byte
+dim txt as string[5]
+DIM T1,T2 AS BYTE
+DIM TEMP,TEMPC,DATO,DATO3 AS WORD
+DIM TEXTO,TEXTO2,TEXTO3 AS STRING [8]
+
+'***********************INTERRUPCION DEL ENCODER***********************************
+sub procedure interrupt
+     if TestBit(INTCON,INTF) then ' hubo la interrupcion por portb.0
+          ClearBit(INTCON,INTF)
+          inc(revol) ' incrementamos las revoluciones
+     end if
+end sub
+
+main:
+' Registro Oscilador de control
+     OSCCON = 0X75 ' Oscilador interno de 8mhz
+' Registro de Opciones
+     OPTION_REG = 0X83 ' Pull up PORTB desactivado
+                       ' TMR0 prescaler 16
+' Registro control de interrupciones
+     INTCON = 0XD0 ' Activado interrupciones globales
+                   ' Activado interrupciones perifericas
+                   ' Activado interrupciones externas
+                   ' Activado interrupcion timer 0
+    ' Registro PUERTO A
+     TRISA = 0X03 ' PORTA.0 Entrada
+     PORTA = 0X00
+     ' Registro PUERTO B
+     TRISB = 0X81 ' PORTB.0 Entrada
+     PORTB = 0X00
+   ' Registro PUERTO C
+     TRISC = 0X80 ' PORTC salidas
+     PORTC = 0X00
+     ' Registro PUERTO E
+     TRISE = 0X00 ' PORTE  como salidas digital
+     PORTE = 0X00
+' Seleccion de registro analogico. 1 analogico, 0 digitales
+     ANSEL = 0X03 ' AN<7:0>
+     ANSELH = 0X00 ' AN<13:8>
+     UART1_Init(600)
+     
+     veloc = 0x00
+     selector=0
+     'INICIO DEL PROGRAMA
+     while (1)
+     
+     if UART1_Data_Ready=1 then
+        selector = UART1_Read
+     end if
+     if (selector = 0x31) OR (selector = 0x35) then
+     'ANEMOMETRO
+          revol = 0 ' revoluciones son iguales a 0
+          Delay_ms(1000) ' con este tiempo sabemos cuantas revoluciones van haber en 1seg
+          valor = ((revol)*(PI*22.5))/180  ' asignamos las revoluciones al dato valor
+          WordToStr(valor, txt)
+          UART1_Write_Text("REVOLUCIONES = ")
+          UART1_Write_Text(txt)
+          UART1_Write_Text("  cm/s")
+          UART1_Write(0x0D)
+          UART1_Write(0x0A)
+     end if
+     if (selector = 0x32 ) OR (selector = 0x35)then
+     'SENSOR DE TEMPERATURA
+      IF (Ow_Reset(PORTB,7)=0) THEN ' INICIO DE COMUNICACION
+       Ow_Write(PORTB,7,0XCC)     ' ATENCION
+       Ow_Write(PORTB,7,0X44)     ' PREPARA TEMPERATURA
+       Delay_10ms
+       Ow_Reset(PORTB,7)          ' INICIO DE COMUNICACION
+       Ow_Write(PORTB,7,0XCC)     'ATENCION
+       Ow_Write(PORTB,7,0XBE)     'PETICION DE TEMPERATURA
+       T1 = Ow_Read(PORTB,7)
+       T2 = Ow_Read(PORTB,7)
+       TEMP = (T2<<8) OR T1
+       TEMPC = (TEMP AND $0FF0)>>4 ' VALOR DE TEMPERATURA
+       WordToStr(TEMPC,TEXTO)
+       UART1_Write_Text("TEMPERATURA =")
+       UART1_Write_Text(TEXTO)
+       UART1_Write_Text(" GRADOS")
+       UART1_Write(0X0D)
+       UART1_Write(0X0A)
+      END IF
+     end if
+     if (selector = 0x33) OR (selector = 0x35) then
+     'SENSOR DE LUZ
+       DATO = 100 - (Adc_Read(0)*100)/1024
+       WordToStr(dato,texto2)
+       UART1_Write_Text("INTENSIDAD: ")
+       UART1_Write_Text(TEXTO2)
+       UART1_Write_Text("%")
+       UART1_Write(0X0D)
+       UART1_Write(0X0A)
+     end if
+     if (selector = 0x34 ) OR (selector = 0x35)then
+     'SENSOR DE MOVIMIENTO
+       DATO3 = (Adc_Read(1))
+       WordToStr(dato3,texto3)
+       UART1_Write_Text("SENSOR DE MOVIMIENTO: ")
+       if DATO3 <400 THEN
+           UART1_Write_Text("NO INTRUSO ")
+       else
+           UART1_Write_Text("INTRUDO DETECTADO")
+       end if
+       'UART1_Write_Text(TEXTO3)
+       'UART1_Write_Text("%")
+       UART1_Write(0X0D)
+       UART1_Write(0X0A)
+     end if
+     Delay_1sec
+     WEND
+end.

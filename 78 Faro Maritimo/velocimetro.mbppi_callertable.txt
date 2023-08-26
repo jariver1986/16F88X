@@ -1,0 +1,26 @@
+main
+	Lcd_Init
+		Delay_5500us
+		Delay_1us
+	Lcd_Cmd
+		Delay_1us
+		Delay_5500us
+		Delay_50us
+	Lcd_Out
+		Lcd_Cmd
+			Delay_1us
+			Delay_5500us
+			Delay_50us
+		Lcd_Chr_CP
+			Lcd_Cmd
+				Delay_1us
+				Delay_5500us
+				Delay_50us
+	UART1_Init
+	PULSO
+	Div_16x16_U
+	PULSO2
+	UART1_Write_Text
+		UART1_Write
+	WordToStr
+		Div_16x16_U

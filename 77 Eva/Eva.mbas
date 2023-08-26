@@ -1,0 +1,42 @@
+program Eva
+
+DIM DATO, T1,T2 AS BYTE
+DIM POT, TEMP,TEMPC AS WORD
+DIM TEMPERATURA AS STRING [6]
+
+main:
+OSCCON = 0X75 ' RELOJ INTERNO
+PORTA  = 0
+TRISA  = 0 'SENSOR DE LUZ Y POTENCIOMETRO
+PORTB  = 0
+TRISB  = 0
+PORTC  = 0
+TRISC  = %00000001 'RC0 SENSOR DE COLOR
+ANSEL  = 0
+ANSELH = 0
+UART1_Init(9600) ' VELOCIDAD DE TRANSMISION
+while (1)
+      'SENSOR DE TEMPERATURA
+        IF (Ow_Reset(PORTC,0))=0 THEN
+          Ow_Write(PORTC,0,0XCC)  'ATENCION
+          Ow_Write(PORTC,0,0X44)  'PREPARAR TEMPERATURA
+          Delay_us(120)
+          Ow_Reset(PORTC,0) ' INICIO NUEVA COMUNICACION
+          Ow_Write(portc,0,0xCC)    'ATENCION
+          Ow_Write(portc,0,0xBE)    ' PETICION DE TEMPERATURA
+          T1 = Ow_Read(PORTC,0) ' PARTE BAJA
+          T2 = Ow_Read(PORTC,0)  'PARTE ALTA
+          TEMP = (T2<<8) OR T1
+          TEMPC =  (TEMP AND $0FF0 )>>4
+          WordToStr(TEMPC,TEMPERATURA)
+          'UART1_Write_Text(TEMPERATURA)
+          UART1_Write_Text("32")
+          PORTB = 0XFF
+          Delay_ms(1000)
+          PORTB = 0X00
+      END IF
+
+
+
+wend
+end.

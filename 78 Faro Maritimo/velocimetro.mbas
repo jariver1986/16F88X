@@ -1,0 +1,142 @@
+program velocimetro
+
+dim LCD_RS as sbit at RB1_bit
+    LCD_EN as sbit at RA3_bit
+    LCD_D4 as sbit at RC2_bit
+    LCD_D5 as sbit at RA4_bit
+    LCD_D6 as sbit at RC1_bit
+    LCD_D7 as sbit at RA2_bit
+
+    LCD_RS_Direction as sbit at TRISB1_bit
+    LCD_EN_Direction as sbit at TRISA3_bit
+    LCD_D4_Direction as sbit at TRISC2_bit
+    LCD_D5_Direction as sbit at TRISA4_bit
+    LCD_D6_Direction as sbit at TRISC1_bit
+    LCD_D7_Direction as sbit at TRISA2_bit
+
+DIM FLANCO,TIEMPO,CENTINELA,MOSTRAR,ENA AS BYTE
+DIM DISTANCIA,DISTANCIA2 AS WORD
+DIM TEXT,TEXT2 AS STRING[6]
+DIM CONTADOR,CONTADOR2 AS WORD
+DIM VELOCIDAD AS FLOAT
+DIM TEXT3 AS string [23]
+
+SUB PROCEDURE PULSO()
+PORTC.3=1
+Delay_us(150)
+PORTC.3=0
+END SUB
+SUB PROCEDURE PULSO2()
+PORTB.4=1
+Delay_us(150)
+PORTB.4=0
+END SUB
+'********************PROGRAMA PRINCIPAL+********************************
+main:
+
+   OPTION_REG=%10000110' PULL-UP DISABLED ,PRESC=128
+                        'TIEMPO= (4/FOSC)*PRESC*(256-TMR0)
+' Registro Oscilador de control
+     OSCCON = 0X65 ' Oscilador interno de 4mhz
+' Registro PUERTO B
+     TRISB = 0X20 ' PORTB salidas
+     PORTB = 0X00
+' Registro PUERTO C
+     TRISC = 0X50 '
+     PORTC = 0X00
+' Registro PUERTO E
+     TRISE = 0X00 ' PORTE salidas
+     PORTE = 0X00
+' Seleccion de registro analogico. 1 analogico, 0 digitales
+     ANSEL = 0X00 ' AN<7:0>
+     ANSELH = 0X00 ' AN<13:8>
+     FLANCO=0
+     CONTADOR=0
+     MOSTRAR=0
+     CENTINELA=0
+     CONTADOR2=0
+     ENA =0
+     Lcd_Init()                        ' Inicializacion Lcd
+     Lcd_Cmd(_LCD_CLEAR)               ' encera display
+     Lcd_Cmd(_LCD_CURSOR_OFF)          ' Cursor off
+     Lcd_Out(1,2,"ESPOL")                 ' escribe la cadena en la primera fila
+     Lcd_Out(2,2,"FIMCBOR")
+     Delay_ms(2000)
+     Lcd_Cmd(_LCD_CLEAR)               ' encera display
+     Lcd_Cmd(_LCD_CURSOR_OFF)          ' Cursor off
+     Lcd_Out(2,1,"T[s]")
+     UART1_Init(9600)
+
+WHILE(1)
+if ENA=0 then
+    PULSO()
+    DO
+     IF(PORTC.4=1)THEN'DETECTO FLANCO SUBIDA ECHO PULSE
+       TMR0=0
+       FLANCO=1
+     END IF
+    LOOP UNTIL(FLANCO=1)
+     DO
+     IF(PORTC.4=0)THEN 'DETECTO FLANCO SUBIDA ECHO PULSE
+       TIEMPO=TMR0
+       FLANCO=0
+     END IF
+    LOOP UNTIL(FLANCO=0)
+    DISTANCIA=(TIEMPO*128)/58 'DISTANCIA EN cm
+end if
+
+  
+  PULSO2()
+  DO
+   IF(PORTB.5=1)THEN'DETECTO FLANCO SUBIDA ECHO PULSE
+     TMR0=0
+     FLANCO=1
+   END IF
+  LOOP UNTIL(FLANCO=1)
+   DO
+   IF(PORTB.5=0)THEN 'DETECTO FLANCO SUBIDA ECHO PULSE
+     TIEMPO=TMR0
+     FLANCO=0
+   END IF
+  LOOP UNTIL(FLANCO=0)
+  DISTANCIA2=(TIEMPO*128)/58 'DISTANCIA EN cm
+  if DISTANCIA < 50 then
+     ENA=1
+     CENTINELA=1
+     PORTB.RB0=1
+     Lcd_Out(1,1,"S1")
+  end if
+  if (DISTANCIA2 < 40) AND (CENTINELA=1) then
+     CENTINELA=0
+     MOSTRAR=1
+     PORTB.RB7=1
+     Lcd_Out(1,7,"S2")
+     UART1_Write_Text("TIEMPO= ")
+     WordToStr(CONTADOR2,TEXT)
+     UART1_Write_Text(TEXT)
+     UART1_Write_Text(":")
+     WordToStr(CONTADOR,TEXT)
+     UART1_Write_Text(TEXT)
+     UART1_Write_Text(" Segundos")
+     while 1
+
+     wend
+  end if
+    if CENTINELA=1  then
+     CONTADOR= CONTADOR+1
+     if (CONTADOR=30)or(CONTADOR=60)or(CONTADOR=90) then
+        CONTADOR2= CONTADOR2+1
+     end if
+     if CONTADOR=90 then
+        CONTADOR=0
+        CONTADOR2= CONTADOR2+1
+     end if
+     WordToStr(CONTADOR,TEXT)
+     Lcd_Out(2,12,TEXT)
+     WordToStr(CONTADOR2,TEXT)
+     Lcd_Out(2,7,TEXT)
+     Lcd_Out(2,13,":")
+     'Delay_us(250)
+  end if
+WEND
+end.

@@ -1,0 +1,15 @@
+main
+	UART1_Init
+	Ow_Reset
+		Delay_500us
+		Delay_80us
+	Ow_Write
+		Delay_80us
+		Delay_50us
+	Ow_Read
+		Delay_1us
+		Delay_50us
+	WordToStr
+		Div_16x16_U
+	UART1_Write_Text
+		UART1_Write

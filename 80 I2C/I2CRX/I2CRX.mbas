@@ -1,0 +1,28 @@
+program I2CRX
+DIM DATO AS BYTE
+main:
+    OSCCON = 0X75
+
+    ANSEL  = 0               ' Configure AN pins as digital I/O
+    ANSELH = 0
+    PORTA = 0
+    TRISA = 0
+    PORTB = 0
+    TRISB = 0
+    PORTC = 0
+    TRISC = 0
+    I2C1_Init(100000)        ' initialize I2C communication
+    I2C1_Start()             ' issue I2C start signal
+    UART1_Init(9600)
+
+    while 1
+    DATO = I2C1_Rd(0)
+    'if isalpha(DATO) OR isdigit(DATO) OR isalnum(DATO)then
+'       UART1_Write(DATO)
+'    end if
+     UART1_Write(DATO)
+    
+    Delay_ms(200)
+    wend
+
+end.
