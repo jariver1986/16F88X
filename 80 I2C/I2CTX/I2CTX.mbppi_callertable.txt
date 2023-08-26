@@ -1,0 +1,5 @@
+main
+	I2C1_Init
+	I2C1_Start
+		I2C1_Is_Idle
+	I2C1_Wr

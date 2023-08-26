@@ -1,0 +1,14 @@
+Line	MessageNo	File Name
+0	1	mBPic.exe -DBG -pP16F887 -MSF -Y -DL -O11111114 -fo8 -N"C:\Users\johnanibal\Documents\Desarrollo_Mikrobasic\Proyectos 2014\I2C\PROYECTO_I2C.mbppi" -SP"C:\Program Files (x86)\Mikroelektronika\mikroBasic PRO for PIC\defs\" -SP"C:\Program Files (x86)\Mikroelektronika\mikroBasic PRO for PIC\Uses\P16\" -SP"C:\Users\johnanibal\Documents\Desarrollo_Mikrobasic\Proyectos 2014\I2C\" "__Lib_Math.mcl" "__Lib_MathDouble.mcl" "__Lib_System.mcl" "__Lib_Delays.mcl" "__Lib_I2C_c34.mcl" "PROYECTO_I2C.mbas"	 
+diagnostics: 0	154	Available RAM: 352 [bytes], Available ROM: 8192 [bytes]	 
+diagnostics: 0	132	Compilation Started	C:\Users\johnanibal\Documents\Desarrollo_Mikrobasic\Proyectos 2014\I2C\PROYECTO_I2C.mbas
+hint: 1	1015	Hint: Compiling unit "C:\Users\johnanibal\Documents\Desarrollo_Mikrobasic\Proyectos 2014\I2C\PROYECTO_I2C.mbas"	PROYECTO_I2C.mbas
+hint: 25	1010	Hint: Unit "PROYECTO_I2C.mbas" has been recompiled	PROYECTO_I2C.mbas
+diagnostics: 0	133	Compiled Successfully	C:\Users\johnanibal\Documents\Desarrollo_Mikrobasic\Proyectos 2014\I2C\PROYECTO_I2C.mbas
+diagnostics: 0	138	All files Compiled in 32 ms	 
+hint: 0	1143	Used RAM (bytes): 6 (2%)  Free RAM (bytes): 346 (98%)	Used RAM (bytes): 6 (2%)  Free RAM (bytes): 346 (98%)
+hint: 0	1143	Used ROM (program words): 207 (3%)  Free ROM (program words): 7985 (97%)	Used ROM (program words): 207 (3%)  Free ROM (program words): 7985 (97%)
+diagnostics: 0	144	Project Linked Successfully	PROYECTO_I2C.mbppi
+diagnostics: 0	139	Linked in 265 ms	 
+diagnostics: 0	140	Project 'PROYECTO_I2C.mbppi' completed: 453 ms	 
+diagnostics: 0	103	Finished successfully: 14 mar 2014, 10:54:21	PROYECTO_I2C.mbppi
