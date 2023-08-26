@@ -1,0 +1,27 @@
+program puenteh
+
+dim dato as BYTE
+
+main:
+OSCCON = 0X75
+TRISA  = 0X01
+PORTA=0
+PORTC=0
+TRISC=0
+ANSEL=0X01
+ANSELH=0
+PWM1_Init(1000)
+PWM2_Init(1000)
+PWM1_Start
+PWM2_Start
+
+while
+DATO = Adc_Read(0)>>2
+PWM1_Set_Duty(DATO)
+PWM2_Set_Duty(DATO)
+Delay_ms(1000)
+wend
+
+
+
+end.

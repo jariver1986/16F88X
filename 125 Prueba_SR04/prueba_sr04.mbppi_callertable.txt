@@ -1,0 +1,9 @@
+main
+	UART1_Init
+	PULSO
+	Div_16x16_U
+	WordToStr
+		Div_16x16_U
+	UART1_Write_Text
+		UART1_Write
+	UART1_Write

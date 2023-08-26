@@ -1,0 +1,60 @@
+program prueba_sr04
+
+DIM FLANCO,TIEMPO,DATO AS BYTE
+DIM DISTANCIA AS WORD
+DIM TEXTO AS STRING[10]
+dim Raw_temp, TempC, comma as word
+dim i, j1, j2, minus       as byte
+dim text                   as string[14]
+
+SUB PROCEDURE PULSO()
+PORTC.3=1
+Delay_us(150)
+PORTC.3=0
+END SUB
+
+
+main:
+     OPTION_REG=%00000110'
+     OSCCON = 0X65
+     TRISB = %00000001
+     PORTB = %00000000
+     TRISC = %10000001
+     PORTC = %00000000
+     TRISE = %00000000
+     PORTE = %00000000
+     TRISA = %00000000
+     PORTA = %00000000
+     ANSEL = %00000000
+     ANSELH = %00000000
+     FLANCO=0
+     UART1_Init(9600)
+'     UART1_Init(5700)
+     DISTANCIA = 0
+
+
+
+WHILE(1)
+  PULSO()
+  DO
+   IF(PORTC.0=1)THEN
+     TMR0=0
+     FLANCO=1
+   END IF
+  LOOP UNTIL(FLANCO=1)
+   DO
+   IF(PORTC.0=0)THEN
+     TIEMPO=TMR0
+     FLANCO=0
+   END IF
+  LOOP UNTIL(FLANCO=0)
+  DISTANCIA=258-(TIEMPO*128)/58 'DISTANCIA EN cm
+  WordToStr(DISTANCIA, TEXTO)
+  UART1_Write_Text("DISTANCIA = ")
+  UART1_Write_Text(TEXTO)
+  UART1_Write(0X0D)
+    UART1_Write(0X0A)
+  Delay_ms(500)
+
+WEND
+end.

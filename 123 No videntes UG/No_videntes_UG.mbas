@@ -1,0 +1,89 @@
+program No_videntes_UG
+
+DIM TIEMPO,DATO,TURNO AS BYTE
+DIM DISTANCIA1, DISTANCIA2 ,DISTANCIA3 AS WORD
+DIM TEXTO AS STRING [10]
+DIM TEXTO1,TEXTO2 AS STRING [10]
+DIM DECENA,CENTENA AS INTEGER
+
+sub function ultrasonico1( ) as word
+     dim flanco as byte
+     dim distan,tiempo as word
+     flanco = 0
+
+     PORTC.RC0 = 1
+     Delay_us(150)
+     PORTC.RC0 = 0
+
+     DO
+          IF( PORTC.RC1 = 1 )THEN
+               TMR0 = 0
+               flanco = 1
+          END IF
+     LOOP UNTIL( flanco = 1 )
+
+     DO
+          IF( PORTC.RC1 = 0 )THEN
+               tiempo = TMR0
+               flanco = 0
+          END IF
+          'if(TMR0>254)THEN
+'           FLANCO=0
+'          END IF
+     LOOP UNTIL( FLANCO = 0 )
+
+     distan = (tiempo*128)/58
+     Delay_ms (50)
+     result = distan
+end sub
+
+
+main:
+OPTION_REG = %00000110
+OSCCON = 0x65
+PORTA  =  0
+TRISA  =  %00010100
+PORTB  =  0
+TRISB  =  %00101010
+PORTC  =  0
+TRISC  =  %10000010
+PORTD  =  0
+TRISD  =  %00000000
+ANSEL =0
+ANSELH = 0
+UART1_Init(9600)
+TURNO=0
+PORTD.RD2=1
+      Delay_ms(200)
+      PORTD.RD2=0
+      Delay_ms(200)
+      PORTD.RD2=1
+      Delay_ms(200)
+      PORTD.RD2=0
+      Delay_ms(200)
+      Delay_ms(1000)
+      
+      UART1_Write_Text("SALUDOS A TODOS")
+      Delay_ms(1000)
+distancia1 = ultrasonico1()
+distancia1 = ultrasonico1()
+
+while 1
+ distancia1 = ultrasonico1()
+ if DISTANCIA1 <150 then
+    PORTD.RD2=1
+    Delay_ms(200)
+    PORTD.RD2=0
+    Delay_ms(200)
+    PORTD.RD2=1
+    Delay_ms(200)
+    PORTD.RD2=0
+    Delay_ms(200)
+     WordToStr(DISTANCIA1,TEXTO)
+     UART1_Write_Text(" ATENCION OBJETO A ")
+     UART1_Write_Text(TEXTO)
+     UART1_Write_Text(" centimetros")
+     Delay_ms(2000)
+ end if
+WEND
+end.

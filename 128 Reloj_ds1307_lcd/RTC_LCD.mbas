@@ -1,0 +1,158 @@
+'*******************************************************************************
+'*******************       Ideas & Tecnologia         **************************
+'******************* Módulo Desarrollo PIC16F887 I&T  **************************
+'*******************     www.ideastechnology.com      **************************
+'
+' * Nombre proyecto:
+'     RTC_LCD
+' * Autor:
+'     Milton Benavides Duran
+'     mbenavidd@gmail.com
+' * Descripcion:
+'     Hacer el uso del integrado DS1307 que es un integrado reloj de tiempo real
+'     por comunicacion i2c donde la hora y la fecha se mostrara en una pantalla lcd
+' * Configuraciones:
+'     Microcontrolador:    PIC16F887
+'     Oscillator:          INT_RC_OSC_NOCLKOUT, 8MHz
+'     Compilador:          mikrobasic 3.2
+'*******************************************************************************
+program RTC_LCD
+
+' declaracion de variables
+dim Hora, Min, Seg, Dia, Mes, Year as byte
+dim texto_hora as string[17]
+dim texto_fecha as string[17]
+dim v_dato as byte
+
+' Asignamos los pins del pic a usar al lcd
+dim LCD_RS as sbit at RB2_bit ' PORTB.2 asignado al PIN RS de la LCD
+    LCD_EN as sbit at RB3_bit ' PORTB.3 asignado al PIN EN de la LCD
+    LCD_D4 as sbit at RB4_bit ' PORTB.4 asignado al PIN D4 de la LCD
+    LCD_D5 as sbit at RB5_bit ' PORTB.5 asignado al PIN D5 de la LCD
+    LCD_D6 as sbit at RB6_bit ' PORTB.6 asignado al PIN D6 de la LCD
+    LCD_D7 as sbit at RB7_bit ' PORTB.7 asignado al PIN D7 de la LCD
+
+    LCD_RS_Direction as sbit at TRISB2_bit
+    LCD_EN_Direction as sbit at TRISB3_bit
+    LCD_D4_Direction as sbit at TRISB4_bit
+    LCD_D5_Direction as sbit at TRISB5_bit
+    LCD_D6_Direction as sbit at TRISB6_bit
+    LCD_D7_Direction as sbit at TRISB7_bit
+
+' leemos la direccion en memoria del rtc
+sub function read_ds1307(dim address as byte) as byte
+     I2C1_Start() ' iniciamos la comunicacion i2c
+     I2C1_Wr(0xd0) ' Control de formato de byte
+     I2C1_Wr(address) ' direccion que se va a leer en ds1307
+     I2C1_Repeated_Start()
+     I2C1_Wr(0xd1) ' Control de formato de byte + 1bit de lectura
+     v_dato=I2C1_Rd(0) ' devuelve el valor buscado en ds1307
+     I2C1_Stop() ' finalizamos la comunicacion i2c
+     result = v_dato
+end sub
+
+' tomamos el valor alto del byte y lo pasamos a valor ascci
+ sub function BCD2_H(dim bcd as byte) as byte
+     dim temp as byte       ' bcd = 0x17 
+     temp = bcd >> 4        ' temp = 0x01
+     result = temp or 0x30  ' result = 0x31
+' valor que va a retornar es 0x31 equivalente 1 en ascci
+end sub
+
+sub function BCD2_L(dim bcd as byte) as byte
+     dim temp as byte       ' bcd = 0x17 
+     temp = bcd and 0x0F    ' temp = 0x07
+     result = temp or 0x30  ' result = 0x37
+' valor que va a retornar es 0x37 equivalente 7 en ascci
+end sub
+
+' escribimos en el ds1307 recive como parametro direccion y el dato a cargar
+sub procedure DS1307_Write(dim Addr, Dato as byte)
+     I2C1_Start()  ' iniciamos la comunicacion i2c
+     I2C1_Wr(0xd0) ' Control de formato de byte
+     I2C1_Wr(Addr) ' direccion que se va a leer
+     I2C1_Wr(Dato) ' dato que se va a escribir en el ds1307
+     I2C1_Stop()   ' finalizamos la comunicacion i2c
+end sub
+
+' Seteamos la hora
+sub procedure set_rtc()
+     DS1307_Write(0, $00) ' asignamos los segundos
+     DS1307_Write(1, $27) ' asignamos los minutos
+     DS1307_Write(2, $23) ' asignamos los horas
+     DS1307_Write(4, $09) ' asignamos los dia
+     DS1307_Write(5, $09) ' asignamos los mes
+     DS1307_Write(6, $15) ' asignamos los ano
+end sub
+
+main:
+' Registro Oscilador de control
+     OSCCON = 0X75 ' Oscilador interno de 8mhz
+' Registro PUERTO B
+     TRISB = 0X01 ' PORTB.0 entrada digital
+     PORTB = 0X00
+' Seleccion de registro analogico. 1 analogico, 0 digitales
+     ANSEL = 0X00 ' AN<7:0>
+     ANSELH = 0X00 ' AN<13:8>
+    
+     delay_ms(250)
+    
+     I2C1_Init(100000) ' Fijamos la velocidad i2c a 100khz
+
+     Lcd_Init() ' inicializamos la pantalla lcd                       
+     Lcd_Cmd(_LCD_CLEAR)               
+     Lcd_Cmd(_LCD_CURSOR_OFF)          
+     Lcd_Out(1,6,"RELOJ") ' Escribimos en la linea 1
+     'Lcd_Out(2,1," ") ' Escribimos en la linea 2
+     Delay_ms(1000)
+     texto_fecha = "Fecha 00/00/00 " ' formato que se va a representar en la lcd
+     texto_hora = "Hora  00:00:00 " ' formato que se va a representar en la lcd
+     
+     DS1307_Write(0x07,0x90) ' SQW seteada a una frecuencia de 1hz
+     
+     ' esto solo va a ocurrir una vez el seteo de la hora 
+     ' aqui va a entrar la primera vez que se energiza el pic luego las
+     ' siguientes veces no va a entrar.
+     if EEPROM_Read(0xff) then
+          set_rtc() ' escribimos la hora a setear
+          EEPROM_Write(0xff,0x00) ' debido a se le cambia el valor de la memoria 0xff
+     end if
+     
+     while true
+          if portb.0 = 1 then
+               Seg  = read_ds1307(0) ' leemos los segundos
+               Min  = read_ds1307(1) ' leemos los minutos
+               Hora = read_ds1307(2) ' leemos los horas
+               Dia  = read_ds1307(4) ' leemos los dias
+               Mes  = read_ds1307(5) ' leemos los mes
+               Year = read_ds1307(6) ' leemos los ano
+          end if
+
+          texto_fecha[6]  = BCD2_H(dia) ' tomamos la parte alta del valor dia
+          texto_fecha[7]  = BCD2_L(dia) ' tomamos la parte baja del valor dia
+          texto_fecha[8]  = "/"
+          texto_fecha[9]  = BCD2_H(mes) ' tomamos la parte alta del valor mes
+          texto_fecha[10] = BCD2_L(mes) ' tomamos la parte baja del valor mes
+          texto_fecha[11] = "/"
+          texto_fecha[12] = BCD2_H(year) ' tomamos la parte alta del valor ano
+          texto_fecha[13] = BCD2_L(year) ' tomamos la parte baja del valor ano
+
+          texto_hora[6] = BCD2_H(hora) ' tomamos la parte alta del valor hora
+          texto_hora[7] = BCD2_L(hora) ' tomamos la parte baja del valor hora
+          texto_hora[8] = ":"
+          texto_hora[9] = BCD2_H(min) ' tomamos la parte alta del valor min
+          texto_hora[10] = BCD2_L(min) ' tomamos la parte baja del valor min
+          texto_hora[11] = ":"
+          texto_hora[12] = BCD2_H(seg) ' tomamos la parte alta del valor seg
+          texto_hora[13] = BCD2_L(seg) ' tomamos la parte baja del valor seg
+          
+          Lcd_Out(1,1,texto_hora) ' Escribimos en la linea 1    
+          Lcd_Out(2,1,texto_fecha) ' Escribimos en la linea 2
+          Delay_ms(100)
+     wend
+end.
+'*******************************************************************************
+'*******************       Ideas & Tecnologia         **************************
+'******************* Módulo Desarrollo PIC16F887 I&T  **************************
+'*******************     www.ideastechnology.com      **************************
+'*******************************************************************************

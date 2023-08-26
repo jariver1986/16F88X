@@ -1,0 +1,110 @@
+program gsm
+
+
+
+dim texto,texto1 as char[33]
+dim turno as byte
+
+main:
+OPTION_REG = %00000110
+  ANSEL  = 0                                     ' Configure AN pins as digital I/O
+  ANSELH = 0
+  OSCCON = 0x75
+  PORTA=0
+  TRISA=0
+  PORTB=0
+  TRISB=0
+  PORTC=0
+  TRISC=%10000010
+  PORTD=0
+  TRISD=0
+  PORTE=0
+  TRISE=0
+  ANSEL=0
+  ANSELH=0
+  UART1_Init(9600)
+  turno =1
+  Delay_1sec
+  Delay_1sec
+
+  UART1_Write_Text("AT")
+ UART1_Write(0X0D)
+ UART1_Write(0X0A)
+UART1_Write_Text("AT+CMGDA =")
+UART1_Write(0x22)
+UART1_Write_Text("DEL ALL")
+UART1_Write(0x22)
+UART1_Write(0X0D)
+UART1_Write(0X0A)
+  while TRUE
+    while turno=1
+         if (UART1_Data_Ready() <> 0) then ' If data is received,
+            UART1_Read_Text(texto,"+CMTI",32)     ' lee la cadena hasta que encuentre la letra K mayuscula
+            turno=2
+         end if
+     wend
+     while turno=2
+           UART1_Write_Text("AT+CMGR=1,1")
+           UART1_Write(0X0D)
+           UART1_Write(0X0A)
+             if (UART1_Data_Ready() <> 0) then ' If data is received,
+                UART1_Write_Text("AT+CMGR=1,1")
+                UART1_Write(0X0D)
+                UART1_Write(0X0A)
+                UART1_Read_Text(texto,"open",32)     ' lee la cadena hasta que encuentre la letra K mayuscula
+                PORTD.RD0=1
+                PORTD.RD1=1
+                UART1_Write_Text("AT+CMGDA =")
+                UART1_Write(0x22)
+                UART1_Write_Text("DEL ALL")
+                UART1_Write(0x22)
+                UART1_Write(0X0D)
+                UART1_Write(0X0A)
+                Delay_ms(200)
+                UART1_Write_Text("AT+CMGDA =")
+                UART1_Write(0x22)
+                UART1_Write_Text("DEL ALL")
+                UART1_Write(0x22)
+                UART1_Write(0X0D)
+                UART1_Write(0X0A)
+                turno=3
+             end if
+             Delay_1sec
+     wend
+'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+    while turno=3
+         if (UART1_Data_Ready() <> 0) then ' If data is received,
+            UART1_Read_Text(texto1,"+CMTI",32)     ' lee la cadena hasta que encuentre la letra K mayuscula
+            turno=4
+         end if
+     wend
+     while turno=4
+           UART1_Write_Text("AT+CMGR=1,1")
+           UART1_Write(0X0D)
+           UART1_Write(0X0A)
+             if (UART1_Data_Ready() <> 0) then ' If data is received,
+                UART1_Write_Text("AT+CMGR=1,1")
+                UART1_Write(0X0D)
+                UART1_Write(0X0A)
+                UART1_Read_Text(texto1,"close",32)     ' lee la cadena hasta que encuentre la letra K mayuscula
+                PORTD.RD0=0
+                PORTD.RD1=0
+                UART1_Write_Text("AT+CMGDA =")
+                UART1_Write(0x22)
+                UART1_Write_Text("DEL ALL")
+                UART1_Write(0x22)
+                UART1_Write(0X0D)
+                UART1_Write(0X0A)
+                Delay_ms(200)
+                UART1_Write_Text("AT+CMGDA =")
+                UART1_Write(0x22)
+                UART1_Write_Text("DEL ALL")
+                UART1_Write(0x22)
+                UART1_Write(0X0D)
+                UART1_Write(0X0A)
+                turno=1
+             end if
+             Delay_1sec
+     wend
+  wend
+end.

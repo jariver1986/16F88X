@@ -1,0 +1,126 @@
+program Puente_lucia
+symbol boton1 = porte.re0
+symbol boton2 = porte.re2
+'*********************conexiones del Lcd********************************
+
+'INICIO DE LCD 16X2
+DIM LCD_RS as sbit at RC0_bit
+LCD_EN as sbit at RC1_bit
+LCD_D4 as sbit at RC2_bit
+LCD_D5 as sbit at RC3_bit
+LCD_D6 as sbit at RC4_bit
+LCD_D7 as sbit at RC5_bit
+LCD_RS_Direction as sbit at TRISC0_bit
+LCD_EN_Direction as sbit at TRISC1_bit
+LCD_D4_Direction as sbit at TRISC2_bit
+LCD_D5_Direction as sbit at TRISC3_bit
+LCD_D6_Direction as sbit at TRISC4_bit
+LCD_D7_Direction as sbit at TRISC5_bit
+
+'***********************variables a utilizar*****************************
+dim revol, valor as word
+dim veloc as byte
+dim txt,rps as string[5]
+dim txt1 as char[16]
+    txt2 as char[16]
+    txt3 as char[16]
+    txt4 as char[16]
+  '  txt5 as char[16]
+'    txt6 as char[16]
+'***********************interrupcion para conteo de revoluciones***********************************
+sub procedure interrupt
+     if TestBit(INTCON,INTF) then ' hubo la interrupcion por portb.0
+          ClearBit(INTCON,INTF)
+          inc(revol) ' incrementamos las revoluciones
+     end if
+end sub
+
+main:
+' Registro Oscilador de control
+     OSCCON = 0X75 ' Oscilador interno de 8mhz
+' Registro de Opciones
+     OPTION_REG = 0X83 ' Pull up PORTB desactivado
+                       ' TMR0 prescaler 16
+' Registro control de interrupciones
+     INTCON = 0XD0 ' Activado interrupciones globales
+                   ' Activado interrupciones perifericas
+                   ' Activado interrupciones externas
+                   ' Activado interrupcion timer 0
+    ' Registro PUERTO A
+     TRISA = 0X00 ' PORTA.0 Entrada
+     PORTA = 0X00
+     ' Registro PUERTO B
+     TRISB = 0X01 ' PORTB.0 Entrada
+     PORTB = 0X00
+   ' Registro PUERTO C
+     TRISC = 0X00 ' PORTC salidas
+     PORTC = 0X00
+   ' Registro PUERTO D
+     TRISD = 0X00 ' PORTC salidas
+     PORTD = 0X00
+
+     ' Registro PUERTO E
+     TRISE = 0X07 ' PORTE  como salidas digital
+     PORTE = 0X00
+' Seleccion de registro analogico. 1 analogico, 0 digitales
+     ANSEL = 0X01 ' AN<7:0>
+     ANSELH = 0X00 ' AN<13:8>
+
+     '*************inicializacion del UART y PWM************
+     UART1_Init(9600)
+     PWM2_Init(5000)
+     PWM2_Start()
+     veloc = 0x00
+
+     txt1 = "RPS="
+     txt2 = "RPS: ###"
+     txt3 = "PROYECTO"
+     txt4 = "FISICA"
+          PORTB.RB1=1
+                PORTB.RB2=1
+                PORTB.RB3=1
+                PORTB.RB4=1
+
+     Lcd_Init()                        ' Initialize Lcd
+      Lcd_Cmd(_LCD_CLEAR)               ' Clear display
+      Lcd_Cmd(_LCD_CURSOR_OFF)          ' Cursor off
+      Lcd_Out(1,1,txt3)                 ' Write text in first row
+      Lcd_Out(2,1,txt4)                 ' Write text in second row
+      Delay_ms(2000)
+
+   '   Lcd_Cmd(_LCD_CLEAR)
+'      Lcd_Out(1,1,txt5)                 ' Write text in first row
+'      Lcd_Out(2,1,txt6)                 ' Write text in second row
+'      Delay_ms(2000)
+      Lcd_Cmd(_LCD_CLEAR)               ' Clear display
+      Lcd_Out(1,1,txt1)                 ' Write text in first row
+'     Lcd_Out(2,1,txt2)                 ' Write text in second row
+      Delay_ms(1000)
+     while 1
+    '      revol = 0 ' revoluciones son iguales a 0
+'          Delay_ms(1000) ' con este tiempo sabemos cuantas revoluciones van haber en 1seg
+'          valor = revol '*(Pi*radio)/4        * ' asignamos las revoluciones al dato valor
+'          WordToStr(valor, txt)
+'          Lcd_Out(2,1,txt)
+
+              if boton1=0 then
+              PORTB.RB1=1
+              PORTB.RB2=0
+              PORTB.RB3=1
+              PORTB.RB4=0
+              end iF
+              
+              if boton2=0 then
+              PORTB.RB1=0
+              PORTB.RB2=1
+              PORTB.RB3=0
+              PORTB.RB4=1
+              end if
+               if ((boton1=0) AND ((boton2=0)))=0 then
+              PORTB.RB1=1
+              PORTB.RB2=1
+              PORTB.RB3=1
+              PORTB.RB4=1
+              end iF
+     wend
+end.
