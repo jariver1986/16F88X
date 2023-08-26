@@ -1,0 +1,74 @@
+program nivel2
+dim LCD_RS as sbit at RB1_bit
+    LCD_EN as sbit at RA3_bit
+    LCD_D4 as sbit at RC2_bit
+    LCD_D5 as sbit at RA4_bit
+    LCD_D6 as sbit at RC1_bit
+    LCD_D7 as sbit at RA2_bit
+
+    LCD_RS_Direction as sbit at TRISB1_bit
+    LCD_EN_Direction as sbit at TRISA3_bit
+    LCD_D4_Direction as sbit at TRISC2_bit
+    LCD_D5_Direction as sbit at TRISA4_bit
+    LCD_D6_Direction as sbit at TRISC1_bit
+    LCD_D7_Direction as sbit at TRISA2_bit
+
+
+' declaracion de variables
+
+dim text as string[10]
+DIM valor,revol AS FLOAT
+dim texto3,texto4,texto5,texto6,texto7,texto8 as string[10]
+
+main:
+     OPTION_REG = 0X00
+' Registro Oscilador de control
+     OSCCON = 0X75 ' Oscilador interno de 8mhz
+' Registro PUERTO A
+     TRISA = 0X01 ' porta.0 como entrada
+     PORTA = 0X00
+' Registro PUERTO B
+     TRISB = 0X01
+     PORTB = 0X00
+' Seleccion de registro analogico. 1 analogico, 0 digitales
+     ANSEL = 0X01 ' AN<7:0>
+     ANSELH = 0X00 ' AN<13:8>
+     VALOR=0
+texto3 = "Grupo:"
+texto4 = "P Ayarza"
+texto5 = "E Chalen"
+texto6 = "P Pacheco"
+texto7 = "P Figueroa"
+texto8 = "W Bagua"
+
+     delay_ms(250)
+     Lcd_Init() ' inicializamos la lcd
+     Lcd_Cmd(_LCD_CURSOR_OFF)
+     Lcd_Cmd(_LCD_CLEAR)
+     Lcd_Out(1, 1, texto3) ' lo que se va a mostrar en la linea 1
+     Lcd_Out(2, 1, texto4) ' lo que se va a mostrar en la linea 2
+     delay_ms(2000)
+     Lcd_Cmd(_LCD_CLEAR)
+     Lcd_Out(1, 1, texto5) ' lo que se va a mostrar en la linea 1
+     Lcd_Out(2, 1, texto6) ' lo que se va a mostrar en la linea 2
+     delay_ms(2000)
+     Lcd_Cmd(_LCD_CLEAR)
+     Lcd_Out(1, 1, texto7) ' lo que se va a mostrar en la linea 1
+     Lcd_Out(2, 1, texto8) ' lo que se va a mostrar en la linea 2
+     delay_ms(2000)
+     Lcd_Cmd(_LCD_CLEAR)
+     Lcd_Out(1, 1, "NIVEL = [CM]") ' lo que se va a mostrar en la linea 1
+  revol=0
+  valor=0
+     while (TRUE)
+        if portb.rb0=1 then
+           while(portb.rb0=1)
+           wend
+           revol=revol +1
+        end if
+        VALOR=(revol*PI)/10
+        FLOATToStr(VALOR ,text)
+        Lcd_Out(2, 4, TEXT) ' lo que se va a mostrar en la linea 2
+        Delay_ms(10)
+     wend
+end.

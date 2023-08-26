@@ -1,0 +1,87 @@
+program no_videntes_botoneras
+DIM KP AS BYTE
+
+sub procedure TECLADO()
+KP=0
+PORTA=%00000110
+   if PORTB.0=0 then
+      while(PORTB.0=0) wend
+      KP= 0X31
+   end if
+   
+  if KP=0 then
+     PORTA=%00000101
+     if PORTB.1=0 then
+        while(PORTB.1=0) wend
+        KP= 0X32
+     end if
+  ELSE
+      RETURN
+  END IF
+  if KP=0 then
+     PORTA=%00000011
+     if PORTB.2=0 then
+        while(PORTB.2=0) wend
+        KP= 0X33
+     end if
+  ELSE
+      RETURN
+  end if
+end sub
+
+main:
+OSCCON = 0X75
+PORTA = 0
+PORTB = 0
+PORTC = 0
+TRISA = 0
+TRISB = %00000111
+TRISC = 0
+ANSEL = 0
+ANSELH= 0
+OPTION_REG = 0X07
+WPUB = %00000111
+UART1_Init(9600)
+
+while (1)
+    TECLADO()
+    IF KP>0 THEN
+       if (KP = 0x31)  then
+           UART1_Write_Text("F")
+           PORTA.RA3=1
+           Delay_ms(200)
+           PORTA.RA3=0
+           Delay_ms(200)
+       end if
+       if (KP = 0x32)  then
+          UART1_Write_Text("D")
+          PORTA.RA3=1
+           Delay_ms(200)
+           PORTA.RA3=0
+           Delay_ms(200)
+           PORTA.RA3=1
+           Delay_ms(200)
+           PORTA.RA3=0
+           Delay_ms(200)
+       end if
+       if (KP = 0x33)  then
+          UART1_Write_Text("I")
+          PORTA.RA3=1
+           Delay_ms(200)
+           PORTA.RA3=0
+           Delay_ms(200)
+           PORTA.RA3=1
+           Delay_ms(200)
+           PORTA.RA3=0
+           Delay_ms(200)
+           PORTA.RA3=1
+           Delay_ms(200)
+           PORTA.RA3=0
+           Delay_ms(200)
+       end iF
+       Delay_1sec
+       Delay_1sec
+       Delay_1sec
+    END IF
+wend
+end.

@@ -1,0 +1,5 @@
+main
+	UART1_Init
+	PULSO
+	Div_16x16_U
+	Delay_1sec

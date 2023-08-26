@@ -1,0 +1,210 @@
+program no_videntes
+
+DIM TIEMPO,DATO,TURNO AS BYTE
+DIM DISTANCIA1, DISTANCIA2 ,DISTANCIA3 AS WORD
+DIM TEXTO AS STRING [10]
+DIM TEXTO1,TEXTO2 AS STRING [10]
+DIM DECENA,CENTENA AS INTEGER
+sub function ultrasonico1( ) as word
+     dim flanco as byte
+     dim distan,tiempo as word
+     flanco = 0
+
+     PORTB.RB0 = 1
+     Delay_us(150)
+     PORTB.RB0 = 0
+
+     DO
+          IF( PORTB.RB1 = 1 )THEN
+               TMR0 = 0
+               flanco = 1
+          END IF
+     LOOP UNTIL( flanco = 1 )
+
+     DO
+          IF( PORTB.RB1 = 0 )THEN
+               tiempo = TMR0
+               flanco = 0
+          END IF
+          'if(TMR0>254)THEN
+'           FLANCO=0
+'          END IF
+     LOOP UNTIL( FLANCO = 0 )
+
+     distan = (tiempo*128)/58
+     Delay_ms (50)
+     result = distan
+end sub
+sub function ultrasonico2( ) as word
+     dim flanco as byte
+     dim distan,tiempo as word
+     flanco = 0
+
+     PORTA.RA3 = 1
+     Delay_us(150)
+     PORTA.RA3 = 0
+
+     DO
+          IF( PORTA.RA4 = 1 )THEN
+               TMR0 = 0
+               flanco = 1
+          END IF
+     LOOP UNTIL( flanco = 1 )
+
+     DO
+          IF( PORTA.RA4 = 0 )THEN
+               tiempo = TMR0
+               flanco = 0
+          END IF
+         ' if(TMR0>254)THEN
+'           FLANCO=0
+'          END IF
+     LOOP UNTIL( FLANCO = 0 )
+
+     distan = (tiempo*128)/58
+     Delay_ms (50)
+     result = distan
+end sub
+sub function ultrasonico3( ) as word
+     dim flanco as byte
+     dim distan,tiempo as word
+     flanco = 0
+
+     PORTA.RA1 = 1
+     Delay_us(150)
+     PORTA.RA1 = 0
+
+     DO
+          IF( PORTA.RA2 = 1 )THEN
+               TMR0 = 0
+               flanco = 1
+          END IF
+     LOOP UNTIL( flanco = 1 )
+
+     DO
+          IF( PORTA.RA2 = 0 )THEN
+               tiempo = TMR0
+               flanco = 0
+          END IF
+         ' if(TMR0>254)THEN
+'           FLANCO=0
+'          END IF
+     LOOP UNTIL( FLANCO = 0 )
+
+     distan = (tiempo*128)/58
+     Delay_ms (50)
+     result = distan
+end sub
+
+main:
+OPTION_REG = %00000110
+OSCCON = 0x65
+PORTA  =  0
+TRISA  =  %00010100
+PORTB  =  0
+TRISB  =  %00101010
+PORTC  =  0
+TRISC  =  %10000000
+ANSEL =0
+ANSELH = 0
+UART1_Init(9600)
+TURNO=0
+WHILE (1)
+
+
+    '   distancia1 = ultrasonico1()
+'       WordToStr(DISTANCIA1,TEXTO)
+'       UART1_Write_Text(" D = ")
+'       UART1_Write_Text(TEXTO)
+'       UART1_Write(0x0d)
+'       UART1_Write(0x0a)
+
+   if UART1_Data_Ready=1 then
+      DATO = UART1_Read
+   end if
+   if DATO = "F" then
+      distancia1 = ultrasonico1()
+      IF  distancia1 <400 then
+       if distancia1 <99 then
+           WordToStr(DISTANCIA1,TEXTO)
+           UART1_Write_Text(" OBJETO EN FRENTE DISTANCIA ")
+           UART1_Write_Text(TEXTO)
+           UART1_Write_Text(" centimetros")
+           DATO=0
+       else
+           CENTENA = DISTANCIA1/100
+           DECENA  = DISTANCIA1 MOD 100
+           IntToStr(CENTENA,TEXTO1)
+           IntToStr(DECENA,TEXTO2)
+           UART1_Write_Text(" OBJETO EN FRENTE DISTANCIA ")
+           UART1_Write_Text(TEXTO1)
+           UART1_Write_Text(" punto ")
+           UART1_Write_Text(TEXTO2)
+           UART1_Write_Text(" metros")
+           DATO=0
+       end iF
+      ELSE
+           UART1_Write_Text(" DISTANCIA FUERA DE ALCANCE EN FRENTE ")
+           DATO=0
+      END IF
+   end iF
+   
+   if DATO = "I" then
+       distancia2 = ultrasonico2()
+      IF  distancia2 <400 then
+       if distancia2 <99 then
+           WordToStr(DISTANCIA2,TEXTO)
+           UART1_Write_Text(" OBJETO A LA IZQUIERDA DISTANCIA ")
+           UART1_Write_Text(TEXTO)
+           UART1_Write_Text(" centimetros")
+           DATO=0
+       else
+           CENTENA = DISTANCIA2/100
+           DECENA  = DISTANCIA2 MOD 100
+           IntToStr(CENTENA,TEXTO1)
+           IntToStr(DECENA,TEXTO2)
+           UART1_Write_Text(" OBJETO A LA IZQUIERDA DISTANCIA ")
+           UART1_Write_Text(TEXTO1)
+           UART1_Write_Text(" punto ")
+           UART1_Write_Text(TEXTO2)
+           UART1_Write_Text(" metros")
+           DATO=0
+       end iF
+      ELSE
+           UART1_Write_Text(" DISTANCIA FUERA DE ALCANCE A LA IZQUIERDA ")
+           DATO=0
+      END IF
+      distancia3 = ultrasonico3()
+      IF  distancia3 <400 then
+             if distancia3 <99 then
+                 WordToStr(DISTANCIA3,TEXTO)
+                 UART1_Write_Text(" OBJETO A LA DERECHA DISTANCIA ")
+                 UART1_Write_Text(TEXTO)
+                 UART1_Write_Text(" centimetros")
+                 DATO=0
+             else
+                 CENTENA = DISTANCIA3/100
+                 DECENA  = DISTANCIA3 MOD 100
+                 IntToStr(CENTENA,TEXTO1)
+                 IntToStr(DECENA,TEXTO2)
+                 UART1_Write_Text(" OBJETO A LA DERECHA DISTANCIA ")
+                 UART1_Write_Text(TEXTO1)
+                 UART1_Write_Text(" punto ")
+                 UART1_Write_Text(TEXTO2)
+                 UART1_Write_Text(" metros")
+                 DATO=0
+             end iF
+      ELSE
+             UART1_Write_Text(" DISTANCIA FUERA DE ALCANCE A LA DERECHA ")
+             DATO=0
+      END IF
+   end if
+   if DATO = "D" then
+       UART1_Write_Text("mensaje")
+       Delay_1sec
+       Delay_1sec
+       DATO=0
+   end if
+   Delay_ms(200)
+WEND
+end.

@@ -1,0 +1,24 @@
+Line	MessageNo	File Name
+0	1	mBPic.exe -DBG -pP16F886 -MSF -Y -DL -O11111114 -fo4 -N"C:\Users\johnanibal\Documents\Desarrollo_Mikrobasic\Proyectos 2014\No_videntes\no_videntes.mbppi" -SP"C:\Program Files (x86)\Mikroelektronika\mikroBasic PRO for PIC\defs\" -SP"C:\Program Files (x86)\Mikroelektronika\mikroBasic PRO for PIC\Uses\P16\" -SP"C:\Users\johnanibal\Documents\Desarrollo_Mikrobasic\Proyectos 2014\No_videntes\" "__Lib_Math.mcl" "__Lib_MathDouble.mcl" "__Lib_System.mcl" "__Lib_Delays.mcl" "__Lib_CType.mcl" "__Lib_String.mcl" "__Lib_Conversions.mcl" "__Lib_Time.mcl" "__Lib_Trigon.mcl" "__Lib_Trigonometry.mcl" "__Lib_Button.mcl" "__Lib_Keypad4x4.mcl" "__Lib_Manchester.mcl" "__Lib_OneWire.mcl" "__Lib_PS2.mcl" "__Lib_Sound.mcl" "__Lib_SoftI2C.mcl" "__Lib_SoftSPI.mcl" "__Lib_SoftUART.mcl" "__Lib_ADC_88X.mcl" "__Lib_EEPROM.mcl" "__Lib_FLASH_RW.mcl" "__Lib_I2C_c34.mcl" "__Lib_PWM_c21.mcl" "__Lib_SPI_c345.mcl" "__Lib_UART_c67.mcl" "__Lib_PortExpander.mcl" "__Lib_CANSPI.mcl" "__Lib_CF.mcl" "__Lib_GlcdFonts.mcl" "__Lib_Glcd.mcl" "__Lib_LcdConsts.mcl" "__Lib_Lcd.mcl" "__Lib_RS485.mcl" "__Lib_T6963C.mcl" "__Lib_SPIGlcd.mcl" "__Lib_SPILcd.mcl" "__Lib_SPILcd8.mcl" "__Lib_SPIT6963C.mcl" "__Lib_EthEnc28j60.mcl" "no_videntes.mbas"	 
+diagnostics: 0	154	Available RAM: 352 [bytes], Available ROM: 8192 [bytes]	 
+diagnostics: 0	132	Compilation Started	C:\Users\johnanibal\Documents\Desarrollo_Mikrobasic\Proyectos 2014\No_videntes\no_videntes.mbas
+hint: 1	1015	Hint: Compiling unit "C:\Users\johnanibal\Documents\Desarrollo_Mikrobasic\Proyectos 2014\No_videntes\no_videntes.mbas"	no_videntes.mbas
+hint: 110	1006	Warning: Generated baud rate is 9615 bps (error = 0.16 percent)	no_videntes.mbas
+hint: 129	1016	Warning: Source size (10) does not match destination size (5)	no_videntes.mbas
+hint: 137	1016	Warning: Source size (10) does not match destination size (6)	no_videntes.mbas
+hint: 138	1016	Warning: Source size (10) does not match destination size (6)	no_videntes.mbas
+hint: 156	1016	Warning: Source size (10) does not match destination size (5)	no_videntes.mbas
+hint: 164	1016	Warning: Source size (10) does not match destination size (6)	no_videntes.mbas
+hint: 165	1016	Warning: Source size (10) does not match destination size (6)	no_videntes.mbas
+hint: 180	1016	Warning: Source size (10) does not match destination size (5)	no_videntes.mbas
+hint: 188	1016	Warning: Source size (10) does not match destination size (6)	no_videntes.mbas
+hint: 189	1016	Warning: Source size (10) does not match destination size (6)	no_videntes.mbas
+hint: 210	1010	Hint: Unit "no_videntes.mbas" has been recompiled	no_videntes.mbas
+diagnostics: 0	133	Compiled Successfully	C:\Users\johnanibal\Documents\Desarrollo_Mikrobasic\Proyectos 2014\No_videntes\no_videntes.mbas
+diagnostics: 0	138	All files Compiled in 313 ms	 
+hint: 0	1143	Used RAM (bytes): 99 (28%)  Free RAM (bytes): 253 (72%)	Used RAM (bytes): 99 (28%)  Free RAM (bytes): 253 (72%)
+hint: 0	1143	Used ROM (program words): 2402 (29%)  Free ROM (program words): 5790 (71%)	Used ROM (program words): 2402 (29%)  Free ROM (program words): 5790 (71%)
+diagnostics: 0	144	Project Linked Successfully	no_videntes.mbppi
+diagnostics: 0	139	Linked in 1437 ms	 
+diagnostics: 0	140	Project 'no_videntes.mbppi' completed: 2453 ms	 
+diagnostics: 0	103	Finished successfully: 23 may 2015, 19:44:14	no_videntes.mbppi

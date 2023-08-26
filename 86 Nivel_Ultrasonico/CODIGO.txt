@@ -1,0 +1,67 @@
+program nivel_ultrasonico
+
+DIM FLANCO,TIEMPO,DATO,CONTADOR,i AS BYTE
+DIM DISTANCIA AS WORD
+DIM TEXT AS STRING[6]
+DIM PROMEDIO AS BYTE [20]
+
+SUB PROCEDURE PULSO()
+PORTC.3=1
+Delay_us(150)
+PORTC.3=0
+END SUB
+'********************PROGRAMA PRINCIPAL+********************************
+main:
+
+   OPTION_REG=%00000110' PULL-UP DISABLED ,PRESC=128
+                        'TIEMPO= (4/FOSC)*PRESC*(256-TMR0)
+' Registro Oscilador de control
+     OSCCON = 0X65 ' Oscilador interno de 4mhz
+' Registro PUERTO B
+     TRISB = 0X00 ' PORTB salidas
+     PORTB = 0X00
+' Registro PUERTO C
+     TRISC = 0XF1 ' PORTC salidas
+     PORTC = 0X00
+' Registro PUERTO E
+     TRISE = 0X00 ' PORTE salidas
+     PORTE = 0X00
+     TRISA = %00000011
+     PORTA = %00001100
+' Seleccion de registro analogico. 1 analogico, 0 digitales
+     ANSEL = 0X00 ' AN<7:0>
+     ANSELH = 0X00 ' AN<13:8>
+     FLANCO=0
+     UART1_Init(9600)
+     DISTANCIA = 0
+  CONTADOR=0
+  i=0
+WHILE(1)
+  PULSO()
+  DO
+   IF(PORTC.0=1)THEN'DETECTO FLANCO SUBIDA ECHO PULSE
+     TMR0=0
+     FLANCO=1
+   END IF
+  LOOP UNTIL(FLANCO=1)
+   DO
+   IF(PORTC.0=0)THEN 'DETECTO FLANCO SUBIDA ECHO PULSE
+     TIEMPO=TMR0
+     FLANCO=0
+   END IF
+  LOOP UNTIL(FLANCO=0)
+  DISTANCIA=(TIEMPO*128)/58 'DISTANCIA EN cm
+  PORTB = DISTANCIA
+  if PORTA.RA0=1 then
+     PORTA.RA2=0
+  ELSE
+     PORTA.RA2=1
+  end if
+  if PORTA.RA1=1 then
+     PORTA.RA3=0
+  ELSE
+     PORTA.RA3=1
+  end if
+  Delay_1sec
+WEND
+end.

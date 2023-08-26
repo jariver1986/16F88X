@@ -1,0 +1,110 @@
+program nivel
+
+dim CONTADOR, VUELTA as word
+dim veloc as byte
+dim valor,revol as float
+dim constante as float
+dim txt1 as char[16]
+    txt2 as string[12]
+    txt3 as char[12]
+    txt4 as char[12]
+    'txt5 as char[6]
+    txt6 as char[6]
+    text7 as char[12]
+    text8 as char[12]
+    text9 as char[12]
+    text10 as char[12]
+    text11 as char[12]
+    text12 as char[12]
+dim txt5 as string[5]
+
+
+dim LCD_RS as sbit at RB1_bit
+    LCD_EN as sbit at RA3_bit
+    LCD_D4 as sbit at RC2_bit
+    LCD_D5 as sbit at RA4_bit
+    LCD_D6 as sbit at RC1_bit
+    LCD_D7 as sbit at RA2_bit
+
+    LCD_RS_Direction as sbit at TRISB1_bit
+    LCD_EN_Direction as sbit at TRISA3_bit
+    LCD_D4_Direction as sbit at TRISC2_bit
+    LCD_D5_Direction as sbit at TRISA4_bit
+    LCD_D6_Direction as sbit at TRISC1_bit
+    LCD_D7_Direction as sbit at TRISA2_bit
+main:
+
+' Registro Oscilador de control
+     OSCCON = 0X75 ' Oscilador interno de 8mhz
+
+     TRISA = 0X00
+     PORTA = 0x00
+
+     TRISB = 0X01
+     PORTB = 0X00
+
+     TRISC = 0X80
+     PORTC = 0X00
+
+     ANSEL = 0X00
+     ANSELH = 0X00
+      txt1 = "MEDIDOR DE NIVEL"
+      txt2 = "ESPOL"
+
+      text7 = "P Ayarza"
+      text8 = "E Chalen"
+      text9 = "P Pacheco"
+      text10 ="P Figueroa"
+      text12 ="W Bagua"
+      text11 = "Grupo:"
+
+      Lcd_Init()                        ' Initialize Lcd
+      Lcd_Cmd(_LCD_CLEAR)               ' Clear display
+      Lcd_Cmd(_LCD_CURSOR_OFF)          ' Cursor off
+
+      Lcd_Out(1,1,txt1)                 ' Write text in first row
+      Lcd_Out(2,7,txt2)                 ' Write text in second row
+      Delay_ms(2000)
+      Lcd_Cmd(_LCD_CLEAR)               ' Clear display
+
+
+ '     Lcd_Out(1,1,text11)                ' Write text in first row
+'      Delay_ms(2000)
+'      Lcd_Cmd(_LCD_CLEAR)               ' Clear display
+'
+'      Lcd_Out(1,1,text7)                 ' Write text in first row
+'      Lcd_Out(2,1,text8)                 ' Write text in second row
+'      Delay_ms(2000)
+'      Lcd_Cmd(_LCD_CLEAR)               ' Clear display
+'
+'      Lcd_Out(1,1,text9)                 ' Write text in first row
+'      Lcd_Out(2,1,text10)                 ' Write text in second row
+'      Delay_ms(2000)
+'      Lcd_Cmd(_LCD_CLEAR)               ' Clear display
+'      Lcd_Out(1,1,text12)                 ' Write text in first row
+'      Delay_ms(2000)
+'      Lcd_Cmd(_LCD_CLEAR)               ' Clear display
+      CONTADOR=0
+      VUELTA=0
+      constante=(9.7)/12
+      revol=0
+      revol=0
+     while 1
+          if portb.rb0=1 then
+             while(portb.rb0=1)
+             wend
+          revol=revol+1
+          end if
+          valor = (revol*pi)/2
+          FloatToStr(valor, txt5)
+          'Lcd_Out(1,1,"Nivel=")
+'          Lcd_Chr(1,1,txt5[0])
+'          Lcd_Chr(1,2,txt5[1])
+'          Lcd_Chr(1,3,txt5[2])
+'          Lcd_Chr(1,4,txt5[3])
+'          Lcd_Chr(1,5,txt5[4])
+'          Lcd_Chr(1,6,txt5[5])
+          Lcd_Out(2,5,txt5)
+          Delay_ms(10)
+     wend
+end.

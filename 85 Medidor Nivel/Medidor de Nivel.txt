@@ -1,0 +1,140 @@
+program Odometro
+
+dim CONTADOR,revol, VUELTA as word
+dim veloc as byte
+dim valor as word
+dim constante as float
+dim txt1 as char[16]
+    txt2 as string[12]
+    txt3 as char[12]
+    txt4 as char[12]
+    txt5 as char[6]
+    txt6 as char[6]
+    text7 as char[12]
+    text8 as char[12]
+    text9 as char[12]
+    text10 as char[12]
+    text11 as char[12]
+    text12 as char[12]
+    
+
+dim LCD_RS as sbit at RB1_bit
+    LCD_EN as sbit at RA3_bit
+    LCD_D4 as sbit at RC2_bit
+    LCD_D5 as sbit at RA4_bit
+    LCD_D6 as sbit at RC1_bit
+    LCD_D7 as sbit at RA2_bit
+
+    LCD_RS_Direction as sbit at TRISB1_bit
+    LCD_EN_Direction as sbit at TRISA3_bit
+    LCD_D4_Direction as sbit at TRISC2_bit
+    LCD_D5_Direction as sbit at TRISA4_bit
+    LCD_D6_Direction as sbit at TRISC1_bit
+    LCD_D7_Direction as sbit at TRISA2_bit
+main:
+
+' Registro Oscilador de control
+     OSCCON = 0X75 ' Oscilador interno de 8mhz
+' Registro de Opciones
+     OPTION_REG = 0X83 ' Pull up PORTB desactivado
+                       ' TMR0 prescaler 16
+' Registro control de interrupciones
+'     INTCON = 0XD0 ' Activado interrupciones globales
+                   ' Activado interrupciones perifericas
+                   ' Activado interrupciones externas
+                   ' Activado interrupcion timer 0
+     TRISA = 0X00
+     PORTA = 0x00
+
+     TRISB = 0X01
+     PORTB = 0X00
+
+     TRISC = 0X80
+     PORTC = 0X00
+
+     ANSEL = 0X00
+     ANSELH = 0X00
+     '*************inicializacion del uart y pwm************
+      'txt1 = "Instrument."
+      'txt2 = "Basica"
+      txt1 = "MEDIDOR DE NIVEL"
+      txt2 = "ESPOL"
+
+      text7 = "P Ayarza"
+      text8 = "E Chalen"
+      text9 = "P Pacheco"
+      text10 ="P Figueroa"
+      text12 ="W Bagua"
+      text11 = "Grupo:"
+
+      Lcd_Init()                        ' Initialize Lcd
+      Lcd_Cmd(_LCD_CLEAR)               ' Clear display
+      Lcd_Cmd(_LCD_CURSOR_OFF)          ' Cursor off
+
+      Lcd_Out(1,1,txt1)                 ' Write text in first row
+      Lcd_Out(2,7,txt2)                 ' Write text in second row
+      Delay_ms(2000)
+      Lcd_Cmd(_LCD_CLEAR)               ' Clear display
+
+
+      Lcd_Out(1,1,text11)                ' Write text in first row
+      Delay_ms(2000)
+      Lcd_Cmd(_LCD_CLEAR)               ' Clear display
+
+      Lcd_Out(1,1,text7)                 ' Write text in first row
+      Lcd_Out(2,1,text8)                 ' Write text in second row
+      Delay_ms(2000)
+      Lcd_Cmd(_LCD_CLEAR)               ' Clear display
+
+      Lcd_Out(1,1,text9)                 ' Write text in first row
+      Lcd_Out(2,1,text10)                 ' Write text in second row
+      Delay_ms(2000)
+      Lcd_Cmd(_LCD_CLEAR)               ' Clear display
+      Lcd_Out(1,1,text12)                 ' Write text in first row
+      Delay_ms(2000)
+      CONTADOR=0
+      VUELTA=0
+      'constante = 1.6166    '(R2/6)  ojo de PI/6
+      constante=(9.7)/12
+      
+      revol=0
+      
+      'FORMULA
+'     S2=(revol)x(angulo)x(R2)
+'      S2= valor
+'      R2= radio grande = 9,7
+'      angulo= 30 grados
+'      revol= NUEMRO DE VUELTAS
+
+
+
+      
+     while 1
+          if portb.rb0=1 then
+             while(portb.rb0=1)
+             wend
+          inc(revol) ' incrementamos las revoluciones para el calculo
+          inc(CONTADOR)
+          end if
+
+          valor = (revol*(PI)*(constante))' asignamos las revoluciones al dato valor
+          
+          if CONTADOR=24 then  'contador de revoluciones
+             CONTADOR=0
+             INC(VUELTA)
+             PORTB.RB7=1
+             Delay_ms(100)
+             PORTB.RB7=0
+
+          end if
+          
+          wordToStr(VUELTA,txt6)
+          Lcd_Out(1,1,"ESPOL")                 ' Write text in first row
+          Lcd_Out(1,11,txt6)
+          WordToStrWithZeros(valor, txt5)
+          Lcd_Out(2,1,"Dist=")                 ' Write text in second row
+          Lcd_Out(2,7,txt5)
+          Lcd_Out(2,14,"cm")                 ' Write text in second row
+          Delay_ms(10)
+     wend
+end.
