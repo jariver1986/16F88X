@@ -1,0 +1,198 @@
+program I2C_TX
+
+DIM KP,VALOR  AS BYTE
+
+sub procedure leer_teclado()
+   kp = 0
+   portb=%11101111        'EXPLORO FILA 1
+   if(portb.0=0)then      'EXPLORO COLUMNA1
+     while(portb.0=0) wend
+      kp=1 end if'1
+   if(portb.1=0)then      'EXPLORO COLUMNA2
+      while(portb.1=0) wend
+      kp=2 end if'2
+   if(portb.2=0)then      'EXPLORO COLUMNA3
+     while(portb.2=0) wend
+      kp=3 end if'3
+   if (portb.3=0)then    'EXPLORO COLUMNA4
+     while(portb.3=0) wend
+      kp=$41 end if'A
+  if(kp=0)then
+    portb=%11011111          'EXPLORO FILA 2
+   if(portb.0=0)then       'EXPLORO COLUMNA1
+     while(portb.0=0) wend
+      kp=4 end if'4
+   if(portb.1=0)then      'EXPLORO COLUMNA2
+     while(portb.1=0) wend
+      kp=5 end if'5
+   if(portb.2=0)then     'EXPLORO COLUMNA3
+      while(portb.2=0) wend
+      kp=6 end if'6
+   if (portb.3=0)then    'EXPLORO COLUMNA4
+      while(portb.3=0) wend
+      kp=$42 end if'B
+   else return
+   end if
+  if(kp=0) then
+    portb=%10111111         'EXPLORO FILA 3
+   if(portb.0=0)then      'EXPLORO COLUMNA1
+     while(portb.0=0) wend
+      kp=7 end if'7
+   if(portb.1=0)then      'EXPLORO COLUMNA2
+      while(portb.1=0) wend
+      kp=8 end if'8
+   if(portb.2=0)then      'EXPLORO COLUMNA3
+      while(portb.2=0) wend
+      kp=9 end if'9
+   if (portb.3=0)then     'EXPLORO COLUMNA4
+      while(portb.3=0) wend
+      kp=$43 end if'C
+   else return
+  end if
+  if(kp=0)then
+     portb=%01111111  'EXPLORO FILA 4
+   if(portb.0=0)then      'EXPLORO COLUMNA1
+      while(portb.0=0) wend
+      kp=$23 end if '*
+   if(portb.1=0)then      'EXPLORO COLUMNA2
+      while(portb.1=0) wend
+      kp=48 end if'0
+   if(portb.2=0)then      'EXPLORO COLUMNA3
+      while(portb.2=0) wend
+      kp=$24 end if'#
+   if (portb.3=0)then     'EXPLORO COLUMNA4
+      while(portb.3=0) wend
+      kp=$44 end if'D
+   else return
+  end if
+
+end sub
+
+main:
+    ANSEL  = 0               ' Configure AN pins as digital I/O
+    ANSELH = 0
+    PORTB = 0
+    TRISB = 0x0F               ' PORTB<7,6,5,4> salidas  PORTB<3,2,1,0> ENTRADAS
+    TRISC=0
+    PORTC=0
+    PORTA=0
+    TRISA=0
+    
+    WPUB = $0F                 'RESISTENCIAS INTERNAR ACTIVADAS
+    Delay_ms(1000)
+    Delay_ms(1000)
+    Delay_ms(1000)
+
+    while (1)
+        I2C1_Init(100000)        ' initialize I2C communication
+        I2C1_Start()                      ' issue I2C start signal
+        'I2C1_Wr(0xA2)                     ' send byte via I2C (device address + W)
+        'I2C1_Wr(2)                        ' send byte (address of EEPROM location)
+                   ' send data (data to be written)
+        Delay_ms(500)
+        I2C1_Wr("A")
+        Delay_ms(500)
+        I2C1_Wr("N")                     ' send data (data to be written)
+        Delay_ms(500)
+         I2C1_Wr("A")                     ' send data (data to be written)
+        Delay_ms(500)
+        I2C1_Wr("L")                     ' send data (data to be written)
+        Delay_ms(500)
+        I2C1_Wr("I")                     ' send data (data to be written)
+        Delay_ms(500)
+        I2C1_Wr("Z")                     ' send data (data to be written)
+        Delay_ms(500)
+        I2C1_Wr("A")                     ' send data (data to be written)
+        Delay_ms(500)
+        I2C1_Wr("D")                     ' send data (data to be written)
+        Delay_ms(500)
+        I2C1_Wr("O")                     ' send data (data to be written)
+        Delay_ms(500)
+        I2C1_Wr("R")                     ' send data (data to be written)
+        Delay_ms(500)
+        I2C1_Wr(" ")                     ' send data (data to be written)
+        Delay_ms(500)
+        I2C1_Wr("I")                     ' send data (data to be written)
+        Delay_ms(500)
+        I2C1_Wr("2")                     ' send data (data to be written)
+        Delay_ms(500)
+        I2C1_Wr("C")                     ' send data (data to be written)
+        Delay_ms(500)
+
+
+        
+        
+         leer_teclado() 'EXPLORO TECLADO
+         if(kp > 0)then  'PREGUNTO SI HE PRESIONADO ALGUNA TECLA
+               VALOR =kp 'GUARDO EL VALOR DE LA TECLA PRESIONADA PRA VISUALIZAR EN DISPLAY
+         end if
+         if VALOR=48 then
+            I2C1_Wr("0")                     ' send data (data to be written)
+            Delay_ms(100)
+         end if
+          if VALOR=1 then
+            I2C1_Wr("1")                     ' send data (data to be written)
+            Delay_ms(100)
+         end if
+          if VALOR=2 then
+            I2C1_Wr("2")                     ' send data (data to be written)
+            Delay_ms(100)
+         end if
+          if VALOR=3 then
+            I2C1_Wr("3")                     ' send data (data to be written)
+            Delay_ms(100)
+         end if
+          if VALOR=4 then
+            I2C1_Wr("4")                     ' send data (data to be written)
+            Delay_ms(100)
+         end if
+          if VALOR=5 then
+            I2C1_Wr("5")                     ' send data (data to be written)
+            Delay_ms(100)
+         end if
+          if VALOR=6 then
+            I2C1_Wr("6")                     ' send data (data to be written)
+            Delay_ms(100)
+         end if
+          if VALOR=7 then
+            I2C1_Wr("7")                     ' send data (data to be written)
+            Delay_ms(100)
+         end if
+          if VALOR=8 then
+            I2C1_Wr("8")                     ' send data (data to be written)
+            Delay_ms(100)
+         end if
+          if VALOR=9 then
+            I2C1_Wr("9")                     ' send data (data to be written)
+            Delay_ms(100)
+         end if
+          if VALOR=$41 then
+            I2C1_Wr("A")                     ' send data (data to be written)
+            Delay_ms(100)
+         end if
+          if VALOR=$42 then
+            I2C1_Wr("B")                     ' send data (data to be written)
+            Delay_ms(100)
+         end if
+          if VALOR=$43 then
+            I2C1_Wr("C")                     ' send data (data to be written)
+            Delay_ms(100)
+         end if
+          if VALOR=$44 then
+            I2C1_Wr("D")                     ' send data (data to be written)
+            Delay_ms(100)
+         end if
+         if VALOR=$23 then
+            I2C1_Wr("*")                     ' send data (data to be written)
+            Delay_ms(100)
+         end if
+         if VALOR=$24 then
+            I2C1_Wr("#")                     ' send data (data to be written)
+            Delay_ms(100)
+         end if
+
+    wend
+
+
+
+end.

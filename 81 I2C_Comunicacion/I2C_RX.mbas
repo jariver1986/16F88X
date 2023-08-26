@@ -1,0 +1,77 @@
+program I2C_RX
+
+dim LCD_RS as sbit at RB1_bit
+    LCD_EN as sbit at RA3_bit
+    LCD_D4 as sbit at RC2_bit
+    LCD_D5 as sbit at RA4_bit
+    LCD_D6 as sbit at RC1_bit
+    LCD_D7 as sbit at RA2_bit
+    LCD_RS_Direction as sbit at TRISB1_bit
+    LCD_EN_Direction as sbit at TRISA3_bit
+    LCD_D4_Direction as sbit at TRISC2_bit
+    LCD_D5_Direction as sbit at TRISA4_bit
+    LCD_D6_Direction as sbit at TRISC1_bit
+    LCD_D7_Direction as sbit at TRISA2_bit
+
+DIM RX_I2C,pos,fil AS BYTE
+dim txt2 as char[16]
+    txt3 as char[16]
+    txt4 as char[16]
+main:
+    ANSEL  = 0               ' Configure AN pins as digital I/O
+    ANSELH = 0
+    PORTB = 0
+    TRISB = 0                ' Configure PORTB as output
+
+
+  '  I2C1_Start()             ' issue I2C start signal
+'    I2C1_Wr(0xA2)            ' send byte via I2C (device address + W)
+'    I2C1_Wr(2)               ' send byte (address of EEPROM location)
+'    I2C1_Wr(0xAA)            ' send data (data to be written)
+'    I2C1_Stop()              ' issue I2C stop signal
+  UART1_Init(9600)
+  RX_I2C=0
+
+  I2C1_Init(100000)        ' initialize I2C communication
+  I2C1_Start()             ' issue I2C start signal
+  
+    txt3 = "SISTEMAS"
+  txt4 = "EMBEBIDOS"
+  pos=1
+  fil=1
+  
+Lcd_Init()                        ' Inicializacion Lcd
+  Lcd_Cmd(_LCD_CLEAR)               ' encera display
+  Lcd_Cmd(_LCD_CURSOR_OFF)          ' Cursor off
+  Lcd_Out(1,4,txt3)                 ' escribe la cadena en la primera fila
+  Lcd_Out(2,4,txt4)                 ' escribe la cadena en la segunda fila
+  Delay_ms(2000)
+  Lcd_Cmd(_LCD_CLEAR)
+  
+  
+
+    while (1)
+
+    'I2C1_Wr(0xA2)            ' send byte via I2C  (device address + W)
+    'I2C1_Wr(2)               ' send byte (data address)
+    'I2C1_Repeated_Start()    ' issue I2C signal repeated start
+    'I2C1_Wr(0xA3)            ' send byte (device address + R)
+    RX_I2C = I2C1_Rd(0)       ' Read the data (NO acknowledge)
+    PORTB =  RX_I2C
+    'I2C1_Stop()              ' issue I2C stop signal
+    if  isalpha(RX_I2C) or isalnum(RX_I2C)or(RX_I2C=$23)or(RX_I2C=$24)  then
+        UART1_Write(RX_I2C)
+         Lcd_CHR(fil,pos,RX_I2C)
+         inc(pos)
+         Delay_ms(100)
+    end if
+    if pos=11 then
+       pos=1
+       fil=2
+       'Lcd_Cmd(_LCD_CLEAR)
+    end if
+    
+    Delay_ms(250)
+    wend
+
+end.

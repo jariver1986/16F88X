@@ -1,0 +1,172 @@
+program Laberinto_Basico
+
+symbol DIR1=PORTA.2
+symbol NDIR1=PORTA.4
+symbol DIR2=PORTA.3
+symbol NDIR2=PORTA.5
+
+
+DIM VOLT_FRENTE AS WORD
+DIM DIST_FRENTE ,DIST_DERECHA As integer
+DIM DIST_IZQUIERDA AS integer
+DIM errordist,max ,alerta,tiempo as integer
+
+
+SUB PROCEDURE SET_MOTOR(DIM MOTOR1,MOTOR2 AS INTEGER)
+ '******************** MOTOR 1***************
+   IF(MOTOR1<0)THEN
+     MOTOR1=-MOTOR1
+     DIR1=0
+     NDIR1=1
+   ELSE
+   IF(MOTOR1>0)THEN
+     DIR1=1
+     NDIR1=0
+   END IF
+   END IF
+   '******************** MOTOR 2***************
+   IF(MOTOR2<0)THEN
+     MOTOR2=-MOTOR2
+     DIR2=0
+     NDIR2=1
+   ELSE
+   IF(MOTOR2>0)THEN
+     DIR2=1
+     NDIR2=0
+   END IF
+   END IF
+   PWM1_Set_Duty(MOTOR2)
+   PWM2_Set_Duty(MOTOR1)
+END SUB
+
+
+SUB PROCEDURE MEDICION_FRENTE()
+VOLT_FRENTE =Adc_Read(0)   ' ANALOGICO(13) RETORNA 10BITS  0-0V  1023->5V
+Delay_ms(30)
+DIST_FRENTE=(2914/(VOLT_FRENTE+5))-1         'ec sensores 4-30cm
+'DIST_FRENTE=(6787 / ( VOLT_FRENTE - 3)) - 4 'ec sensores 10-80cm
+END SUB
+
+SUB PROCEDURE MEDICION_DERECHA()
+VOLT_FRENTE =Adc_Read(1)   ' ANALOGICO(13) RETORNA 10BITS  0-0V  1023->5V
+Delay_ms(30)
+DIST_DERECHA=(2914/(VOLT_FRENTE+5))-1         'ec sensores 4-30cm
+'DIST_FRENTE=(6787 / ( VOLT_FRENTE - 3)) - 4 'ec sensores 10-80cm
+END SUB
+ SUB PROCEDURE MEDICION_IZQUIERDA()
+VOLT_FRENTE =Adc_Read(12)   ' ANALOGICO(13) RETORNA 10BITS  0-0V  1023->5V
+Delay_ms(30)
+DIST_IZQUIERDA=(2914/(VOLT_FRENTE+5))-1         'ec sensores 4-30cm
+'DIST_FRENTE=(6787 / ( VOLT_FRENTE - 3)) - 4 'ec sensores 10-80cm
+END SUB
+main:
+OPTION_REG=$80
+INTCON=0
+TRISA=3
+TRISC=1
+TRISB=1
+ANSEL=3
+ANSELH=$10
+PORTB=0
+PORTA=0
+PORTC=0
+alerta=0
+DIST_FRENTE =0
+DIST_IZQUIERDA =0
+max=255
+PWM1_Init(1000)
+PWM2_Init(1000)
+PWM1_Start()
+PWM2_Start()
+PWM1_Set_Duty(0)
+PWM2_Set_Duty(0)
+Delay_ms(200)
+MEDICION_FRENTE()
+MEDICION_DERECHA()
+MEDICION_IZQUIERDA ()
+Delay_ms(100)
+WHILE(1)
+  '************************** CONTORNEAR POR LA PARED DERECHA  *******************************************************
+IF(PORTC.0=1)THEN
+          MEDICION_FRENTE()
+          MEDICION_DERECHA()
+          errordist = (9 - DIST_DERECHA )
+
+        if(DIST_FRENTE >10)then
+
+            if(errordist >0) AND (errordist <4) then      'DIST_IZQUIERDA >=8cm  AND  DIST_IZQUIERDA <=6cm
+                 set_motor(max,max)
+            else
+            if(errordist <=0) AND (errordist >=-2) then         'DIST_IZQUIERDA >=9cm
+                 set_motor(max,-max)
+                 Delay_ms(20)
+                 set_motor(max,max)
+                 Delay_ms(20)
+           else
+                if(errordist <=-7) then       'DIST_IZQUIERDA >=16
+                 set_motor(max,max)
+                 Delay_ms(1000)
+                 set_motor(max,-max)
+                 Delay_ms(500)
+                 set_motor(max,max)
+                 Delay_ms(250)
+            else
+              if(errordist >=4) then       'DIST_IZQUIERDA <=5cm
+                 set_motor(-max,max)
+                 Delay_ms(40)
+                 set_motor(max,max)
+                 Delay_ms(20)
+
+            end if
+            end if
+            end if
+            end if
+        else
+                 SET_MOTOR(-max,max)
+                 Delay_ms(10)                  'si se pega mucho a la pared
+        end if
+ELSE
+IF(PORTC.0=0)THEN
+  '************************** CONTORNEAR POR LA PARED IZQUIERDA *******************************************************
+          MEDICION_FRENTE()
+          MEDICION_IZQUIERDA()
+          errordist = (9 - DIST_IZQUIERDA )
+
+        if(DIST_FRENTE >10)then
+
+            if(errordist >0) AND (errordist <4) then      'DIST_IZQUIERDA >=8cm  AND  DIST_IZQUIERDA <=6cm
+                 set_motor(max,max)
+            else
+            if(errordist <=0) AND (errordist >=-2) then         'DIST_IZQUIERDA >=9cm
+                 set_motor(-max,max)
+                 Delay_ms(20)
+                 set_motor(max,max)
+                 Delay_ms(20)
+           else
+                if(errordist <=-7) then       'DIST_IZQUIERDA >=16
+                 set_motor(max,max)
+                 Delay_ms(1000)
+                 set_motor(-max,max)
+                 Delay_ms(500)
+                 set_motor(max,max)
+                 Delay_ms(250)
+            else
+              if(errordist >=4) then       'DIST_IZQUIERDA <=5cm
+                 set_motor(max,-max)
+                 Delay_ms(40)
+                 set_motor(max,max)
+                 Delay_ms(20)
+
+            end if
+            end if
+            end if
+            end if
+        else
+                 SET_MOTOR(max,-max)
+                 Delay_ms(10)                  'si se pega mucho a la pared
+        end if
+
+END IF
+END IF
+WEND
+end.
