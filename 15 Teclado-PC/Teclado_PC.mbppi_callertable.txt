@@ -1,0 +1,16 @@
+main
+	UART1_Init
+	Ps2_Config
+	UART1_Write_Text
+		UART1_Write
+	Ps2_Key_Read
+		Keyboard_Active
+			Clock_Enable
+			Clock_Wait_High
+			Clock_Disable
+		Get_Hex
+			Wait_Falling
+			Clock_Disable
+		Ps2_Get_Value
+			____DoICP
+	UART1_Write

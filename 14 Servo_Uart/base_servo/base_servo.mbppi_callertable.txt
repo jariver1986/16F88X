@@ -1,0 +1,33 @@
+main
+	UART1_Init
+	ver
+		Delay_1sec
+	Delay_1sec
+	UART1_Data_Ready
+	UART1_Read
+	PINZA_ABIERTA
+		UART1_Write_Text
+			UART1_Write
+	BRAZO_ABAJO
+		UART1_Write_Text
+			UART1_Write
+		Delay_100ms
+	tiempo
+		Delay_1sec
+	PINZA_CERRADA
+		UART1_Write_Text
+			UART1_Write
+	BRAZO_ARRIBA
+		UART1_Write_Text
+			UART1_Write
+		Delay_100ms
+	BASE_DERECHA
+		ver
+			Delay_1sec
+	BASE_FRENTE
+		ver
+			Delay_1sec
+	BASE_IZQUIERDA
+		ver
+			Delay_1sec
+interrupt

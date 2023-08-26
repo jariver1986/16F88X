@@ -1,0 +1,42 @@
+program Teclado_PC
+
+dim keydata, special, down as byte
+
+dim PS2_Data          as sbit at PORTC.0
+    PS2_Clock         as sbit at PORTC.1
+
+    PS2_Data_Direction  as sbit at TRISC.0
+    PS2_Clock_Direction as sbit at TRISC.1
+
+
+main:
+  ANSEL  = 0              ' Configure AN pins as digital I/O
+  ANSELH = 0
+  PORTC=0
+  OSCCON= 0X75
+  
+  UART1_Init(19200)             ' Initialize UART module at 9600 bps
+  Ps2_Config()                  ' Init PS/2 Keyboard
+  Delay_ms(100)                 ' Wait for keyboard to finish
+  UART1_Write_Text("Ready")     ' Ready
+
+  while TRUE                                          ' Endless loop
+    if Ps2_Key_Read(keydata, special, down) then      ' If data was read from PS/2
+      if (down <> 0) and (keydata = 16) then          ' Backspace read
+        UART1_Write(0x08)                             ' Send Backspace to usart terminal
+      else
+        if (down <> 0) and (keydata = 13) then        ' Enter read
+          UART1_Write(10)                             ' Send carriage return to usart terminal
+          UART1_Write(13)                             ' Uncomment this line if usart terminal also expects line feed
+                                                      '   for new line transition
+        else
+          if (down <> 0) and (special = 0) and (keydata <> 0) then   ' Common key read
+            UART1_Write(keydata)                      ' Send key to usart terminal
+          end if
+        end if
+      end if
+    end if
+    Delay_ms(10)                                      ' Debounce period
+  wend
+end.
+

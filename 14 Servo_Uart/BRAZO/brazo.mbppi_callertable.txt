@@ -1,0 +1,8 @@
+main
+	UART1_Init
+	ver
+		Delay_1sec
+	UART1_Data_Ready
+	UART1_Read
+	Delay_1sec
+interrupt

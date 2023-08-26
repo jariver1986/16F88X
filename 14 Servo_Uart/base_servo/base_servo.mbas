@@ -1,0 +1,274 @@
+program base_servo
+
+DIM giro,giro1,giro2,por,receive,dato,centinela,sentido,contador AS BYTE
+
+sub procedure interrupt
+if INTCON.TMR0IF=1 THEN
+    if por=1 then
+    giro=giro1
+    por=2
+    PORTC.RC0=0
+    GOTO final
+    end if
+    if por=2 then
+    giro=giro2
+    por=1
+    PORTC.RC0=1
+    GOTO final
+    end if
+end if
+final:
+TMR0 = giro
+INTCON = 0x20
+end sub
+sub procedure ver(dim numero as byte)
+
+   if (numero = 2) and (sentido=0) then     'frente INICIAL
+     giro1=109
+     giro2=243
+   END IF
+   
+   if (numero = 2) and (sentido=3) then     'de izquierda al frente
+     giro1=109
+     giro2=238
+     Delay_1sec
+     giro2=239
+     Delay_1sec
+     giro2=240
+     Delay_1sec
+     giro2=241
+     Delay_1sec
+     giro2=242
+     Delay_1sec
+     giro2=243
+   END IF
+
+      if (numero = 2) and (sentido=4) then     'de DERECHA al frente
+       giro1=109
+       giro2=251
+       Delay_1sec
+       giro2=250
+       Delay_1sec
+       giro2=249
+       Delay_1sec
+       giro2=248
+       Delay_1sec
+       giro2=247
+       Delay_1sec
+       giro2=246
+       Delay_1sec
+       giro2=245
+       Delay_1sec
+       giro2=244
+       Delay_1sec
+       giro2=243
+     END IF
+
+
+   if numero = 3 then  'izquierda
+   giro1=114
+   giro2=242
+   Delay_1sec
+   giro2=241
+   Delay_1sec
+   giro2=240
+   Delay_1sec
+   giro2=239
+   Delay_1sec
+   giro2=238
+   END IF
+   if numero = 4 then
+       giro1=98         'derecha
+       
+       giro2=244
+       Delay_1sec
+       giro2=245
+       Delay_1sec
+       giro2=246
+       Delay_1sec
+       giro2=247
+       Delay_1sec
+       giro2=248
+       Delay_1sec
+       giro2=249
+       Delay_1sec
+       giro2=250
+       Delay_1sec
+       
+       giro2=251
+   end if
+
+
+  end sub
+  sub procedure PINZA_ABIERTA()
+  UART1_Write_Text("A") 'PINZA ABIERTA
+  UART1_Write_Text("A") 'PINZA ABIERTA
+  end sub
+  sub procedure PINZA_CERRADA()
+  UART1_Write_Text("B") 'PINZA ABIERTA
+  end sub
+  sub procedure BRAZO_ARRIBA()
+  UART1_Write_Text("D")
+  PORTD.RD2=0
+  PORTD.RD3=1
+  Delay_100ms
+  PORTD.RD2=0
+  PORTD.RD3=0
+  end sub
+  sub procedure BRAZO_ABAJO()
+  UART1_Write_Text("C")
+  PORTD.RD3=0
+  PORTD.RD2=1
+  Delay_100ms
+  PORTD.RD3=0
+  PORTD.RD2=0
+  end sub
+  sub procedure BASE_DERECHA()
+      ver(4)
+      sentido=4
+  end sub
+  sub procedure BASE_FRENTE()
+      ver(2)
+  end sub
+  sub procedure BASE_IZQUIERDA()
+      sentido=3
+      ver(3)
+  end sub
+
+sub procedure tiempo(dim segundos as byte)
+   contador=0
+   while(contador<>segundos)
+       inc(contador)
+       Delay_1sec()
+   wend
+   
+
+end sub
+
+main:
+     OSCCON=0X65   'oscilador interno de 4 MHZ
+' Registro Oscilador de control
+     OPTION_REG = 0x86
+     UART1_Init(9600)
+  ' Registro PUERTO A
+     TRISA = 0X01 ' PORTA.0 Entrada
+     PORTA = 0X00
+' Registro PUERTO B
+     TRISB = 0X20 ' PORTB
+     PORTB = 0X00
+  ' Registro PUERTO C
+     TRISC = 0X00 ' PORTC salidas
+     PORTC = 0X00
+     
+     PORTD=0
+     TRISD=0
+
+     TRISE = 0X00 ' PORTE  como salidas digital
+     PORTE = 0X00
+
+     ANSEL = 0X00 ' AN<7:0>
+     ANSELH = 0X00 ' AN<13:8>
+     INTCON = 0xA0            '// Enable interrupt TMR0
+     TMR0= 100
+     por=2
+     sentido=0
+     'giro1=98
+     
+     'giro2=251
+     dato=0
+     centinela=0
+     ver(2) 'base al frente
+     Delay_1sec
+
+while(1)
+      if (UART1_Data_Ready() = 1) then
+        receive = UART1_Read()
+        'PORTB=0XFF
+        'Delay_100ms
+        'PORTB=0X00
+        dato=receive
+        centinela=1
+      end if
+      if PORTB.RB5 =1 THEN
+      
+      IF PORTA.RA0 = 1 THEN 'EN NEGRO
+         PORTA.RA1 = 1
+         PINZA_ABIERTA()   'A
+         Delay_1sec
+         Delay_1sec
+         BRAZO_ABAJO() 'C
+         tiempo(8)
+         PINZA_CERRADA()     'B
+         Delay_1sec
+         Delay_1sec
+         BRAZO_ARRIBA()  'D
+         tiempo(8)
+         BASE_DERECHA()    'BASE DERECHA
+         BRAZO_ABAJO()     'C
+         tiempo(8)
+         PINZA_ABIERTA()    'A
+         Delay_1sec
+         Delay_1sec
+         BRAZO_ARRIBA()       'D
+         tiempo(8)
+         PINZA_CERRADA()     'B
+         Delay_1sec
+         Delay_1sec
+         BASE_FRENTE() ' BASE FRENTE
+         Delay_1sec
+         PORTA.RA1 = 0
+      END IF
+      
+      if PORTA.RA0 = 0 then  ' ES BLANCO
+         PORTA.RA2 = 1
+         PINZA_ABIERTA()
+         Delay_1sec
+         Delay_1sec
+         BRAZO_ABAJO()
+         tiempo(8)
+         PINZA_CERRADA()
+         Delay_1sec
+         Delay_1sec
+         BRAZO_ARRIBA()
+         tiempo(8)
+         BASE_IZQUIERDA()    'BASE IZQUIERDA
+         BRAZO_ABAJO()
+         tiempo(8)
+         PINZA_ABIERTA()
+         Delay_1sec
+         Delay_1sec
+         BRAZO_ARRIBA()
+         tiempo(8)
+         PINZA_CERRADA()
+         Delay_1sec
+         Delay_1sec
+         BASE_FRENTE() ' BASE FRENTE
+         Delay_1sec
+         PORTA.RA2 = 0
+      end if
+      END IF
+      
+      if centinela=1 then
+      centinela=0
+       if (dato=0x31) then 'FRENTE
+            BASE_FRENTE()
+            sentido=2
+            'ver(2)
+            Delay_1sec
+        end if
+        if (dato=0x32) then  'IZQUIERDA
+            BASE_IZQUIERDA()
+            sentido=3
+            'ver(3)
+            Delay_1sec
+        end if
+         if (dato=0x33) then  'DERECHA
+            BASE_DERECHA()
+            sentido=4
+            'ver(4)
+            Delay_1sec
+        end if
+       end if
+
+ wend
+end.

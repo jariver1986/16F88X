@@ -1,0 +1,161 @@
+program brazo
+
+DIM giro,giro1,giro2,por,receive,dato,centinela,sentido AS BYTE
+
+sub procedure interrupt
+if INTCON.TMR0IF=1 THEN
+    if por=1 then
+    giro=giro1
+    por=2
+    PORTC.RC0=0
+    GOTO final
+    end if
+    if por=2 then
+    giro=giro2
+    por=1
+    PORTC.RC0=1
+    GOTO final
+    end if
+end if
+final:
+TMR0 = giro
+INTCON = 0x20
+end sub
+sub procedure ver(dim numero as byte)
+
+    if (numero = 2)then    'ABAJO
+       giro1=109
+       giro2=251
+       Delay_1sec
+       giro2=250
+       Delay_1sec
+       giro2=249
+       Delay_1sec
+       giro2=248
+       Delay_1sec
+       giro2=247
+       Delay_1sec
+       giro2=246
+       Delay_1sec
+       giro2=245
+       Delay_1sec
+       giro2=244
+       'Delay_1sec
+       'giro2=243
+    end if
+    if (numero=4)  then     'ARRIBA
+      giro1=98
+      'giro2=243
+      'Delay_1sec
+      giro2=244
+      Delay_1sec
+      giro2=245
+      Delay_1sec
+      giro2=246
+      Delay_1sec
+      giro2=247
+      Delay_1sec
+      giro2=248
+      Delay_1sec
+      giro2=249
+      Delay_1sec
+      giro2=250
+      Delay_1sec
+      giro2=251
+    end if
+    if (numero=5)  then     'ARRIBA
+      giro1=98
+      'giro2=243
+      'Delay_1sec
+      giro2=244
+      Delay_1sec
+      giro2=245
+      Delay_1sec
+      giro2=246
+      Delay_1sec
+      giro2=247
+      Delay_1sec
+      giro2=248
+      Delay_1sec
+      giro2=249
+      Delay_1sec
+      giro2=250
+      Delay_1sec
+      giro2=251
+    end if
+    if numero = 1 then
+        giro1=103
+        giro2=249
+    end if
+    if numero = 3 then
+         giro1=114
+         giro2=238
+    end if
+    
+
+  end sub
+main:
+     OSCCON=0X65   'oscilador interno de 4 MHZ
+' Registro Oscilador de control
+     OPTION_REG = 0x86
+     UART1_Init(9600)
+  ' Registro PUERTO A
+     TRISA = 0X00 ' PORTA.0 Entrada
+     PORTA = 0X00
+' Registro PUERTO B
+     TRISB = 0Xf0 ' PORTB
+     PORTB = 0X00
+  ' Registro PUERTO C
+     TRISC = 0X00 ' PORTC salidas
+     PORTC = 0X00
+
+     TRISE = 0X00 ' PORTE  como salidas digital
+     PORTE = 0X00
+
+     ANSEL = 0X00 ' AN<7:0>
+     ANSELH = 0X00 ' AN<13:8>
+     INTCON = 0xA0            '// Enable interrupt TMR0
+     TMR0= 100
+     por=2
+     'giro1=98
+     'giro2=251
+     dato=0
+     centinela=0
+     sentido=0
+     ver(5)
+while(1)
+
+      if (UART1_Data_Ready() = 1) then
+        receive = UART1_Read()
+        dato=receive
+        centinela=1
+      end if
+      
+      if centinela=1 then
+      centinela=0
+       if (dato="C") then   'ABAJO
+            ver(2)
+            sentido=2
+            Delay_1sec
+        end if
+        'if (dato=0x32) then
+'            ver(3)
+'            Delay_1sec
+'        end if
+         if (dato="D") then  'ARRIBA
+            ver(4)
+            sentido=4
+            Delay_1sec
+        end if
+       end if
+       if PORTB.RB7=1 then  'ARRIBA
+          ver(4)
+          sentido=4
+       end if
+       if PORTB.RB6=1 then  'ABAJO
+            ver(2)
+            sentido=2
+       end if
+
+ wend
+end.
