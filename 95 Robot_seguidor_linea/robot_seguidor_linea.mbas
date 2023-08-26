@@ -1,0 +1,180 @@
+program robot_android_luz
+SYMBOL DIR1     = PORTA.2
+SYMBOL NDIR1    = PORTA.4
+SYMBOL DIR2     = PORTA.3
+SYMBOL NDIR2    = PORTA.5
+SYMBOL DISPARO1 = PORTC.5
+SYMBOL ECO1     = PORTC.4
+SYMBOL DISPARO2 = PORTC.0
+SYMBOL ECO2     = PORTC.3
+SYMBOL S1=PORTA.6
+SYMBOL S2=PORTA.7
+DIM DATO,LUZ1,LUZ2,contador,sensores,velo AS BYTE
+DIM TEXTO AS STRING [5]
+DIM distancia1,distancia2 as word
+sub procedure ADELANTE()
+PORTA.RA2 = 1
+PORTA.RA4 = 0
+PORTA.RA3 = 0
+PORTA.RA5 = 1
+PWM1_Set_Duty(velo)
+PWM2_Set_Duty(velo)
+end sub
+sub procedure PARAR()
+PORTA.RA2 = 0
+PORTA.RA4 = 0
+PORTA.RA3 = 0
+PORTA.RA5 = 0
+PWM1_Set_Duty(0)
+PWM2_Set_Duty(0)
+end sub
+sub procedure ADELANTE_DERECHA()
+PORTA.RA2 = 1
+PORTA.RA4 = 0
+PORTA.RA3 = 0
+PORTA.RA5 = 1
+PWM1_Set_Duty(250)
+PWM2_Set_Duty(100)
+end sub
+sub procedure ADELANTE_IZQUIERDA()
+PORTA.RA2 = 1
+PORTA.RA4 = 0
+PORTA.RA3 = 0
+PORTA.RA5 = 1
+PWM1_Set_Duty(100)
+PWM2_Set_Duty(250)
+end sub
+sub procedure GIRO_IZQUIERDA()
+PORTA.RA2 = 1
+PORTA.RA4 = 0
+PORTA.RA3 = 1
+PORTA.RA5 = 0
+PWM1_Set_Duty(velo)
+PWM2_Set_Duty(velo)
+end sub
+sub procedure GIRO_DERECHA()
+PORTA.RA2 = 0
+PORTA.RA4 = 1
+PORTA.RA3 = 0
+PORTA.RA5 = 1
+PWM1_Set_Duty(velo)
+PWM2_Set_Duty(velo)
+end sub
+sub function ultrasonico1( ) as word
+     dim flanco as byte
+     dim distan,tiempo as word
+     flanco = 0
+     disparo1 = 1
+     Delay_us(50)
+     disparo1 = 0
+     DO
+          IF( eco1 = 1 )THEN
+               TMR0 = 0
+               flanco = 1
+          END IF
+     LOOP UNTIL( flanco = 1 )
+     DO
+          IF( eco1 = 0 )THEN
+               tiempo = TMR0
+               flanco = 0
+          END IF
+          if(TMR0>254)THEN
+           FLANCO=0
+          END IF
+     LOOP UNTIL( FLANCO = 0 )
+     distan = (tiempo*128)/58
+     Delay_ms (50)
+     result = distan
+end sub
+sub function ultrasonico2( ) as word
+     dim flanco as byte
+     dim distan,tiempo as word
+     flanco = 0
+     disparo2 = 1
+     Delay_us(50)
+     disparo2 = 0
+     DO
+          IF( eco2 = 1 )THEN
+               TMR0 = 0
+               flanco = 1
+          END IF
+     LOOP UNTIL( flanco = 1 )
+     DO
+          IF( eco2 = 0 )THEN
+               tiempo = TMR0
+               flanco = 0
+          END IF
+          if(TMR0>254)THEN
+           FLANCO=0
+          END IF
+     LOOP UNTIL( FLANCO = 0 )
+     distan = (tiempo*128)/58
+     Delay_ms (50)
+     result = distan
+end sub
+main:
+OPTION_REG=0X86
+OSCCON  = 0X65
+PORTA   = %00000000
+TRISA   = %11000011
+PORTB   = %00000000
+TRISB   = %00000000
+PORTC   = %00000000
+TRISC   = %10011000
+PORTE   = %00000000
+TRISE   = %10001000
+ANSEL   = %00000011
+ANSELH  = %00010000
+PWM1_Init(1000)
+PWM2_Init(1000)
+PWM1_Start()
+PWM2_Start()
+contador=2
+while 1
+  '    'BOTON
+'    if porte.re3=0 then
+'       while(porte.re3=0)wend
+'       inc(contador)
+'       PORTB=0XFF
+'       Delay_ms(2000)
+'       PORTB=0X00
+'    end if
+'    'MODO SEGUIDOR DE OBJETOS
+'    if contador=1 then
+'       distancia1=ultrasonico1()
+'       distancia2=ultrasonico2()
+'       if distancia1<30 then
+'          ADELANTE_DERECHA
+'       else
+'           if distancia2<30 then
+'              ADELANTE_IZQUIERDA
+'           else
+'              PARAR
+'           end if
+'       end if
+'    end if
+    'MODO SEGUIDOR DE LINEA
+    velo = Adc_Read(0>>2)
+    if contador = 2 then
+      sensores=(S2*2)+(S1*1)
+      select case sensores
+      case 0' S2 S1 = 0 0
+           PARAR
+           Delay_10ms
+      case 1' S2 S1 = 0 1
+           GIRO_IZQUIERDA
+           Delay_10ms
+      case 2' S2 S1 = 1 0
+           GIRO_DERECHA
+           Delay_10ms
+      case 3' S2 S1 = 1 1
+           ADELANTE
+           Delay_10ms
+      end select
+    end if
+    
+    if CONTADOR>=3 then
+       CONTADOR=0
+    end if
+wend
+end.

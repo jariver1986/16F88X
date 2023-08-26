@@ -1,0 +1,571 @@
+program robot_ayudante
+
+SYMBOL DIR1= PORTA.2  'CONTROL DIRECCION MOTOR1
+SYMBOL NDIR1=PORTA.4  'CONTROL DIRECCION MOTOR1
+
+SYMBOL DIR2= PORTA.3  'CONTROL DIRECCION MOTOR2
+SYMBOL NDIR2=PORTA.5  'CONTROL DIRECCION MOTOR2
+
+SYMBOL S1=PORTD.3  'SENSOR INFRARROJO 1 CONECTADO AL PORTB.3
+SYMBOL S2=PORTD.4  'SENSOR INFRARROJO 2 CONECTADO AL PORTB.4
+SYMBOL S3=PORTA.1  'SENSOR INFRARROJO 1 CONECTADO AL PORTB.3
+SYMBOL S4=PORTD.5  'SENSOR INFRARROJO 2 CONECTADO AL PORTB.4
+
+DIM vel,sensores AS BYTE
+dim viajero,dato_recep,datos_set,salto as byte
+
+dim dato,dato1,dato2,dato3,dato4,dato5,dato6 as byte[15]
+dim dato_rd as byte[15]
+dim dato_listo,tag as byte
+dim i, veces1,veces2,veces3, grabar,producto as byte
+DIM giro,giro1,giro2,por AS BYTE
+dim brazo as longword
+
+SUB PROCEDURE tiempo ()
+    delay_ms(10)
+END SUB
+sub procedure adelante()
+     DIR1  = 1
+     NDIR1 = 0
+
+     DIR2  = 1
+     NDIR2 = 0
+
+     PWM1_Set_Duty(vel)
+     PWM2_Set_Duty(vel)
+end sub
+sub procedure parar()
+     DIR1  = 0
+     NDIR1 = 0
+
+     DIR2  = 0
+     NDIR2 = 0
+end sub
+sub procedure izquierda()
+     DIR1  = 1
+     NDIR1 = 0
+
+     DIR2  = 0
+     NDIR2 = 1
+     PWM1_Set_Duty(vel)
+     PWM2_Set_Duty(vel)
+
+end sub
+sub procedure derecha()
+     DIR1  = 0
+     NDIR1 = 1
+
+     DIR2  = 1
+     NDIR2 = 0
+     PWM1_Set_Duty(vel)
+     PWM2_Set_Duty(vel)
+end sub
+sub procedure atras()
+     DIR1  = 0
+     NDIR1 = 1
+
+     DIR2  = 0
+     NDIR2 = 1
+
+     PWM1_Set_Duty(vel)
+     PWM2_Set_Duty(vel)
+end sub
+
+  sub procedure interrupt
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' RECIVE POR PUERTO SERIAL
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+     if (PIR1.RCIF=1) then
+
+          PIR1.RCIF=0
+          dato_recep = UART1_Read()
+          select case viajero
+               case 0
+                    if dato_recep = 0X02 then
+                         viajero = 1
+                    else
+                         viajero = 0
+                    end if
+               case 1,2,3,4,5,6,7,8,9,10,11,12
+                    dato_rd[viajero] = dato_recep
+                    inc(viajero)
+               case 13
+                    if dato_recep = 0X0D then
+                         viajero = 14
+                    else
+                         viajero = 0
+                    end if
+               case 14
+                    if dato_recep = 0X0A then
+                         viajero = 15
+                    else
+                         viajero = 0
+                    end if
+               case 15
+                    if dato_recep = 0X03 then
+                         dato_listo = 0xFF
+                    end if
+                    viajero = 0
+          end select
+     end if
+     INTCON = INTCON or 0xC0
+     end sub
+
+
+sub procedure abrir_pinza()
+dim i as longword
+  i=0
+  while (i<10000)
+     inc(i)
+  if INTCON.TMR0IF=1 THEN
+    if por=1 then
+    giro=109
+    por=2
+    PORTD.RD0=0
+    GOTO final
+    end if
+    if por=2 then
+    giro=243
+    por=1
+    PORTD.RD0=1
+    GOTO final
+    end if
+    final:
+  TMR0 = giro
+  INTCON = 0x20
+  end if
+  wend
+end sub
+
+sub procedure cerrar_pinza()
+  dim i as longword
+  i=0
+  while (i<10000)
+     inc(i)
+     if INTCON.TMR0IF=1 THEN
+    if por=1 then
+    giro=114
+    por=2
+    PORTD.RD0=0
+    GOTO final
+    end if
+    if por=2 then
+    giro=238
+    por=1
+    PORTD.RD0=1
+    GOTO final
+    end if
+    final:
+    TMR0 = giro
+    INTCON = 0x20
+  end if
+  wend
+
+end sub
+sub procedure avanza()
+    'vel=Adc_Read(0)>>2
+    sensores=(S2*2)+(S1*1)
+    select case sensores
+    case 0' S2 S1 = 0 0
+         ADELANTE()
+    case 1' S2 S1 = 0 1
+         DERECHA()
+    case 2' S2 S1 = 1 0
+         IZQUIERDA
+    case 3' S2 S1 = 1 1
+         ADELANTE()
+    end select
+end sub
+sub procedure avanza2()
+    'vel=Adc_Read(0)>>2
+    sensores=(S3*2)+(S4*1)
+    select case sensores
+    case 0' S2 S1 = 0 0
+         ADELANTE()
+    case 1' S2 S1 = 0 1
+         DERECHA()
+    case 2' S2 S1 = 1 0
+         IZQUIERDA
+    case 3' S2 S1 = 1 1
+         ADELANTE()
+    end select
+end sub
+
+main:
+OSCCON=0X65
+OPTION_REG=0X06
+
+INTCON = 0XC0 ' Activado interrupciones globales
+              ' Activado interrupciones perifericas
+PIR1.RCIF=0
+PIE1.RCIE=1
+
+UART1_Init(9600)
+viajero=0
+dato_listo = 0x00
+
+brazo=0
+
+TRISA=%00000011
+TRISB=%00000000  '
+TRISC=%10111000  'RC3,RC4 ENTRADAS   (C1 Y C2 PWM)
+TRISD = %00111000
+PORTD=0
+ANSEL=0X01
+ANSELH=0
+PWM1_Init(1000)'FRECUENCIA (HZ)
+PWM2_Init(1000)'FRECUENCIA (HZ)
+PWM1_Set_Duty(0)' VEL0CIDAD 255-> 100%  MAXIMA
+               ' VELOCIDAD 0->0%   MINIMA
+PWM2_Set_Duty(0)
+PWM1_Start()
+PWM2_Start()
+
+por=2
+TMR0=100
+
+'vel=Adc_Read(0)>>2
+vel = 100
+portb=vel
+delay_ms(1000)
+portb=255
+delay_ms(200)
+portb=0
+delay_ms(200)
+portb=255
+delay_ms(200)
+portb=0
+
+dato1[12] = 0x44
+delay_ms(10)
+dato1[11] = 0x33
+delay_ms(10)
+dato1[10] =0x42
+delay_ms(10)
+dato1[9] = 0x46
+delay_ms(10)
+dato1[8] = 0x41
+delay_ms(10)
+dato1[7] = 0x38
+delay_ms(10)
+dato1[6] = 0x42
+delay_ms(10)
+dato1[5] = 0x34
+delay_ms(10)
+dato1[4] = 0x30
+delay_ms(10)
+dato1[3] = 0x30
+delay_ms(10)
+dato1[2] = 0x37
+delay_ms(10)
+dato1[1] = 0x30
+delay_ms(10)
+
+dato2[12] = 0x32
+delay_ms(10)
+dato2[11] = 0x45
+delay_ms(10)
+dato2[10] = 0x38
+delay_ms(10)
+dato2[9] = 0x46
+delay_ms(10)
+dato2[8] = 0x31
+delay_ms(10)
+dato2[7] = 0x37
+delay_ms(10)
+dato2[6] = 0x43
+delay_ms(10)
+dato2[5] = 0x36
+delay_ms(10)
+dato2[4] = 0x30
+delay_ms(10)
+dato2[3] = 0x30
+delay_ms(10)
+dato2[2] = 0x37
+delay_ms(10)
+dato2[1] = 0x30
+delay_ms(10)
+
+dato3[12] = 0x35
+delay_ms(10)
+dato3[11] = 0x41
+delay_ms(10)
+dato3[10] = 0x32
+delay_ms(10)
+dato3[9] = 0x41
+delay_ms(10)
+dato3[8] = 0x38
+delay_ms(10)
+dato3[7] = 0x34
+delay_ms(10)
+dato3[6] = 0x38
+delay_ms(10)
+dato3[5] = 0x34
+delay_ms(10)
+dato3[4] = 0x30
+delay_ms(10)
+dato3[3] = 0x30
+delay_ms(10)
+dato3[2] = 0x37
+delay_ms(10)
+dato3[1] = 0x30
+delay_ms(10)
+
+dato4[12] = 0x37
+delay_ms(10)
+dato4[11] = 0x42
+delay_ms(10)
+dato4[10] = 0x30
+delay_ms(10)
+dato4[9] = 0x39
+delay_ms(10)
+dato4[8] = 0x33
+delay_ms(10)
+dato4[7] = 0x42
+delay_ms(10)
+dato4[6] = 0x32
+delay_ms(10)
+dato4[5] = 0x39
+delay_ms(10)
+dato4[4] = 0x30
+delay_ms(10)
+dato4[3] = 0x30
+delay_ms(10)
+dato4[2] = 0x36
+delay_ms(10)
+dato4[1] = 0x30
+delay_ms(10)
+
+dato5[12] = 0x37
+delay_ms(10)
+dato5[11] = 0x34
+delay_ms(10)
+dato5[10] = 0x35
+delay_ms(10)
+dato5[9] = 0x38
+delay_ms(10)
+dato5[8] = 0x31
+delay_ms(10)
+dato5[7] = 0x35
+delay_ms(10)
+dato5[6] = 0x44
+delay_ms(10)
+dato5[5] = 0x44
+delay_ms(10)
+dato5[4] = 0x30
+delay_ms(10)
+dato5[3] = 0x30
+delay_ms(10)
+dato5[2] = 0x45
+delay_ms(10)
+dato5[1] = 0x34
+delay_ms(10)
+
+dato6[12] = 0x36
+delay_ms(10)
+dato6[11] = 0x37
+delay_ms(10)
+dato6[10] = 0x45
+delay_ms(10)
+dato6[9] = 0x34
+delay_ms(10)
+dato6[8] = 0x42
+delay_ms(10)
+dato6[7] = 0x41
+delay_ms(10)
+dato6[6] = 0x44
+delay_ms(10)
+dato6[5] = 0x44
+delay_ms(10)
+dato6[4] = 0x30
+delay_ms(10)
+dato6[3] = 0x30
+delay_ms(10)
+dato6[2] = 0x45
+delay_ms(10)
+dato6[1] = 0x34
+delay_ms(10)
+
+tag=0
+salto=0
+producto=0
+'****CODIGO SEGUIDOR DE DESTREZA****
+' CONTORNO POR IZQUIERDA
+'+++++++++++++++++++++++++++++++++++++++++++++++++++
+
+while (1)
+avanza
+wend
+
+
+cerrar_pinza()
+WHILE(1)
+    IF PORTE.RE3=0 THEN
+       brazo=0
+
+       WHILE (PORTE.RE3=0)
+         INTCON = 0XC0
+         SALTO=1
+         INC(producto)
+         PORTB=PRODUCTO
+         Delay_1sec
+         Delay_1sec
+         portb=0
+         IF PRODUCTO=7 THEN
+            PRODUCTO=0
+         END IF
+       WEND
+    END IF
+
+  IF SALTO=1 THEN
+    IF dato_listo = 0x00 THEN
+         avanza()
+    END IF
+         'VERIFICACION DE TARJETAS
+    intcon=0xC0
+      if dato_listo = 0xFF then
+          PARAR()
+          Delay_ms(1000)
+          dato_listo = 0x00
+           veces1 = 0
+           for i=1 to 12
+                if (dato_rd[i] = dato1[i])then
+                     inc(veces1)
+                end if
+           next i
+           if (veces1 = 12) AND (PRODUCTO=1) then
+                PORTB=%00000001
+                Delay_ms(100)
+                PORTB=0X00
+                SALTO=2
+           else
+               adelante()
+
+
+           end if
+           'TAG2
+           veces1 = 0
+           for i=1 to 12
+                if (dato_rd[i] = dato2[i])then
+                     inc(veces1)
+                end if
+           next i
+           if (veces1 = 12) AND (PRODUCTO=2) then
+                PORTB=%00000010
+                Delay_ms(100)
+                PORTB=0X00
+                SALTO=2
+           else
+               adelante()
+
+
+           end if
+           'TAG3
+           veces1 = 0
+           for i=1 to 12
+                if (dato_rd[i] = dato3[i])then
+                     inc(veces1)
+                end if
+           next i
+           if (veces1 = 12) AND (PRODUCTO=3) then
+                PORTB=%00000100
+                Delay_ms(100)
+                PORTB=0X00
+                SALTO=2
+           else
+               adelante()
+
+
+           end if
+           'TAG4
+           veces1 = 0
+           for i=1 to 12
+                if (dato_rd[i] = dato4[i])then
+                     inc(veces1)
+                end if
+           next i
+           if (veces1 = 12) AND (PRODUCTO=4) then
+                PORTB=%00001000
+                Delay_ms(100)
+                PORTB=0X00
+                SALTO=2
+           else
+               adelante()
+
+
+           end if
+           'TAG5
+           veces1 = 0
+           for i=1 to 12
+                if (dato_rd[i] = dato5[i])then
+                     inc(veces1)
+                end if
+           next i
+           if (veces1 = 12) AND (PRODUCTO=5) then
+                PORTB=%00010000
+                Delay_ms(100)
+                PORTB=0X00
+                SALTO=2
+           else
+               adelante()
+
+
+           end if
+           'TAG6
+           veces1 = 0
+           for i=1 to 12
+                if (dato_rd[i] = dato6[i])then
+                     inc(veces1)
+                end if
+           next i
+           if (veces1 = 12) AND (PRODUCTO=6) then
+                PORTB=%00100000
+                Delay_ms(100)
+                PORTB=0X00
+                SALTO=2
+           else
+               adelante()
+
+
+           end if
+      end if
+  END IF
+    'FUNCION LEER TAG
+  IF SALTO=2 THEN
+     PARAR()
+     Delay_ms(1000)
+     abrir_pinza()
+  END IF
+  WHILE (SALTO=2)
+     avanza2()
+     if (S3=1) and (S4 =1)and(S1=1) and (S2 =1) then  'COLOCAR SENSOR 3 Y 4
+         salto=3
+     end if
+  WEND
+  WHILE SALTO=3
+    parar()
+    Delay_1sec
+    Delay_1sec
+     cerrar_pinza
+     Delay_ms(1000)
+     brazo=0
+     salto=4
+  WEND
+  WHILE (SALTO=4)
+    INTCON = 0XC0
+    avanza()
+    if(dato_listo = 0xFF) then
+           dato_listo = 0x00
+           abrir_pinza
+           while 1
+              portb=255
+              Delay_ms(200)
+              portb=0
+              Delay_ms(200)
+           wend
+    end if
+
+  WEND
+
+WEND
+end.

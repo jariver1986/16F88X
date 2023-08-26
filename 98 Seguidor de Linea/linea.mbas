@@ -1,0 +1,72 @@
+program linea
+SYMBOL DIR1= PORTA.2
+SYMBOL NDIR1=PORTA.4
+SYMBOL DIR2= PORTA.3
+SYMBOL NDIR2=PORTA.5
+SYMBOL S1=PORTB.0
+SYMBOL S2=PORTB.7
+DIM DATO,sensores AS BYTE
+sub procedure AVANZAR()
+PORTA.RA2 = 0
+PORTA.RA4 = 1
+PORTA.RA3 = 1
+PORTA.RA5 = 0
+PWM1_Set_Duty(200)
+PWM2_Set_Duty(200)
+end sub
+
+sub procedure GIRO_DERECHA()
+PORTA.RA2 = 0
+PORTA.RA4 = 1
+PORTA.RA3 = 0
+PORTA.RA5 = 1
+PWM1_Set_Duty(200)
+PWM2_Set_Duty(200)
+end sub
+
+sub procedure GIRO_IZQUIERDA()
+PORTA.RA2 = 1
+PORTA.RA4 = 0
+PORTA.RA3 = 1
+PORTA.RA5 = 0
+PWM1_Set_Duty(200)
+PWM2_Set_Duty(200)
+end sub
+
+main:
+OPTION_REG=0X86
+OSCCON  = 0X75
+PORTA   = %00000000
+TRISA   = %00000011
+PORTB   = %00000000
+TRISB   = %10000001
+PORTC   = %10000000
+TRISC   = %10000000
+ANSEL   = %00000000
+ANSELH  = %00000000
+PWM1_Init(1000)
+PWM2_Init(1000)
+PWM1_Start()
+PWM2_Start()
+sensores=0
+
+
+while 1
+
+  sensores=(S2*2)+(S1*1)
+  select case sensores
+  case 0
+       AVANZAR
+       Delay_10ms
+  case 1
+       GIRO_IZQUIERDA
+       Delay_10ms
+  case 2
+       GIRO_DERECHA
+       Delay_10ms
+  case 3
+       AVANZAR
+       Delay_10ms
+  end select
+wend
+end.

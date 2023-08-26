@@ -1,0 +1,40 @@
+program Senial_MatLab
+
+' declaracion de variables
+dim text         as string[5]
+dim VALOR,TEMP_VALOR AS WORD
+DIM PORCENTAJE AS WORD
+
+main:
+
+     OPTION_REG = 0X00
+' Registro Oscilador de control
+     OSCCON = 0X75 ' Oscilador interno de 8mhz
+' Registro PUERTO A
+     TRISA = 0X01 ' porta.5 como entrada digital
+     PORTA = 0X00
+' Registro PUERTO B
+     TRISB = 0X00 ' porta.5 como entrada digital
+     PORTB = 0X00
+' Registro PUERTO C
+     TRISB = 0X80
+     PORTB = 0X00
+' Seleccion de registro analogico. 1 analogico, 0 digitales
+     ANSEL = 0X01 ' AN<7:0>
+     ANSELH = 0X00 ' AN<13:8>
+
+     TRISC=0X00
+     PORTC=0X00
+
+    delay_ms(1000)
+    UART1_Init(9600)
+
+    while (TRUE)
+        VALOR=Adc_Read(0)
+        'TEMP_VALOR=1023-VALOR
+        'PORCENTAJE =VALOR '(TEMP_VALOR /1023)*100
+        WordToStr(VALOR,TEXT)
+        UART1_Write_Text(TEXT)
+        Delay_ms(100)
+    wend
+end.

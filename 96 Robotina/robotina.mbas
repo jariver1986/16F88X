@@ -1,0 +1,217 @@
+program robotina
+SYMBOL DIR1     = PORTA.2
+SYMBOL NDIR1    = PORTA.4
+SYMBOL DIR2     = PORTA.3
+SYMBOL NDIR2    = PORTA.5
+SYMBOL DISPARO1 = PORTB.4
+SYMBOL DISPARO2 = PORTB.5
+SYMBOL DISPARO3 = PORTB.6
+SYMBOL DISPARO4 = PORTB.7
+SYMBOL ECO1 = PORTC.4
+SYMBOL ECO2 = PORTC.5
+SYMBOL ECO3 = PORTC.6
+SYMBOL ECO4 = PORTC.7
+DIM distancia1,distancia2,distancia3,distancia4,contador as word
+
+sub procedure ADELANTE()
+PORTA.RA2 = 1
+PORTA.RA4 = 0
+PORTA.RA3 = 0
+PORTA.RA5 = 1
+PWM1_Set_Duty(100)
+PWM2_Set_Duty(100)
+end sub
+sub procedure ATRAS()
+PORTA.RA2 = 0
+PORTA.RA4 = 1
+PORTA.RA3 = 1
+PORTA.RA5 = 0
+PWM1_Set_Duty(100)
+PWM2_Set_Duty(100)
+end sub
+sub procedure PARAR()
+PORTA.RA2 = 0
+PORTA.RA4 = 0
+PORTA.RA3 = 0
+PORTA.RA5 = 0
+PWM1_Set_Duty(0)
+PWM2_Set_Duty(0)
+end sub
+sub procedure GIRO_IZQUIERDA()
+PORTA.RA2 = 1
+PORTA.RA4 = 0
+PORTA.RA3 = 1
+PORTA.RA5 = 0
+PWM1_Set_Duty(100)
+PWM2_Set_Duty(100)
+end sub
+sub procedure GIRO_DERECHA()
+PORTA.RA2 = 0
+PORTA.RA4 = 1
+PORTA.RA3 = 0
+PORTA.RA5 = 1
+PWM1_Set_Duty(100)
+PWM2_Set_Duty(100)
+end sub
+sub function ultrasonico1( ) as word
+     dim flanco as byte
+     dim distan,tiempo as word
+     flanco = 0
+     disparo1 = 1
+     Delay_us(50)
+     disparo1 = 0
+     DO
+          IF( eco1 = 1 )THEN
+               TMR0 = 0
+               flanco = 1
+          END IF
+     LOOP UNTIL( flanco = 1 )
+     DO
+          IF( eco1 = 0 )THEN
+               tiempo = TMR0
+               flanco = 0
+          END IF
+          if(TMR0>254)THEN
+           FLANCO=0
+          END IF
+     LOOP UNTIL( FLANCO = 0 )
+     distan = (tiempo*128)/58
+     Delay_ms (50)
+     result = distan
+end sub
+sub function ultrasonico2( ) as word
+     dim flanco as byte
+     dim distan,tiempo as word
+     flanco = 0
+     disparo2 = 1
+     Delay_us(50)
+     disparo2 = 0
+     DO
+          IF( eco2 = 1 )THEN
+               TMR0 = 0
+               flanco = 1
+          END IF
+     LOOP UNTIL( flanco = 1 )
+     DO
+          IF( eco2 = 0 )THEN
+               tiempo = TMR0
+               flanco = 0
+          END IF
+          if(TMR0>254)THEN
+           FLANCO=0
+          END IF
+     LOOP UNTIL( FLANCO = 0 )
+     distan = (tiempo*128)/58
+     Delay_ms (50)
+     result = distan
+end sub
+sub function ultrasonico3( ) as word
+     dim flanco as byte
+     dim distan,tiempo as word
+     flanco = 0
+     disparo3 = 1
+     Delay_us(50)
+     disparo3 = 0
+     DO
+          IF( eco3 = 1 )THEN
+               TMR0 = 0
+               flanco = 1
+          END IF
+     LOOP UNTIL( flanco = 1 )
+     DO
+          IF( eco3 = 0 )THEN
+               tiempo = TMR0
+               flanco = 0
+          END IF
+          if(TMR0>254)THEN
+           FLANCO=0
+          END IF
+     LOOP UNTIL( FLANCO = 0 )
+     distan = (tiempo*128)/58
+     Delay_ms (50)
+     result = distan
+end sub
+sub function ultrasonico4( ) as word
+     dim flanco as byte
+     dim distan,tiempo as word
+     flanco = 0
+     disparo4 = 1
+     Delay_us(50)
+     disparo4 = 0
+     DO
+          IF( eco4 = 1 )THEN
+               TMR0 = 0
+               flanco = 1
+          END IF
+     LOOP UNTIL( flanco = 1 )
+     DO
+          IF( eco4 = 0 )THEN
+               tiempo = TMR0
+               flanco = 0
+          END IF
+          if(TMR0>254)THEN
+           FLANCO=0
+          END IF
+     LOOP UNTIL( FLANCO = 0 )
+     distan = (tiempo*128)/58
+     Delay_ms (50)
+     result = distan
+end sub
+sub procedure BUZZER
+    'Sound_Play(800,100)
+    'Sound_Play(1000,100)
+    contador=800
+    while (contador<1200)
+        Sound_Play(contador,50)
+        contador = contador +100
+    wend
+    while (contador>800)
+        Sound_Play(contador,50)
+        contador = contador -100
+    wend
+end sub
+
+main:
+OPTION_REG=0X86
+OSCCON  = 0X65
+PORTA   = %00000000
+TRISA   = %00000000
+PORTB   = %00000000
+TRISB   = %00000000
+PORTC   = %00000000
+TRISC   = %11110000
+PORTE   = %00000000
+TRISE   = %10000000
+ANSEL   = %00000000
+ANSELH  = %00010000
+PWM1_Init(1000)
+PWM2_Init(1000)
+PWM1_Start()
+PWM2_Start()
+Sound_Init(porta,0)
+while 1
+       distancia1=ultrasonico1()
+       distancia2=ultrasonico2()
+       distancia3=ultrasonico3()
+       distancia4=ultrasonico4()
+       if distancia1<30 then
+           BUZZER
+           ATRAS
+       else
+           if distancia2<30 then
+              BUZZER
+              ADELANTE
+           else
+              if distancia3<30 then
+                 GIRO_IZQUIERDA
+              else
+                 if distancia4<30 then
+                    GIRO_DERECHA
+                 else
+                     PARAR
+                 end if
+              end if
+           end if
+       end if
+wend
+end.
