@@ -1,0 +1,17 @@
+main
+	UART1_Init
+	PWM1_Init
+	PWM1_Start
+	PWM1_Set_Duty
+		Mul_16x16_U
+	LED1_OFF
+	LED2_OFF
+	Adc_Read
+		Delay_22us
+	LED1_ON
+	LED2_ON
+	UART1_Write_Text
+		UART1_Write
+	Delay_1sec
+interrupt
+	UART1_Read

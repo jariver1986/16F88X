@@ -1,0 +1,90 @@
+program lcd_distancia
+
+'******************************************************************************
+'******************* Ideas & Tecnología **************************
+'******************* Módulo Entrenamiento I&T 04 *************************
+'******************* www.ideastechnology.com *************************
+'
+' * Nombre proyecto: ULTRASONICO_LCD
+'
+' * Descripción:
+' Hacer el uso del HY-SRF05 para medir la distancia y visualizar la medida
+' en una LCD 16X2
+' * Configuraciones:
+' Microcontrolador: PIC16F886
+' Oscillator: INT_RC_OSC_NOCLKOUT, 4MHz
+' Compilador: MikroBasic Pro for PC 3.2
+'*************************************************************************
+'********************NOMBRE DEL PROGRAMA********************************
+
+dim LCD_RS as sbit at RB1_bit
+LCD_EN as sbit at RA3_bit
+LCD_D4 as sbit at RC2_bit
+LCD_D5 as sbit at RA4_bit
+LCD_D6 as sbit at RC1_bit
+LCD_D7 as sbit at RA2_bit
+LCD_RS_Direction as sbit at TRISB1_bit
+LCD_EN_Direction as sbit at TRISA3_bit
+LCD_D4_Direction as sbit at TRISC2_bit
+LCD_D5_Direction as sbit at TRISA4_bit
+LCD_D6_Direction as sbit at TRISC1_bit
+LCD_D7_Direction as sbit at TRISA2_bit
+DIM FLANCO,TIEMPO AS BYTE
+DIM DISTANCIA AS WORD
+DIM TEXT AS STRING[6]
+
+SUB PROCEDURE PULSO()
+PORTC.3=1
+Delay_us(150)
+PORTC.3=0
+END SUB
+'********************PROGRAMA PRINCIPAL+********************************
+main:
+OPTION_REG=%10000110' PULL-UP DISABLED ,PRESC=128
+'TIEMPO= (4/FOSC)*PRESC*(256-TMR0)
+' Registro Oscilador de control
+OSCCON = 0X65 ' Oscilador interno de 4mhz
+' Registro PUERTO B
+TRISB = 0X00 ' PORTB salidas
+PORTB = 0X00
+' Registro PUERTO C
+TRISC = 0X31 ' PORTC salidas
+PORTC = 0X00
+' Registro PUERTO E
+TRISE = 0X00 ' PORTE salidas
+PORTE = 0X00
+' Seleccion de registro analogico. 1 analogico, 0 digitales
+ANSEL = 0X00 ' AN<7:0>
+ANSELH = 0X00 ' AN<13:8>
+FLANCO=0
+Lcd_Init() ' Inicializacion Lcd
+Lcd_Cmd(_LCD_CLEAR) ' encera display
+Lcd_Cmd(_LCD_CURSOR_OFF) ' Cursor off
+Lcd_Out(1,2,"IDEAS Y TECNOLOGIAS") ' escribe la cadena en la primera fila
+Lcd_Out(2,4," M.E. I&T 04")
+Delay_ms(2000)
+WHILE(1)
+PULSO()
+DO
+IF(PORTC.0=1)THEN'DETECTO FLANCO SUBIDA ECHO PULSE
+TMR0=0
+FLANCO=1
+
+END IF
+LOOP UNTIL(FLANCO=1)
+DO
+IF(PORTC.0=0)THEN 'DETECTO FLANCO SUBIDA ECHO PULSE
+TIEMPO=TMR0
+FLANCO=0
+END IF
+LOOP UNTIL(FLANCO=0)
+DISTANCIA=(TIEMPO*128)/58 'DISTANCIA EN cm
+WordToStr(DISTANCIA,TEXT)
+Lcd_Cmd(_LCD_CLEAR) ' encera display
+Lcd_Cmd(_LCD_CURSOR_OFF) ' Cursor off
+Lcd_Out(1,2,"Distancia(cm)= ")
+Lcd_Out(2,2,TEXT)
+Delay_ms(50)
+WEND
+end.
+

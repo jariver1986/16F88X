@@ -1,0 +1,266 @@
+program Led_Android
+
+dim distancia1, distancia2, distancia3,distancia4 as word
+dim delante,modo,dato_recep as byte
+
+ sub procedure interrupt
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' RECIVE POR PUERTO SERIAL
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+     if (PIR1.RCIF=1) then
+          PIR1.RCIF=0
+          dato_recep = UART1_Read()
+     end if
+     INTCON=0XF0
+     PIE1.RCIE=1
+     PIR1.RCIF=0
+     end sub
+'*******************************************************************************
+sub procedure letra_e ()
+              PORTD= %11111111
+              Delay_ms(1)
+              PORTD= %10011001
+              Delay_ms(1)
+              PORTD= %10000001
+              Delay_ms(1)
+end sub
+sub procedure letra_m ()
+              PORTD= %11111111
+              Delay_ms(1)
+              PORTD= %01100000
+              Delay_ms(1)
+              PORTD= %11111111
+              Delay_ms(1)
+end sub
+sub procedure letra_l ()
+              PORTD= %11111111
+              Delay_ms(1)
+              PORTD= %00000011
+              Delay_ms(1)
+              PORTD= %00000011
+              Delay_ms(1)
+end sub
+sub procedure letra_c ()
+              PORTD= %11111111
+              Delay_ms(1)
+              PORTD= %11000011
+              Delay_ms(1)
+              PORTD= %11000011
+              Delay_ms(1)
+end sub
+main:
+     OSCCON = 0X75
+     UART1_Init(9600)
+     OPTION_REG = %10000110
+' REGISTRO PORTA
+     TRISA = 0x00
+     PORTA = 0x00
+     INTCON=0XF0
+     PIE1.RCIE=1
+     PIR1.RCIF=0
+
+' REGISTRO PORTB
+     TRISB = 0xFF  'PIN RB1,RB2  ENTRADAS PARA SENSAR CORRIENTE DE MOTORES
+     PORTB = 0x00
+
+' REGISTRO PORTC
+     TRISC = %10000000
+     PORTC = %00000000
+
+     TRISD=0
+     PORTD=0
+
+' REGISTRO ANSEL
+     ANSEL =  %00000000 ' RE1-RE2 ANALOGICO, RESTO DIGITALES
+     ANSELH = %00000000
+
+' CONFIGURO EL PWM A UNA FRECUENCIA DE 1000HZ
+
+WHILE(1)
+           if dato_recep="A" then    'ADELANTE
+              IF PORTB.RB1=1 THEN
+              PORTD= %11111111
+              Delay_ms(1)
+              PORTD= %00000011
+              Delay_ms(1)
+              PORTD= %00000011
+              Delay_ms(1)
+
+              PORTD= %00000000
+              Delay_ms(1)
+
+              PORTD= %11111111
+              Delay_ms(1)
+              PORTD= %10011000
+              Delay_ms(1)
+              PORTD= %11111111
+              Delay_ms(1)
+
+              PORTD= %00000000
+              Delay_ms(1)
+              
+              PORTD= %11111111
+              Delay_ms(1)
+              PORTD= %10011001
+              Delay_ms(1)
+              PORTD= %11111111
+              Delay_ms(1)
+              
+              PORTD= %00000000
+              Delay_ms(1)
+
+              PORTD= %00000011
+              Delay_ms(1)
+              PORTD= %00000011
+              Delay_ms(1)
+              PORTD= %00000000
+              Delay_ms(1)
+              
+              PORTD= %00000000
+              Delay_ms(1)
+              
+              PORTD= %11111111
+              Delay_ms(1)
+              PORTD= %10011000
+              Delay_ms(1)
+              PORTD= %11111111
+              Delay_ms(1)
+              
+              PORTD= %00000000
+              Delay_ms(1)
+              
+              
+           END IF
+         end if
+         
+           if dato_recep="B" then    'ADELANTE
+              IF PORTB.RB1=1 THEN
+              PORTD= %11111111
+              Delay_ms(1)
+              PORTD= %00011000
+              Delay_ms(1)
+              PORTD= %11111111
+              Delay_ms(1)
+
+              PORTD= %00000000
+              Delay_ms(1)
+
+              PORTD= %11111111
+              Delay_ms(1)
+              PORTD= %10000001
+              Delay_ms(1)
+              PORTD= %11111111
+              Delay_ms(1)
+
+              PORTD= %00000000
+              Delay_ms(1)
+
+              PORTD= %11111111
+              Delay_ms(1)
+              PORTD= %00000011
+              Delay_ms(1)
+              PORTD= %00000011
+              Delay_ms(1)
+
+              PORTD= %00000000
+              Delay_ms(1)
+
+              PORTD= %11111111
+              Delay_ms(1)
+              PORTD= %11001100
+              Delay_ms(1)
+              PORTD= %11111111
+              Delay_ms(1)
+
+              PORTD= %00000000
+              Delay_ms(1)
+              PORTD=0
+           END IF
+           end if
+           if dato_recep="C" then    'ADELANTE
+              IF PORTB.RB1=1 THEN
+              PORTD= %11111111
+              Delay_ms(1)
+              PORTD= %10011001
+              Delay_ms(1)
+              PORTD= %10000001
+              Delay_ms(1)
+
+              PORTD= %00000000
+              Delay_ms(1)
+
+              PORTD= %11111001
+              Delay_ms(1)
+              PORTD= %10011001
+              Delay_ms(1)
+              PORTD= %10011111
+              Delay_ms(1)
+
+              PORTD= %00000000
+              Delay_ms(1)
+
+              PORTD= %11111111
+              Delay_ms(1)
+              PORTD= %10011000
+              Delay_ms(1)
+              PORTD= %11111000
+              Delay_ms(1)
+
+              PORTD= %00000000
+              Delay_ms(1)
+
+              PORTD= %11111111
+              Delay_ms(1)
+              PORTD= %11000011
+              Delay_ms(1)
+              PORTD= %11111111
+              Delay_ms(1)
+              
+              PORTD= %00000000
+              Delay_ms(1)
+
+              PORTD= %11111111
+              Delay_ms(1)
+              PORTD= %00000011
+              Delay_ms(1)
+              PORTD= %00000011
+              Delay_ms(1)
+
+
+              PORTD= %00000000
+              Delay_ms(1)
+              PORTD=0
+           END IF
+           end if
+           if dato_recep="D" then    'ADELANTE
+              IF PORTB.RB1=1 THEN
+              letra_e
+              PORTD= %00000000
+              Delay_ms(1)
+
+              letra_m()
+              PORTD= %00000000
+              Delay_ms(1)
+
+              letra_e
+              PORTD= %00000000
+              Delay_ms(1)
+
+              letra_l
+              PORTD= %00000000
+              Delay_ms(1)
+
+              letra_e
+              PORTD= %00000000
+              Delay_ms(1)
+
+              letra_c
+              PORTD= %00000000
+              Delay_ms(1)
+              
+              PORTD= %00000000
+              Delay_ms(1)
+              END IF
+           END IF
+WEND
+end.

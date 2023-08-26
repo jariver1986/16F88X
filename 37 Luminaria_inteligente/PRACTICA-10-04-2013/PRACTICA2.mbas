@@ -1,0 +1,207 @@
+program PRACTICA2
+
+DIM TEMP,LUZ,LDR,TIEMPO,contador AS WORD
+DIM OLDSTATE,CONT, dato_recep,CONTEO,CONTEO2,CENTINELA, BOTON, viajero, receive,SENSOR,MOVIMIENTO,BANDERA,CIRCUITO2,CIRCUITO1  AS BYTE
+dim temp1,temp2,temp3,temp4, luminaria,luminaria1,luminaria2,luminaria3,temporal1,temporal2 as byte
+dim dato_listo as bit
+
+
+  sub procedure interrupt
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' RECIVE POR PUERTO SERIAL
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+     if (PIR1.RCIF=1) then
+          PIR1.RCIF=0
+          dato_recep = UART1_Read()
+          select case viajero
+          'IDENTIFICADORES
+               case 0
+                     if dato_recep = "L" then ' I
+                          viajero = 1
+                     else
+                          viajero = 0
+                     end if
+               case 1
+                     if dato_recep = "U" then
+                          viajero = 2
+                     else
+                          viajero=0
+                     end if
+               case 2
+                     if dato_recep = "Z" then
+                          viajero = 3
+                     else
+                          viajero=0
+                     end if
+          'SE GUARDAN EN UN ARREGLO LOS COMANDOS
+               case 3
+                     if dato_recep = "0" then
+                          viajero = 4
+                     else
+                          viajero=0
+                     end if
+               case 4
+                     if dato_recep = "0" then
+                          viajero = 5
+                     else
+                          viajero=0
+                     end if
+               case 5
+                     if dato_recep = "1" then
+                          viajero = 6
+                     else
+                          viajero=0
+                     end if
+               case 6
+                     temp4 = dato_recep    ' 1=0n  ; 2=off  ; 3=automático
+                     viajero=7
+               case 7
+                     if dato_recep = "F" then
+                          viajero = 8
+                     else
+                          viajero=0
+                     end if
+               case 8
+                    viajero=0
+          end select
+     end if
+     INTCON=0XE0
+     PIE1.RCIE=1
+     PIR1.RCIF=0
+     end sub
+
+SUB PROCEDURE LED1_ON()
+    PORTB.RB1=1
+END SUB
+SUB PROCEDURE LED1_OFF()
+    PORTB.RB1=0
+END SUB
+
+SUB PROCEDURE LED2_ON()
+    PORTB.RB2=1
+END SUB
+SUB PROCEDURE LED2_OFF()
+    PORTB.RB2=0
+END SUB
+
+main:
+ANSEL  = 0x07                          ' Configure AN pins as digital I/O
+ANSELH = 0
+TRISA=0X07
+PORTA=0X00
+
+TRISB=0X00
+PORTB=0X00
+
+TRISC=0X80
+PORTC=0X00
+
+
+OSCCON = 0X65
+OPTION_REG=%1000100
+
+
+UART1_Init(9600)
+INTCON=%11100000
+
+PIR1.RCIF=0
+PIE1.RCIE=1
+
+PWM1_Init(1000)
+PWM1_Start
+
+
+TMR0=0
+TEMP=0
+LUZ=0
+CONT=0
+viajero=0
+dato_listo=0
+TIEMPO=0
+CIRCUITO2=0
+CIRCUITO1=0
+BANDERA=0
+LDR=0
+CENTINELA=0
+MOVIMIENTO=0
+PWM1_Set_Duty(0)
+contador=0
+temp4=0X33
+
+PRINCIPIO:
+WHILE(1)
+
+  while(temp4=0X31)          'enncender
+    PWM1_Set_Duty(255)
+  wend
+  
+  while(temp4=0X32)          'apagar
+     PWM1_Set_Duty(0)
+  wend
+                          'automático
+  while(temp4=0X33)
+     IF  CENTINELA=0 THEN  'EN EL DIA
+         MOVIMIENTO=0
+            LED1_OFF()
+            LED2_OFF()
+            'CIRCUITO1=1   'ENCIENDO CIRCUITO 1
+            'CIRCUITO2=1   'ENCIENDO CIRCUITO 2
+            PWM1_Set_Duty(0)
+
+          LDR = Adc_Read(1)>>2
+         IF (LDR=250)or(LDR=251)or(LDR=252)or(LDR=253)or(LDR=254) THEN  'ENTRA SI ES DE NOCHE
+            BANDERA=1     'CONTEO DEL TIEMPO
+            'CIRCUITO1=1   'ENCIENDO CIRCUITO 1
+            'CIRCUITO2=1   'ENCIENDO CIRCUITO 2
+            PWM1_Set_Duty(255)
+            CENTINELA=1
+            LED1_ON()
+            LED2_ON()
+         END IF
+         if (LDR=255) then
+            UART1_Write_Text("LUZ0014F")
+         end if
+     END IF
+
+     IF CENTINELA =1 THEN  'EN LA NOCHE
+         LDR = Adc_Read(1)>>2
+         IF LDR<250 THEN  'ENTRA SI ES DE DIA
+            'CIRCUITO1=0   'APAGA LUCES 1
+            CENTINELA=0
+            LED1_OFF()
+         END IF
+
+     END IF
+
+     IF BANDERA=1 THEN  'CONTEO DEL TIEMPO
+         INC(TIEMPO)
+         Delay_1sec
+         Delay_1sec
+         IF TIEMPO=10 THEN   'tiempo=10 segundos
+            TIEMPO=0
+            'CIRCUITO2=0
+            PWM1_Set_Duty(25)
+            BANDERA=0
+            MOVIMIENTO=1
+            LED2_OFF()
+         END IF
+     END IF
+
+     'SENSOR DESPUES DE LA 1 AM
+     IF MOVIMIENTO=1 THEN
+        'SENSOR DE MOVIMIENTO
+         SENSOR = Adc_Read(0)>>2
+         IF SENSOR>70 THEN
+            'CIRCUITO2=1
+            PWM1_Set_Duty(255)
+            Delay_1sec
+            LED2_ON()
+         ELSE
+            'CIRCUITO2=0
+            PWM1_Set_Duty(25)
+            LED2_OFF()
+         END IF
+     END IF
+  wend
+WEND
+end.
