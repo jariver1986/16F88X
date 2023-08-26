@@ -4,7 +4,7 @@ Projects with PIC16F882/883/884/886/887 Data Sheet 28/40/44-Pin, Enhanced Flash-
 # 16F88X
 - Modelo: 16F886
 - Link: [https://www.st.com/en/evaluation-tools/nucleo-f446re.html](https://www.microchip.com/en-us/product/pic16f886)
--IDE: https://www.mikroe.com/mikrobasic-pic
+- IDE: https://www.mikroe.com/mikrobasic-pic
 
 # All features
 This powerful yet easy-to-program (only 35 single word instructions) CMOS FLASH-based 8-bit microcontroller packs Microchip's powerful PIC® architecture into a 28 pin package.The PIC16F886 features 256 bytes of EEPROM data memory, self programming, an ICD, 2 Comparators, 11 channels of 10-bit Analog-to-Digital (A/D) converter, 1 capture/compare/PWM and 1 Enhanced capture/compare/PWM functions, a synchronous serial port that can be configured as either 3-wire Serial Peripheral Interface (SPI™) or the 2-wire Inter-Integrated Circuit (I²C™) bus and an Enhanced Universal Asynchronous Receiver Transmitter (EUSART). All of these features make it ideal for more advanced level A/D applications in automotive, industrial, appliances or consumer applications.
