@@ -1,0 +1,79 @@
+[DEVICE]
+Name=P16F628A
+Clock=4000000
+[MEMORY_MODEL]
+Value=0
+[BUILD_TYPE]
+Value=0
+[ACTIVE_TAB]
+Value=codigo_fuente.mbas
+[USE_EEPROM]
+Value=0
+[EEPROM_DEFINITION]
+Value=
+[FILES]
+Count=1
+File0=codigo_fuente.mbas
+[BINARIES]
+Count=0
+[IMAGES]
+Count=0
+[OPENED_FILES]
+Count=1
+File0=codigo_fuente.mbas
+[OTHER_FILES]
+Count=0
+[SEARCH_PATH]
+Count=8
+Path0=C:\Program Files\Mikroelektronika\mikroBasic PRO for PIC\defs\
+Path1=C:\Program Files\Mikroelektronika\mikroBasic PRO for PIC\Uses\P16\
+Path2=D:\Mu\Desarrollo\Prueba_sensor_distancia_adc\codigoultrasonicodac\
+Path3=C:\Archivos de programa\Mikroelektronika\mikroBasic PRO for PIC\defs\
+Path4=C:\Archivos de programa\Mikroelektronika\mikroBasic PRO for PIC\Uses\P16\
+Path5=C:\PROYECTOS GENARO\PROYECTO ULTRASONICO DAC\codigoultrasonicodac\
+Path6=C:\PROYECTOS GENARO\PROYECTO ULTRASONICO DAC\CODIGO\
+Path7=C:\PROYECTOS GENARO\PLACA FUENTE LABORATORIO\CODIGO\
+[HEADER_PATH]
+Count=0
+[HEADERS]
+Count=0
+[PLDS]
+Count=0
+[Useses]
+Count=36
+File0=ADC
+File1=Button
+File2=C_Type
+File3=CAN_SPI
+File4=Compact_Flash
+File5=Conversions
+File6=EEPROM
+File7=FLASH
+File8=Glcd_Fonts
+File9=Glcd
+File10=I2C
+File11=Keypad4x4
+File12=Lcd_Constants
+File13=Lcd
+File14=Manchester
+File15=One_Wire
+File16=Port_Expander
+File17=PS2
+File18=RS485
+File19=Software_I2C
+File20=Software_SPI
+File21=Software_UART
+File22=Sound
+File23=SPI_Ethernet
+File24=SPI_Glcd
+File25=SPI_Lcd
+File26=SPI_Lcd8
+File27=SPI_T6963C
+File28=SPI
+File29=String
+File30=T6963C
+File31=Time
+File32=Trigon
+File33=Trigonometry
+File34=UART
+File35=PWM

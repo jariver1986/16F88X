@@ -1,0 +1,13 @@
+Line	MessageNo	File Name
+0	1	mBPic.exe -DBG -pP16F628A -MSF -Y -DL -O11111114 -fo4 -N"D:\Mu\Desarrollo\Prueba_sensor_distancia_adc\codigoultrasonicodac\codigo_fuente.mbppi" -SP"C:\Program Files\Mikroelektronika\mikroBasic PRO for PIC\defs\" -SP"C:\Program Files\Mikroelektronika\mikroBasic PRO for PIC\Uses\P16\" -SP"D:\Mu\Desarrollo\Prueba_sensor_distancia_adc\codigoultrasonicodac\" -SP"C:\Archivos de programa\Mikroelektronika\mikroBasic PRO for PIC\defs\" -SP"C:\Archivos de programa\Mikroelektronika\mikroBasic PRO for PIC\Uses\P16\" -SP"C:\PROYECTOS GENARO\PROYECTO ULTRASONICO DAC\codigoultrasonicodac\" -SP"C:\PROYECTOS GENARO\PROYECTO ULTRASONICO DAC\CODIGO\" -SP"C:\PROYECTOS GENARO\PLACA FUENTE LABORATORIO\CODIGO\" "__Lib_Math.mcl" "__Lib_MathDouble.mcl" "__Lib_System.mcl" "__Lib_Delays.mcl" "__Lib_CType.mcl" "__Lib_String.mcl" "__Lib_Conversions.mcl" "__Lib_Time.mcl" "__Lib_Trigon.mcl" "__Lib_Trigonometry.mcl" "__Lib_Button.mcl" "__Lib_Keypad4x4.mcl" "__Lib_Manchester.mcl" "__Lib_OneWire.mcl" "__Lib_PS2.mcl" "__Lib_Sound.mcl" "__Lib_SoftI2C.mcl" "__Lib_SoftSPI.mcl" "__Lib_SoftUART.mcl" "__Lib_EEPROM.mcl" "__Lib_PWM_b3.mcl" "__Lib_UART_b21.mcl" "__Lib_CF.mcl" "__Lib_GlcdFonts.mcl" "__Lib_Glcd.mcl" "__Lib_LcdConsts.mcl" "__Lib_Lcd.mcl" "__Lib_RS485.mcl" "__Lib_T6963C.mcl" "codigo_fuente.mbas"	 
+warning: 0	1501	Specified search path do not exist: 'C:\PROYECTOS GENARO\PROYECTO ULTRASONICO DAC\codigoultrasonicodac'	 
+warning: 0	1501	Specified search path do not exist: 'C:\PROYECTOS GENARO\PROYECTO ULTRASONICO DAC\CODIGO'	 
+warning: 0	1501	Specified search path do not exist: 'C:\PROYECTOS GENARO\PLACA FUENTE LABORATORIO\CODIGO'	 
+diagnostics: 0	154	Available RAM: 208 [bytes], Available ROM: 2048 [bytes]	 
+diagnostics: 0	132	Compilation Started	D:\Mu\Desarrollo\Prueba_sensor_distancia_adc\codigoultrasonicodac\codigo_fuente.mbas
+diagnostics: 0	133	Compiled Successfully	D:\Mu\Desarrollo\Prueba_sensor_distancia_adc\codigoultrasonicodac\codigo_fuente.mbas
+diagnostics: 0	138	All files Compiled in 93 ms	 
+diagnostics: 0	144	Project Linked Successfully	codigo_fuente.mbppi
+diagnostics: 0	139	Linked in 1264 ms	 
+diagnostics: 0	140	Project 'codigo_fuente.mbppi' completed: 2184 ms	 
+diagnostics: 0	103	Finished successfully: 06 dic 2012, 20:18:40	codigo_fuente.mbppi

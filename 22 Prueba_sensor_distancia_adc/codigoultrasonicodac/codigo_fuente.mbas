@@ -1,0 +1,76 @@
+program codigo_fuente
+
+
+SYMBOL DISPARO1  = PORTB.0     'PIN TRIGGER entrada
+SYMBOL ECO1      = PORTB.1     'PIN ECHO salida
+SYMBOL MODOSFR05 = PORTB.2     'MODO
+
+
+dim control_voltaje,distancia as longword
+dim distan,tiempo as word
+dim valor as byte
+dim oldstate_1,oldstate_2,BANDERA,flanco,pulso as byte
+
+sub function ultrasonico1( ) as word
+     dim flanco as byte
+     flanco = 0
+     tiempo=0
+     disparo1 = 1
+     Delay_us(50)
+     disparo1 = 0
+     DO
+          IF( eco1 = 1 ) THEN
+               TMR0 = 0
+               flanco = 1
+          END IF
+     LOOP UNTIL( flanco = 1 )
+     DO
+          IF( eco1 = 0 )THEN
+               tiempo = TMR0
+               flanco = 0
+          END IF
+          if(TMR0>202)THEN
+           tiempo=204
+          END IF
+     LOOP UNTIL( FLANCO = 0 )
+     distan = (tiempo*128)/58
+     Delay_ms (5)
+     result = distan
+end sub
+sub procedure pwm1_set_data(dim pwmduty as word)
+     dim tmp as byte
+     dim tmp2 as integer
+     tmp2 = (pwmduty/4)
+     CCPR1L = tmp2
+     tmp2 = (pwmduty and 0x0003)
+     tmp = tmp2
+     CCP1CON.CCP1X = ((tmp>>1) and 0x01)
+     CCP1CON.CCP1Y = (tmp and 0x01)
+end sub
+main:
+     CMCON = 0X07  'comparadores desabilitados y activada pines de I/O
+     TRISA = 0X00
+     PORTA = 0X00
+     TRISB = 0X06
+     PORTB = 0X00
+
+     PCON       = 0X0B  '0X0B  'OSC A 4 MHz
+     OPTION_REG = 0x86  'PREESCALADOR A 128
+     PR2        = 0XF9
+     T2CON      = 0X05  'TIMER 2 ON PREESCALADOR 4
+     CCPR1L     = 0X00
+     CCP1CON    = 0X0C
+     'Delay_ms(1000)
+     oldstate_1 =0
+     control_voltaje = 0
+     flanco=0
+     distancia=0
+     
+     while TRUE
+          PORTA.RA0= PORTA.0 XOR 1
+          distancia=  ultrasonico1()
+          control_voltaje = ((distancia*1023)/450)
+          pwm1_set_data(control_voltaje )
+          Delay_ms(50)
+     wend
+end.

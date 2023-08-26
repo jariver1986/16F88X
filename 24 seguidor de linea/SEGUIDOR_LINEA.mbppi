@@ -1,0 +1,96 @@
+[DEVICE]
+Name=P16F886
+Clock=4000000
+[MEMORY_MODEL]
+Value=0
+[BUILD_TYPE]
+Value=0
+[ACTIVE_TAB]
+Value=SEGUIDOR_LINEA.mbas
+[USE_EEPROM]
+Value=0
+[EEPROM_DEFINITION]
+Value=
+[EEPROM]
+Count=0
+[ACTIVE_COMMENTS_FILES]
+Count=0
+[EXPANDED NODES]
+Node1=Sources
+Count=1
+[FILES]
+Count=1
+File0=SEGUIDOR_LINEA.mbas
+[BINARIES]
+Count=0
+[IMAGES]
+Count=0
+[OPENED_FILES]
+Count=1
+File0=SEGUIDOR_LINEA.mbas
+[OTHER_FILES]
+Count=0
+[SEARCH_PATH]
+Count=18
+Path0=C:\Program Files (x86)\Mikroelektronika\mikroBasic PRO for PIC\defs\
+Path1=C:\Program Files (x86)\Mikroelektronika\mikroBasic PRO for PIC\Uses\P16\
+Path2=C:\Users\johnanibal\Documents\Desarrollo_Mikrobasic\Proyectos 2012\seguidor de linea\
+Path3=C:\Program Files\Mikroelektronika\mikroBasic PRO for PIC\defs\
+Path4=C:\Program Files\Mikroelektronika\mikroBasic PRO for PIC\Uses\P16\
+Path5=D:\Mu\Desarrollo\seguidor de linea\
+Path6=Y:\I&T 8 CD 2012 Ideas&Tecnologia\Ejemplos de Programacion\PRACTICAS KITS ROBOTS I&T\FIRMWARE BASICO - SEGUIDOR LINEA  DESTREZA I&T\
+Path7=C:\Users\vasanza\Desktop\FIRMWARE BASICO - SEGUIDOR LINEA  DESTREZA I&T\
+Path8=C:\Archivos de programa\Mikroelektronika\mikroBasic PRO for PIC\defs\
+Path9=C:\Archivos de programa\Mikroelektronika\mikroBasic PRO for PIC\Uses\P16\
+Path10=C:\Documents and Settings\LABORATORIO\Escritorio\I&T 8 CD 2012 Ideas&TecnologiaCORRE\EJEMPLOS DE PROGRAMACIÓN CON MÓDULOS I&T\PRACTICAS KITS ROBOTS I&T\FIRMWARE BASICO - SEGUIDOR LINEA  DESTREZA I&T\
+Path11=C:\Documents and Settings\LABORATORIO\Escritorio\I&T 8 CD 2012 Ideas&Tecnologia\EJEMPLOS DE PROGRAMACIÓN CON MÓDULOS I&T\PRACTICAS KITS ROBOTS I&T\FIRMWARE BASICO - SEGUIDOR LINEA  DESTREZA I&T\
+Path12=C:\IDEAS&TECNOLOGIA_PC_ASANZA\I&T 8 CD 2012 Ideas&Tecnologia\EJEMPLOS DE PROGRAMACIÓN CON MÓDULOS I&T\PRACTICAS KITS ROBOTS I&T\FIRMWARE BASICO - SEGUIDOR LINEA  DESTREZA I&T\
+Path13=C:\IDEAS&TECNOLOGIA_PC_ASANZA\I&T 8 CD 2012 Ideas&Tecnologia +\EJEMPLOS DE PROGRAMACIÓN CON MÓDULOS I&T\PRACTICAS KITS ROBOTS I&T\FIRMWARE BASICO - SEGUIDOR LINEA  DESTREZA I&T\
+Path14=C:\Users\vasanza\Desktop\SEMINARIO ROBOTICA MANABI\CLASES\CLASE 2\SEGUIDOR LINEA\
+Path15=C:\Users\vasanza\Desktop\SEMINARIO ESPOL-MECANICA\CLASES\CLASE 2\SEGUIDOR LINEA\
+Path16=C:\Users\Invitado\Desktop\SEMINARIO ESPOL-MECANICA\CLASES\CLASE 2\SEGUIDOR LINEA\
+Path17=C:\Users\Invitado\Desktop\SEGUIDOR LINEA\
+[HEADER_PATH]
+Count=0
+[HEADERS]
+Count=0
+[PLDS]
+Count=0
+[Useses]
+Count=36
+File0=ADC
+File1=Button
+File2=C_Type
+File3=CAN_SPI
+File4=Compact_Flash
+File5=Conversions
+File6=EEPROM
+File7=FLASH
+File8=Glcd_Fonts
+File9=Glcd
+File10=I2C
+File11=Keypad4x4
+File12=Lcd_Constants
+File13=Lcd
+File14=Manchester
+File15=One_Wire
+File16=Port_Expander
+File17=PS2
+File18=PWM
+File19=RS485
+File20=Software_I2C
+File21=Software_SPI
+File22=Software_UART
+File23=Sound
+File24=SPI_Ethernet
+File25=SPI_Glcd
+File26=SPI_Lcd
+File27=SPI_Lcd8
+File28=SPI_T6963C
+File29=SPI
+File30=String
+File31=T6963C
+File32=Time
+File33=Trigon
+File34=Trigonometry
+File35=UART

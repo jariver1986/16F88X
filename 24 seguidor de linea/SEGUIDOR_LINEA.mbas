@@ -1,0 +1,216 @@
+' CÓDIGO GUÍA:
+' ROBOT SEGUIDOR DE LÍNEAS DESTREZA CON 4 SENSORES EN "T"
+'
+' Este código es una guía para que el estudiante comprenda la dinámica del robot y
+' el uso de los módulos de Ideas&Tecnología. Este código debe ser MODIFICADO y MEJORADO
+' según las aptitudes del cliente que adquiere el Kit de robótica o los estudiantes
+' del taller de Ideas&Tecnología, siendo responsabilidad del cliente o estudiante
+' el uso del código integro para el Campeonato Ecuatoriano de Robótica (CER).
+'
+' Posición física de sensores y motores para el desarrollo del código guía:
+'         S4
+'      S3 S2 S1
+' []-M2       M1-[]
+'
+'portC.3 = S1
+'portC.4 = S2
+'portC.5 = S3
+'portC.6 = S4
+'
+' Información: info@ideastechnology.com
+' oficina: 045102623
+' www.ideastechnology.com
+' Guayaquil - Ecuador
+
+
+program SEGUIDOR_LINEA
+
+SYMBOL DIR1= PORTA.2   'CONTROL DIRECCION MOTOR1
+SYMBOL NDIR1=PORTA.4  'CONTROL DIRECCION MOTOR1
+
+SYMBOL DIR2= PORTA.3  'CONTROL DIRECCION MOTOR2
+SYMBOL NDIR2=PORTA.5  'CONTROL DIRECCION MOTOR2
+
+SYMBOL S1=PORTC.3  'SENSOR INFRARROJO 1 CONECTADO AL PORTB.3
+SYMBOL S2=PORTC.4  'SENSOR INFRARROJO 2 CONECTADO AL PORTB.4
+SYMBOL S3=PORTC.5  'SENSOR INFRARROJO 3 CONECTADO AL PORTB.5
+SYMBOL S4=PORTC.6  'SENSOR INFRARROJO 4 CONECTADO AL PORTB.6
+
+DIM vel,sensores,BAND AS integer
+'************PROCEDIMIENTO PARA CONTROLAR DIRECCION Y VELOCIDAD DE LOS MOTORES 1  y 2 ****************
+'************ SET_MOTOR(DIM MOTOR1,MOTOR2 AS INTEGER)
+'*****MOTOR1: PUEDE TOMAR VALORES ENTRE -255 A +255 DONDE EL SIGNO CONTROLA LA DIRECCION DE GIRO
+'******* (-) GIRA EN UN SENTIDO, (+) GIRO SENTIDO OPUESTO ,EL VALOR NUMERICO INDICA LA VELOCIDAD
+'******* CON 255 VELOCIDAD MAXIMA C0N 0 VELOCIDAD MINIMA (STOP)
+''MAXIMA VELOCIDDA EN UN SENTIDO 255 MINIMA VELOCIDAD=0
+'*****MOTOR2: PUEDE TOMAR VALORES ENTRE -255 A +255 DONDE EL SIGNO CONTROLA LA DIRECCION DE GIRO
+'******* (-) GIRA EN UN SENTIDO, (+) GIRO SENTIDO OPUESTO ,EL VALOR NUMERICO INDICA LA VELOCIDAD
+'******* CON 255 VELOCIDAD MAXIMA C0N 0 VELOCIDAD MINIMA (STOP)
+''MAXIMA VELOCIDDA EN UN SENTIDO 255 MINIMA VELOCIDAD=0
+SUB PROCEDURE SET_MOTOR(DIM MOTOR2,MOTOR1 AS INTEGER)
+ '******************** MOTOR 1***************
+   IF(MOTOR1<0)THEN
+     MOTOR1=-MOTOR1
+      UART1_Write(0XAA)
+      UART1_Write(0XCC)
+      UART1_Write(0X01)  'MOTOR 1
+      UART1_Write(0XFF)  'ADELANTE
+      UART1_Write(0XDD)
+     'DIR1=0
+     'NDIR1=1
+   ELSE
+     'DIR1=1
+     'NDIR1=0
+      UART1_Write(0XAA)
+      UART1_Write(0XCC)
+      UART1_Write(0X01)  'MOTOR 1
+      UART1_Write(0X30)  'ATRAS
+      UART1_Write(0XDD)
+   END IF
+   '******************** MOTOR 2***************
+     IF(MOTOR2<0)THEN
+     MOTOR2=-MOTOR2
+     'DIR2=0
+     'NDIR2=1
+     UART1_Write(0XAA)
+      UART1_Write(0XCC)
+      UART1_Write(0X02)  'MOTOR 2
+      UART1_Write(0XFF)  'ADELANTE
+      UART1_Write(0XDD)
+   ELSE
+      UART1_Write(0XAA)
+      UART1_Write(0XCC)
+      UART1_Write(0X02)  'MOTOR 2
+      UART1_Write(0X30)  'ATRAS
+      UART1_Write(0XDD)
+     'DIR2=1
+     'NDIR2=0
+   END IF
+   'PWM1_Set_Duty(MOTOR1)
+   'PWM2_Set_Duty(MOTOR2)
+END SUB
+
+SUB PROCEDURE TIEMPO ()
+    delay_ms(10)
+END SUB
+
+main:
+'OPTION_REG=%10000000
+TRISA=%00000001  ' tris configura entreda o salida
+TRISB=%00000000  '
+TRISC=%01111000  'RC3,RC4,RC5,RC6 ENTRADAS   (C1 Y C2 PWM)
+ANSEL=1 '00000001 'analogicos o digitales AN0=RA0, AN1=RA1, AN2=RA2, AN3=RA3, AN4=RA5,
+ANSELH=0 'AN8=RB2, AN9=RB3, AN10=RB1, AN11=RB4, AN12=RB0, AN13=RB5
+PWM1_Init(1000)'FRECUENCIA (HZ)
+PWM2_Init(1000)'FRECUENCIA (HZ)
+PWM1_Set_Duty(0)' VEL0CIDAD 255-> 100%  MAXIMA
+               ' VELOCIDAD 0->0%   MINIMA
+PWM2_Set_Duty(0)
+PWM1_Start()
+PWM2_Start()
+
+UART1_Init(9600)
+
+portb=%00001111
+delay_ms(200)
+portb=%11110000
+delay_ms(200)
+portb=%00001111
+delay_ms(200)
+portb=%00000000
+
+
+
+'****CODIGO SEGUIDOR DE DESTREZA****
+' CONTORNO POR IZQUIERDA   -> ||
+
+BAND = 0
+
+WHILE(1)
+
+sensores=(s4*8)+(S3*4)+(S2*2)+(S1*1)
+PORTB=SENSORES
+
+select case sensores
+case 0' S4 S3 S2 S1 = 0 0 0 0
+     BAND=BAND+1
+     IF BAND<4 THEN
+        SET_MOTOR(vel,vel)
+        DELAY_MS(100)
+     ELSE
+         IF (BAND>4) AND (BAND <24) THEN
+             SET_MOTOR(-(vel/2),vel/2)
+            DELAY_MS(10)
+         ELSE
+            SET_MOTOR(vel/2,-(vel/2))
+            TIEMPO
+            TIEMPO
+         END IF
+     END IF
+
+case 1' S4 S3 S2 S1 = 0 0 0 1
+     SET_MOTOR(vel/2,-(vel/2))
+     TIEMPO
+     BAND=0
+case 2' S4 S3 S2 S1 = 0 0 1 0
+     SET_MOTOR(-(vel/2),vel/2)
+     TIEMPO
+     BAND=0
+case 3' S4 S3 S2 S1 = 0 0 1 1
+     SET_MOTOR(VEL,VEL)
+     TIEMPO
+     TIEMPO
+     BAND=0
+case 4' S4 S3 S2 S1 = 0 1 0 0
+     SET_MOTOR(-(vel/2),vel/2)
+     TIEMPO
+     BAND=0
+case 5' S4 S3 S2 S1 = 0 1 0 1
+     SET_MOTOR(vel/2,-(vel/2))
+     TIEMPO
+     BAND=0
+case 6' S4 S3 S2 S1 = 0 1 1 0
+     SET_MOTOR(-(VEL/2),VEL/2)
+     TIEMPO
+     BAND=0
+case 7' S4 S3 S2 S1 = 0 1 1 1
+     SET_MOTOR(-(VEL/2),VEL/2)
+     TIEMPO
+     BAND=0
+case 8' S4 S3 S2 S1 = 1 0 0 0
+     SET_MOTOR(vel,vel)
+     TIEMPO
+     TIEMPO
+     BAND=0
+case 9' S4 S3 S2 S1 = 1 0 0 1
+     SET_MOTOR(vel/2,-(vel/2))
+     TIEMPO
+     BAND=0
+case 10'S4 S3 S2 S1 = 1 0 1 0
+     SET_MOTOR(-(vel/2),vel/2)
+     TIEMPO
+     BAND=0
+case 11'S4 S3 S2 S1 = 1 0 1 1
+     SET_MOTOR(vel,vel)
+     TIEMPO
+     BAND=0
+case 12'S4 S3 S2 S1 = 1 1 0 0
+     SET_MOTOR(-(vel/2),vel/2)
+     TIEMPO
+     BAND=0
+case 13'S4 S3 S2 S1 = 1 1 0 1
+     SET_MOTOR(vel/2,-(vel/2))
+     TIEMPO
+     BAND=0
+case 14'S4 S3 S2 S1 = 1 1 1 0
+     SET_MOTOR(-(vel/2),vel/2)
+     TIEMPO
+     BAND=0
+case 15'S4 S3 S2 S1 = 1 1 1 1
+     SET_MOTOR(-(vel/2),vel/2)
+     TIEMPO
+     BAND=0
+end select
+
+WEND
+end.
