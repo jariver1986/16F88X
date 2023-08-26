@@ -1,0 +1,127 @@
+program Encendido_Android
+
+dim receive,dato,centinela,modo AS BYTE
+' Declarations section
+dim rele1 as sbit at RB1_bit
+    rele2 as sbit at RA3_bit
+    rele3 as sbit at RC2_bit
+    rele4 as sbit at RA4_bit
+    rele5 as sbit at RC1_bit
+    rele6 as sbit at RA2_bit
+    rele7 as sbit at RA5_bit
+    rele8 as sbit at RB2_bit
+
+    rele1_Direction as sbit at TRISB1_bit
+    rele2_Direction as sbit at TRISA3_bit
+    rele3_Direction as sbit at TRISC2_bit
+    rele4_Direction as sbit at TRISA4_bit
+    rele5_Direction as sbit at TRISC1_bit
+    rele6_Direction as sbit at TRISA2_bit
+    rele7_Direction as sbit at TRISA5_bit
+    rele8_Direction as sbit at TRISB2_bit
+
+main:
+     OSCCON=0X75   'oscilador interno de 4 MHZ
+' Registro Oscilador de control
+     OPTION_REG = 0x86
+     UART1_Init(9600)
+  ' Registro PUERTO A
+     TRISA = 0X00 ' PORTA.0 Entrada
+     PORTA = 0X00
+' Registro PUERTO B
+     TRISB = 0X00 ' PORTB
+     PORTB = 0X00
+  ' Registro PUERTO C
+     TRISC = 0X80 ' PORTC salidas
+     PORTC = 0X00
+
+     TRISE = 0X00 ' PORTE  como salidas digital
+     PORTE = 0X00
+
+     ANSEL = 0X00 ' AN<7:0>
+     ANSELH = 0X00 ' AN<13:8>
+
+       rele1 = 0
+        rele2 = 0
+        rele3 = 0
+        rele4 = 0
+        rele5 = 0
+        rele6 = 0
+        rele7 = 0
+        rele8 = 0
+
+     modo=0x00
+while(1)
+      if (UART1_Data_Ready() = 1) then
+        receive = UART1_Read()
+        dato=receive
+        PORTB.RB4=1
+        PORTB.RB5=1
+        PORTB.RB6=1
+        PORTB.RB7=1
+        Delay_100ms
+        PORTB.RB4=0
+        PORTB.RB5=0
+        PORTB.RB6=0
+        PORTB.RB7=0
+        centinela=1
+      end if
+
+      if centinela=1 then
+       centinela=0
+       if (dato="3") then
+           rele1=1
+       end if
+       if (dato="1") then
+           rele1=1
+           Delay_ms(1000)
+           rele2=1
+           Delay_ms(400)
+           rele2=0
+       end if
+       if (dato="2") then
+           rele1=0
+       end if
+       if (dato="Q") then
+           rele3=1
+           Delay_1sec
+           Delay_1sec
+           Delay_1sec
+           rele3=0
+       end if
+       if (dato="W") then
+           rele4=1
+           Delay_1sec
+           Delay_1sec
+           Delay_1sec
+           rele4=0
+       end if
+       if (dato="A") then
+           rele5=1
+           Delay_ms(200)
+           rele5=0
+       end if
+       if (dato="S") then
+           rele6=1
+           Delay_ms(200)
+           rele6=0
+       end if
+       if (dato="X") then
+         rele8 = not rele8
+       end if
+
+       if (dato="Z") then
+           rele7=1
+           Delay_ms(300)
+           rele7=0
+           Delay_ms(200)
+           rele7=1
+           Delay_ms(300)
+           rele7=0
+           Delay_ms(200)
+       end if
+
+      end if
+
+ wend
+end.

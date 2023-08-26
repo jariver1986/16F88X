@@ -1,0 +1,57 @@
+program encendido_pc_ldr
+
+DIM luz AS WORD
+DIM centinela as byte
+
+' declarcion de funciones
+
+sub procedure led()
+      PORTB.RB0=1
+      Delay_ms(1000)
+      PORTB.RB0=0
+      Delay_ms(1000)
+end sub
+
+sub procedure activa_relee()
+      PORTB.RB1=1
+end sub
+
+sub procedure desactiva_relee()
+      PORTB.RB0=0
+end sub
+
+
+main:
+ANSEL  = %00000001  ' HABILITO CONVERTIDOR ANALOGICO PIN 1
+ANSELH = %00000000
+'ENCERA PUERTO A
+TRISA  = %00000001
+PORTA  = %00000000
+'ENCERA PUERTO B
+TRISB  = %00000000
+PORTB  = %00000000
+'ENCERA PUERTO C
+TRISC  = 0X00
+PORTC  = 0X00
+'ENCERA PUERTO D
+TRISD  = 0X00
+PORTD  = 0X00
+'OSCILACION INTERNA 8 MHZ
+OSCCON = 0X75
+
+centinela=1
+
+WHILE(1)
+   LUZ = ADC_Read(0)>>2
+   Delay_100ms
+   if (LUZ<200) and (centinela=1) then
+      led()
+      activa_relee()
+      Delay_1sec
+      desactiva_relee()
+      centinela=0
+   end if
+    
+
+WEND
+end.

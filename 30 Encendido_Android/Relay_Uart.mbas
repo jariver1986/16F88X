@@ -1,0 +1,51 @@
+program Relay_Uart
+
+DIM receive,dato,contador AS BYTE
+
+main:
+     OSCCON=0X75   'oscilador interno de 4 MHZ
+' Registro Oscilador de control
+     OPTION_REG = 0x06
+     UART1_Init(9600)
+  ' Registro PUERTO A
+     TRISA = 0X00 ' PORTA.0 Entrada
+     PORTA = 0X00
+' Registro PUERTO B
+     TRISB = 0X00 ' PORTB
+     PORTB = 0X00
+  ' Registro PUERTO C
+     TRISC = 0X80 ' PORTC salidas
+     PORTC = 0X00
+
+     TRISE = 0X00 ' PORTE  como salidas digital
+     PORTE = 0X00
+
+     ANSEL = 0X00 ' AN<7:0>
+     ANSELH = 0X00 ' AN<13:8>
+     dato=0
+     contador=0
+while(1)
+
+      if (UART1_Data_Ready() = 1) then
+        receive = UART1_Read()
+        dato=receive
+      end if
+      
+     if (dato=0x31) then
+         PORTB.RB0=1
+         Delay_1sec
+         PORTB.RB0=0
+     end if
+     
+     if (dato=0x32) then
+         PORTB.RB1=1
+         Delay_1sec
+         Delay_1sec
+         Delay_1sec
+         Delay_1sec
+         Delay_1sec
+         PORTB.RB1=0
+     end if
+     
+ wend
+end.

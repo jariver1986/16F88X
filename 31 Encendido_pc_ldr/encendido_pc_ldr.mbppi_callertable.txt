@@ -1,0 +1,8 @@
+main
+	Adc_Read
+		Delay_22us
+	Delay_100ms
+	led
+	activa_relee
+	Delay_1sec
+	desactiva_relee
