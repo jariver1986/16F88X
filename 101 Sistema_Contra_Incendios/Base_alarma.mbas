@@ -1,0 +1,64 @@
+program Base_alarma
+
+DIM receive,dato,contador AS BYTE
+
+main:
+     OSCCON=0X75   'oscilador interno de 4 MHZ
+' Registro Oscilador de control
+     OPTION_REG = 0x06
+     UART1_Init(9600)
+     
+  ' Registro PUERTO A
+     TRISA = 0X00
+     PORTA = 0X00
+' Registro PUERTO B
+     TRISB = 0X00
+     PORTB = 0X00
+  ' Registro PUERTO C
+     TRISC = 0X80
+     PORTC = 0X00
+  ' Registro PUERTO D
+
+     PORTD = 0x00
+     TRISD = 0x00
+
+     TRISE = 0X00 ' PORTE  como salidas digital
+     PORTE = 0X00
+
+     ANSEL = 0X00 ' AN<7:0>
+     ANSELH = 0X00 ' AN<13:8>
+     dato=0
+     contador=0
+     UART1_Write_text("A")
+     Delay_1sec
+
+while(1)
+
+      if (UART1_Data_Ready() = 1) then
+        receive = UART1_Read()
+        dato=receive
+      end if
+     if (dato="A") then
+         PORTC.RC1=1
+         dato=0
+         'llamada
+          PORTD.RD4=1
+          Delay_ms(800)
+          PORTD.RD4=0
+          Delay_ms(800)
+          PORTD.RD4=1
+          Delay_ms(800)
+          PORTD.RD4=0
+          Delay_ms(1000)
+         'encender bomba
+          PORTD.RD5=1
+          Delay_ms(1000)
+          Delay_ms(1000)
+         'encender alarma
+          PORTD.RD6=1
+          Delay_ms(1000)
+          Delay_ms(1000)
+     end if
+
+ wend
+end.

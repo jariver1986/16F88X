@@ -1,0 +1,49 @@
+program base_control
+dim LCD_RS as sbit at RB2_bit
+    LCD_EN as sbit at RB3_bit
+    LCD_D4 as sbit at RB4_bit
+    LCD_D5 as sbit at RB5_bit
+    LCD_D6 as sbit at RB6_bit
+    LCD_D7 as sbit at RB7_bit
+
+    LCD_RS_Direction as sbit at TRISB2_bit
+    LCD_EN_Direction as sbit at TRISB3_bit
+    LCD_D4_Direction as sbit at TRISB4_bit
+    LCD_D5_Direction as sbit at TRISB5_bit
+    LCD_D6_Direction as sbit at TRISB6_bit
+    LCD_D7_Direction as sbit at TRISB7_bit
+
+DIM HUMEDAD,LUZ AS WORD
+DIM TEXTO1,TEXTO2 AS STRING [10]
+main:
+OSCCON = 0X75
+PORTA= %00000000
+PORTB= %00000000
+PORTC= %00000000
+TRISA= %00000011
+TRISB= %00000000
+TRISC= %00000000
+ANSEL= %00000011
+ANSELH= %00000000
+UART1_Init(9600)
+Lcd_Init()
+Lcd_Cmd(_LCD_CLEAR)
+while 1
+Lcd_Out(1,1,"VALVULA ABIERTA")
+Lcd_Out(2,1,"RIEGO ENCENDIDO")
+UART1_Write_Text("VALVULA ABIERTA")
+UART1_Write(0X0D)
+UART1_Write(0X0A)
+PORTB.RB0=1
+Delay_1sec
+Lcd_Cmd(_LCD_CLEAR)
+Lcd_Out(1,1,"VALVULA CERRADA")
+Lcd_Out(2,1,"RIEGO APAGADO")
+UART1_Write_Text("VALVULA CERRADA")
+UART1_Write(0X0D)
+UART1_Write(0X0A)
+PORTB.RB0=0
+Delay_1sec
+Lcd_Cmd(_LCD_CLEAR)
+wend
+end.

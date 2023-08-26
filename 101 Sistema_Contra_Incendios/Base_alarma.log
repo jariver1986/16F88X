@@ -1,0 +1,15 @@
+Line	MessageNo	File Name
+0	1	mBPic.exe -DBG -pP16F887 -MSF -Y -DL -O11111114 -fo8 -N"C:\Users\johnanibal\Documents\Desarrollo_Mikrobasic\Proyectos 2014\Sistema_Contra_Incendios\Base_alarma.mbppi" -SP"C:\Program Files (x86)\Mikroelektronika\mikroBasic PRO for PIC\defs\" -SP"C:\Program Files (x86)\Mikroelektronika\mikroBasic PRO for PIC\Uses\P16\" -SP"C:\Users\johnanibal\Documents\Desarrollo_Mikrobasic\Proyectos 2014\Sistema_Contra_Incendios\" "__Lib_Math.mcl" "__Lib_MathDouble.mcl" "__Lib_System.mcl" "__Lib_Delays.mcl" "__Lib_UART_c67.mcl" "Base_alarma.mbas"	 
+diagnostics: 0	154	Available RAM: 352 [bytes], Available ROM: 8192 [bytes]	 
+diagnostics: 0	132	Compilation Started	C:\Users\johnanibal\Documents\Desarrollo_Mikrobasic\Proyectos 2014\Sistema_Contra_Incendios\Base_alarma.mbas
+hint: 1	1015	Hint: Compiling unit "C:\Users\johnanibal\Documents\Desarrollo_Mikrobasic\Proyectos 2014\Sistema_Contra_Incendios\Base_alarma.mbas"	Base_alarma.mbas
+hint: 9	1006	Warning: Generated baud rate is 9615 bps (error = 0.16 percent)	Base_alarma.mbas
+hint: 64	1010	Hint: Unit "Base_alarma.mbas" has been recompiled	Base_alarma.mbas
+diagnostics: 0	133	Compiled Successfully	C:\Users\johnanibal\Documents\Desarrollo_Mikrobasic\Proyectos 2014\Sistema_Contra_Incendios\Base_alarma.mbas
+diagnostics: 0	138	All files Compiled in 31 ms	 
+hint: 0	1143	Used RAM (bytes): 11 (3%)  Free RAM (bytes): 341 (97%)	Used RAM (bytes): 11 (3%)  Free RAM (bytes): 341 (97%)
+hint: 0	1143	Used ROM (program words): 264 (3%)  Free ROM (program words): 7928 (97%)	Used ROM (program words): 264 (3%)  Free ROM (program words): 7928 (97%)
+diagnostics: 0	144	Project Linked Successfully	Base_alarma.mbppi
+diagnostics: 0	139	Linked in 219 ms	 
+diagnostics: 0	140	Project 'Base_alarma.mbppi' completed: 375 ms	 
+diagnostics: 0	103	Finished successfully: 11 feb 2014, 00:19:05	Base_alarma.mbppi
