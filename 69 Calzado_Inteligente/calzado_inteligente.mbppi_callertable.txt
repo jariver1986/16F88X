@@ -1,0 +1,12 @@
+main
+	UART1_Init
+	sensor1
+		Div_16x16_U
+	sensor2
+		Div_16x16_U
+	WordToStr
+		Div_16x16_U
+	UART1_Write_Text
+		UART1_Write
+	BUZZER
+	Delay_1sec

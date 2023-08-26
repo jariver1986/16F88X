@@ -1,0 +1,171 @@
+program robot_barco_radiocontrolado
+
+SYMBOL DIR1= PORTA.2  'CONTROL DIRECCION MOTOR1
+SYMBOL NDIR1=PORTA.4  'CONTROL DIRECCION MOTOR1
+
+SYMBOL DIR2= PORTA.3  'CONTROL DIRECCION MOTOR2
+SYMBOL NDIR2=PORTA.5  'CONTROL DIRECCION MOTOR2
+
+symbol S1=PORTA.7   'SENSOR INFRARROJO DELANTE
+symbol S2=PORTB.3   'SENSOR INFRARROJO DELANTE
+symbol S3=PORTB.0   'SENSOR INFRARROJO ATRAS
+symbol S4=PORTA.0   'SENSOR INFRARROJO ATRAS
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' ULTRASONICO 1               'SENSOR FRENTE
+SYMBOL DISPARO1 = PORTC.5 'PIN TRIGGER
+SYMBOL ECO1 = PORTC.4     'PIN ECHO
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+' ULTRASONICO 2                'SENSOR ATRAS
+SYMBOL DISPARO2 = PORTA.6  'PIN TRIGGER
+SYMBOL ECO2 = PORTA.1      'PIN ECHO
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+' declaracion de variables
+dim distancia1, distancia2, distancia3,distancia4 as word
+dim delante,modo,dato_recep,dato as byte
+
+SUB PROCEDURE SET_MOTOR(DIM MOTOR2,MOTOR1 AS INTEGER)
+ '******************** MOTOR 1***************
+   IF(MOTOR1<0)THEN
+     MOTOR1=-MOTOR1
+     DIR1=0
+     NDIR1=1
+   ELSE
+     DIR1=1
+     NDIR1=0
+   END IF
+   '******************** MOTOR 2***************
+     IF(MOTOR2<0)THEN
+     MOTOR2=-MOTOR2
+     DIR2=0
+     NDIR2=1
+   ELSE
+     DIR2=1
+     NDIR2=0
+   END IF
+   PWM1_Set_Duty(MOTOR1)
+   PWM2_Set_Duty(MOTOR2)
+END SUB
+
+sub function ultrasonico1( ) as word
+     dim flanco as byte
+     dim distan,tiempo as word
+     flanco = 0
+
+     disparo1 = 1
+     Delay_us(50)
+     disparo1 = 0
+
+     DO
+          IF( eco1 = 1 )THEN
+               TMR0 = 0
+               flanco = 1
+          END IF
+     LOOP UNTIL( flanco = 1 )
+
+     DO
+          IF( eco1 = 0 )THEN
+               tiempo = TMR0
+               flanco = 0
+          END IF
+          if(TMR0>254)THEN
+           FLANCO=0
+          END IF
+     LOOP UNTIL( FLANCO = 0 )
+
+     distan = (tiempo*128)/58
+     Delay_ms (50)
+     result = distan
+end sub
+'*******************************************************************************
+sub function ultrasonico2( ) as word
+     dim flanco as byte
+     dim distan,tiempo as word
+
+     flanco = 0
+
+     disparo2 = 1
+     Delay_us(50)
+     disparo2 = 0
+
+     DO
+          IF( eco2 = 1 )THEN
+               TMR0 = 0
+               flanco = 1
+          END IF
+     LOOP UNTIL( flanco = 1 )
+
+     DO
+          IF( eco2 = 0 )THEN
+               tiempo = TMR0
+               flanco = 0
+          END IF
+          if(TMR0>254)THEN
+           FLANCO=0
+          END IF
+     LOOP UNTIL( FLANCO = 0 )
+
+     distan = (tiempo*128)/58
+     Delay_ms (50)
+     result = distan
+end sub
+
+main:
+     OSCCON = 0X65
+
+     OPTION_REG = %10000110
+' REGISTRO PORTA
+     TRISA = %10000011
+     PORTA = %00000000
+
+' REGISTRO PORTB
+     TRISB = %00000000  'PIN RB1,RB2  ENTRADAS PARA SENSAR CORRIENTE DE MOTORES
+     PORTB = %00000000
+
+' REGISTRO PORTC
+     TRISC = %10010001
+     PORTC = %00000000
+' REGISTRO ANSEL
+     ANSEL =  %00000000 ' RE1-RE2 ANALOGICO, RESTO DIGITALES
+     ANSELH = %00000000
+     UART1_Init(9600)
+' CONFIGURO EL PWM A UNA FRECUENCIA DE 1000HZ
+     PWM1_Init(1000)
+     PWM2_Init (1000)
+     PWM1_Start ()
+     PWM2_Start ()
+     PWM1_Set_Duty (0)
+     PWM2_Set_Duty (0)
+     SET_MOTOR(255,255)
+     Delay_ms(500)
+     SET_MOTOR(0,0)
+     dato=0
+      dato_recep=0
+     PORTB=0XFF
+     Delay_ms(500)
+     PORTB=0X00
+WHILE(1)
+           if (UART1_Data_Ready() = 1) then
+              dato_recep = UART1_Read()
+              dato= dato_recep
+           end if
+
+               
+               
+           if dato="W" then     'IZQUIERDA
+              SET_MOTOR(255,255)
+              PORTB=0XFF
+           end if
+           if dato="X" then     'DERECHA
+              SET_MOTOR(-255,-255)
+              PORTB=0X00
+           end if
+           if dato="S" then     'PARAR
+              SET_MOTOR(0,0)
+           end if
+
+
+WEND
+end.

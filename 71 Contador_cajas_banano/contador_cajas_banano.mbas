@@ -1,0 +1,119 @@
+program contador_cajas_banano
+dim LCD_RS as sbit at RB2_bit
+    LCD_EN as sbit at RB3_bit
+    LCD_D4 as sbit at RB4_bit
+    LCD_D5 as sbit at RB5_bit
+    LCD_D6 as sbit at RB6_bit
+    LCD_D7 as sbit at RB7_bit
+
+    LCD_RS_Direction as sbit at TRISB2_bit
+    LCD_EN_Direction as sbit at TRISB3_bit
+    LCD_D4_Direction as sbit at TRISB4_bit
+    LCD_D5_Direction as sbit at TRISB5_bit
+    LCD_D6_Direction as sbit at TRISB6_bit
+    LCD_D7_Direction as sbit at TRISB7_bit
+
+DIM TIEMPO,TURNO,DATO AS BYTE
+DIM DISTANCIA1,contador, LIMITE AS WORD
+DIM TEXTO AS STRING [10]
+
+sub function ultrasonico1( ) as word
+     dim flanco as byte
+     dim distan,tiempo as word
+     flanco = 0
+
+     PORTB.RB0 = 1
+     Delay_us(50)
+     PORTB.RB0 = 0
+
+     DO
+          IF( PORTB.RB1 = 1 )THEN
+               TMR0 = 0
+               flanco = 1
+          END IF
+     LOOP UNTIL( flanco = 1 )
+
+     DO
+          IF( PORTB.RB1 = 0 )THEN
+               tiempo = TMR0
+               flanco = 0
+          END IF
+          if(TMR0>254)THEN
+           FLANCO=0
+          END IF
+     LOOP UNTIL( FLANCO = 0 )
+
+     distan = (tiempo*128)/58
+     Delay_ms (50)
+     result = distan
+end sub
+main:
+OPTION_REG = %00000110
+OSCCON = 0x65
+PORTA  =  0
+TRISA  =  0
+PORTB  =  0
+TRISB  =  %00000010
+PORTC  =  0
+TRISC  =  %10000000
+ANSEL =0
+ANSELH = 0
+UART1_Init(9600)
+Lcd_Init()
+Lcd_Cmd(_lcd_clear)
+TURNO=0
+contador =0
+limite=0
+Lcd_Out(1,1,"TECSU")
+Lcd_Out(2,1,"PROYECTO")
+Delay_1sec
+Lcd_Cmd(_lcd_clear)
+Lcd_Out(1,1,"POR:")
+Lcd_Out(2,1,"MARIO VEAS")
+Delay_1sec
+Lcd_Cmd(_lcd_clear)
+Lcd_Out(1,1,"ULTIMO DATO")
+DATO = EEPROM_Read(28)
+Delay_ms(5)
+ByteToStr(dato,texto)
+Lcd_Out(2,1,TEXTO)
+Delay_1sec
+Lcd_Cmd(_lcd_clear)
+WHILE (1)
+
+   distancia1 = ultrasonico1()
+   if DISTANCIA1 <30 then
+      while(DISTANCIA1 <50)
+       distancia1 = ultrasonico1()
+      wend
+      portc.rc3=1
+      Delay_ms(200)
+      portc.rc3=0
+      Delay_ms(200)
+      contador = contador + 1
+      Lcd_Cmd(_lcd_clear)
+      EEPROM_Write(28,CONTADOR)
+      Delay_ms(5)
+       Lcd_Out(1,1,"CONTADOR = ")
+       ByteToStr(contador,texto)
+       Lcd_Out(2,1,TEXTO)
+   end if
+
+   if UART1_Data_Ready=1 then
+      DATO = UART1_Read
+   end if
+   if DATO = "L" then                  'LEE EL DATO DE LA MEMORIA
+      DATO = EEPROM_Read(28)
+      Delay_ms(5)
+      ByteToStr(dato,texto)
+      UART1_Write_Text(TEXTO)
+      DATO=0
+      TEXTO=0
+   end if
+   if DATO = "B" then                    'BORRA EL DATO DE LA MEMORIA
+      EEPROM_Write(28,0)
+      Delay_ms(5)
+   end if
+   Delay_ms(200)
+WEND
+end.

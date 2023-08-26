@@ -1,0 +1,90 @@
+program casa_abierta
+DIM TIEMPO,TURNO AS BYTE
+DIM DISTANCIA AS WORD
+DIM TEXTO AS STRING [10]
+main:
+OPTION_REG = %00000110
+OSCCON = 0x65
+PORTA  =  %00001100
+TRISA  =  %00010011
+PORTB  =  0
+TRISB  =  0
+PORTC  =  0
+TRISC  =  %00000001
+ANSEL =0
+ANSELH = 0
+UART1_Init(9600)
+TURNO=0
+WHILE (1)
+   PORTC.RC1=1
+   Delay_us(150)
+   PORTC.RC1=0
+   do
+     IF PORTC.RC0=1 THEN  'SE DETECTO EL PRIMER PULSO
+      TMR0=0
+      TURNO=1
+     END IF
+   loop until(TURNO=1)
+   DO
+     IF PORTC.RC0= 0 THEN
+        TIEMPO = TMR0
+        TURNO=0
+     END IF
+   LOOP UNTIL(TURNO=0)
+   DISTANCIA = (TIEMPO*128)/58    'FACTOR DE CONVERSION
+   WordToStr(DISTANCIA,TEXTO)
+   UART1_Write_Text(" DISTANCIA = ")
+   UART1_Write_Text(TEXTO)
+   UART1_Write_Text(" cm  ")
+   UART1_Write(0x0D)
+   UART1_Write(0x0A)
+   if DISTANCIA < 100 then
+      PORTB = 0XFF
+      Delay_ms(200)
+      PORTB = 0X00
+      Delay_ms(200)
+      PORTB = 0XFF
+      Delay_ms(200)
+      PORTB = 0X00
+      Delay_ms(200)
+      Delay_ms(3000)
+   end if
+   if PORTA.RA0 = 0 then
+      UART1_Write_Text(" PIE DERECHO FUERA TRAYECTORIA ")
+      UART1_Write(0x0D)
+      UART1_Write(0x0A)
+      PORTA.RA2 = 0
+      PORTB = 0XFF
+      Delay_ms(200)
+      PORTB = 0X00
+      Delay_ms(200)
+      PORTB = 0XFF
+      Delay_ms(200)
+      PORTB = 0X00
+      Delay_ms(200)
+      Delay_ms(3000)
+   ELSE
+      PORTA.RA2 = 1
+   end iF
+   if PORTA.RA4 = 0 then
+      UART1_Write_Text(" PIE IZQUIERDO FUERA TRAYECTORIA ")
+      UART1_Write(0x0D)
+      UART1_Write(0x0A)
+      PORTA.RA3 = 0
+      PORTB = 0XFF
+      Delay_ms(200)
+      PORTB = 0X00
+      Delay_ms(200)
+      PORTB = 0XFF
+      Delay_ms(200)
+      PORTB = 0X00
+      Delay_ms(200)
+      Delay_ms(3000)
+   ELSE
+      PORTA.RA3 = 1
+   end if
+   Delay_1sec
+   
+   
+WEND
+end.

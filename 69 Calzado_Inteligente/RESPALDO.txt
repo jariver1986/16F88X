@@ -1,0 +1,108 @@
+program calzado_inteligente
+DIM contador, comando,limite as byte
+DIM DISTANCIA_DERECHA, DISTANCIA_IZQUIERDA,acumulador1,acumulador2 AS WORD
+DIM TEXTO AS STRING [10]
+sub function sensor2( ) as word
+     dim turno as byte
+     dim distancia,tiempo as word
+     turno = 0
+     PORTC.RC2 = 1
+     Delay_us(150)
+     PORTC.RC2 = 0
+     DO
+          IF( PORTC.RC3 = 1 )THEN
+               TMR0 = 0
+               turno = 1
+          END IF
+     LOOP UNTIL( turno = 1 )
+     DO
+          IF( PORTC.RC3 = 0 )THEN
+               tiempo = TMR0
+               turno = 0
+          END IF
+     LOOP UNTIL( turno = 0 )
+     distancia = (tiempo*128)/58
+     Delay_ms (50)
+     result = distancia
+end sub
+sub function sensor1( ) as word
+     dim turno as byte
+     dim distancia,tiempo as word
+     turno = 0
+     PORTC.RC0 = 1
+     Delay_us(150)
+     PORTC.RC0 = 0
+     DO
+          IF( PORTC.RC1 = 1 )THEN
+               TMR0 = 0
+               turno = 1
+          END IF
+     LOOP UNTIL( turno = 1 )
+     DO
+          IF( PORTC.RC1 = 0 )THEN
+               tiempo = TMR0
+               turno = 0
+          END IF
+     LOOP UNTIL( turno = 0 )
+     distancia = (tiempo*128)/58
+     Delay_ms (50)
+     result = distancia
+end sub
+sub procedure BUZZER
+    PORTA.RA0 = 1
+    Delay_ms(200)
+    PORTA.RA0 = 0
+    Delay_ms(200)
+    PORTA.RA0 = 1
+    Delay_ms(200)
+    PORTA.RA0 = 0
+    Delay_ms(200)
+end sub
+
+main:
+OPTION_REG =  6
+OSCCON     =  0x65
+PORTA      =  %00000110
+TRISA      =  0
+PORTB      =  0
+TRISB      =  %00000010
+PORTC      =  0
+TRISC      =  %10001010
+ANSEL      =0
+ANSELH     = 0  }
+
+UART1_Init(9600)
+acumulador1 = 0
+acumulador2 = 0
+contador = 0
+limite   = 50
+comando=0
+WHILE (1)
+   ' LECTURA DE SENSORES
+   DISTANCIA_DERECHA = SENSOR1
+   DISTANCIA_IZQUIERDA = SENSOR2
+   
+   'COMPARACION DE DATOS
+   if DISTANCIA_DERECHA < 50 then
+          WordToStr(DISTANCIA_DERECHA,texto)
+          UART1_Write_Text(" ATENCION OBJETO POR EL COSTADO DERECHO A ")
+          UART1_Write_Text(TEXTO)
+          UART1_Write_Text(" CENTIMETROS")
+          BUZZER
+          Delay_1sec
+          Delay_1sec
+          Delay_1sec
+   end if
+    if DISTANCIA_IZQUIERDA < 50 then
+       WordToStr(DISTANCIA_IZQUIERDA,texto)
+        UART1_Write_Text(" ATENCIÓN OBJETO POR EL COSTADO IZQUIERDO A ")
+        UART1_Write_Text(TEXTO)
+        UART1_Write_Text(" CENTIMETROS")
+        BUZZER
+        Delay_1sec
+        Delay_1sec
+        Delay_1sec
+    end if
+   Delay_ms(1000)
+WEND
+end.
